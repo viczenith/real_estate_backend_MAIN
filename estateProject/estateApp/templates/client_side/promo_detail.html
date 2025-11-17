@@ -1,0 +1,214 @@
+{% extends 'client_base.html' %}
+{% load humanize %}
+{% block content %}
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Client Dashboard</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'client-dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">Promo Details</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h3>{{ promo.name }} <span class="badge bg-danger">-{{ promo.discount }}%</span></h3>
+        <p class="small text-muted mb-0">Valid: {{ promo.start|date:"M d, Y" }} → {{ promo.end|date:"M d, Y" }}</p>
+      </div>
+      <div class="text-end">
+        <p class="small text-muted mb-1">Ends</p>
+        <p class="fw-semibold mb-0">{{ promo.end|timeuntil }}</p>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <p>{{ promo.description|linebreaksbr }}</p>
+    </div>
+
+    <div>
+      <h5 class="mb-2">Applies to estates</h5>
+      {% with estates=promo.estates.all %}
+        {% if estates %}
+          <div class="row g-2">
+            {% for estate in estates %}
+              <div class="col-md-4">
+                <div class="card p-2 h-100">
+                  <div class="card-body">
+                    <h6 class="card-title mb-1">{{ estate.name }}</h6>
+                    <p class="small text-muted mb-1">{{ estate.location }}</p>
+
+                    <!-- VIEW PLOTS button opens modal and fetches sizes/prices -->
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary view-sizes-btn"
+                            data-estate-id="{{ estate.id }}">
+                      View plots & prices
+                    </button>
+
+                    <!-- optional link to estate page -->
+                    <a href="{% url 'estates-list' %}?estate={{ estate.id }}" class="btn btn-sm btn-link ms-2">Open estate page</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">This promotion applies to all estates.</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+</main>
+
+{# -------------------- Modal (single instance) -------------------- #}
+<div class="modal fade" id="estateSizesModal" tabindex="-1" aria-labelledby="estateSizesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="estateSizesModalLabel">Plot sizes & prices</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div id="sizesModalSpinner" class="text-center py-4">
+          <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+        </div>
+
+        <div id="sizesModalContent" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div><strong id="modalEstateName"></strong></div>
+            <div><span id="modalPromoBadge" class="badge bg-danger d-none"></span></div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle" id="sizesTable">
+              <thead class="table-light">
+                <tr>
+                  <th>Size</th>
+                  <th class="text-end">Price</th>
+                </tr>
+              </thead>
+              <tbody id="sizesTableBody">
+                <!-- filled by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="sizesModalEmpty" class="d-none text-center py-4">
+          <p class="text-muted">No sizes/prices found for this estate.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <a href="{% url 'estates-list' %}" class="btn btn-primary btn-sm">Browse estates</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #sizesTable tbody tr td { vertical-align: middle; }
+  #modalPromoBadge { font-size: .95rem; padding:.45rem .6rem; }
+</style>
+
+{# -------------------- JS: same modal behavior as the estates page -------------------- #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const listUrl = "{% url 'estates-list' %}"; // EstateListView endpoint that returns JSON for ?estate_id=
+  const modalEl = document.getElementById('estateSizesModal');
+  const modal = new bootstrap.Modal(modalEl, {});
+  const spinner = document.getElementById('sizesModalSpinner');
+  const content = document.getElementById('sizesModalContent');
+  const emptyMsg = document.getElementById('sizesModalEmpty');
+
+  function formatNGN(v) {
+    if (v === null || v === undefined) return 'NO AMOUNT SET';
+    try {
+      const opts = { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 2 };
+      return new Intl.NumberFormat('en-NG', opts).format(v);
+    } catch (e) {
+      return '₦' + Number(v).toLocaleString();
+    }
+  }
+
+  document.querySelectorAll('.view-sizes-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const estateId = this.dataset.estateId;
+      if (!estateId) return;
+
+      // reset modal UI
+      spinner.classList.remove('d-none');
+      content.classList.add('d-none');
+      emptyMsg.classList.add('d-none');
+      document.getElementById('sizesTableBody').innerHTML = '';
+      document.getElementById('modalEstateName').textContent = '';
+      document.getElementById('modalPromoBadge').classList.add('d-none');
+
+      modal.show();
+
+      fetch(`${listUrl}?estate_id=${encodeURIComponent(estateId)}`, {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      }).then(resp => {
+        if (!resp.ok) throw new Error('Network error');
+        return resp.json();
+      }).then(json => {
+        spinner.classList.add('d-none');
+
+        const sizes = json.sizes || [];
+        if (!sizes.length) {
+          emptyMsg.classList.remove('d-none');
+          return;
+        }
+
+        content.classList.remove('d-none');
+        document.getElementById('modalEstateName').textContent = json.estate_name || 'Estate';
+
+        if (json.promo && json.promo.active) {
+          const badge = document.getElementById('modalPromoBadge');
+          badge.textContent = `–${json.promo.discount_pct}%`;
+          badge.classList.remove('d-none');
+        }
+
+        const tbody = document.getElementById('sizesTableBody');
+        sizes.forEach(s => {
+          const tr = document.createElement('tr');
+
+          const tdSize = document.createElement('td');
+          tdSize.textContent = s.size || '-';
+          tr.appendChild(tdSize);
+
+          const tdPrice = document.createElement('td');
+          tdPrice.classList.add('text-end');
+
+          if (s.amount === null) {
+            tdPrice.innerHTML = '<span class="text-muted">NO AMOUNT SET</span>';
+          } else {
+            if (s.discounted !== null && s.discount_pct !== null) {
+              tdPrice.innerHTML =
+                `<div><s>${formatNGN(s.amount)}</s></div>
+                 <div class="fw-bold text-success">${formatNGN(s.discounted)}</div>
+                 <div class="small text-muted">-${s.discount_pct}% promo</div>`;
+            } else {
+              tdPrice.textContent = formatNGN(s.amount);
+            }
+          }
+          tr.appendChild(tdPrice);
+          tbody.appendChild(tr);
+        });
+      }).catch(err => {
+        console.error(err);
+        spinner.classList.add('d-none');
+        emptyMsg.classList.remove('d-none');
+        emptyMsg.innerHTML = '<p class="text-danger">Could not load sizes. Try again later.</p>';
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

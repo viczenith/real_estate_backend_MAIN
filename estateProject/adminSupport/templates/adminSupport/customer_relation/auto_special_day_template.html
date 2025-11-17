@@ -1,0 +1,847 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Auto Special Day Templates{% endblock %}
+
+{% block extra_css %}
+<style>
+    #tplList .tpl-card {
+        overflow: hidden;
+    }
+
+    #tplList .tpl-card-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: .5rem 1rem;
+    }
+
+    #tplList .tpl-card-content {
+        min-width: 0;
+        flex: 1 1 260px;
+    }
+
+    #tplList .tpl-actions {
+        flex: 0 0 auto;
+    }
+
+    #tplList .tpl-title {
+        font-weight: 600;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    #tplList .tpl-meta {
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    #tplList .tpl-message {
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 576px) {
+        #tplList .tpl-actions {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            gap: .5rem;
+        }
+
+        #tplList .tpl-card-row {
+            gap: .5rem;
+        }
+    }
+
+    /* Prevent table cells from pushing out on small screens */
+    #eventsTableBody td,
+    #eventsTableBody th {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1>Special Day Templates</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Admin Support</a></li>
+                <li class="breadcrumb-item active">Special Day Templates</li>
+            </ol>
+        </nav>
+    </div>
+    
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" id="btnPrevMonth"><i
+                            class="fas fa-chevron-left"></i></button>
+                    <h5 class="mb-0"><span id="calMonthLabel">Month</span> <span id="calYearLabel">Year</span></h5>
+                    <button class="btn btn-sm btn-outline-secondary" id="btnNextMonth"><i
+                            class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th>Sun</th>
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th>Fri</th>
+                                <th>Sat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendarBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">Loading calendar…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2 small text-muted">
+                    Sunday-first calendar. Nigerian holidays and your saved special events.
+                    <span class="ms-2">Legend: <span title="Nigeria Special Day">🇳🇬</span> = Nigeria special
+                        day</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Special Days Table -->
+        <div class="card mt-3">
+            <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    Special Days in <span id="listMonthYear">Month Year</span>
+                    <span class="badge bg-primary" id="eventsCount">0</span>
+                </h5>
+
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTplModal">
+                    <i class="fas fa-plus me-2"></i>Create Template
+                </button>
+
+                <div class="input-group" style="max-width: 320px;">
+                    <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                    <input type="text" id="eventsSearch" class="form-control"
+                        placeholder="Search by name or description...">
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 140px;">Date</th>
+                                <th>Name</th>
+                                <th style="width: 140px;">Type</th>
+                                <th style="width: 120px;">Country</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No special days found for this
+                                    month.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+        <!-- Add Custom Special Day -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Add Custom Special Day</h5>
+                <small class="text-muted">Your custom day will appear on the calendar and in the monthly list</small>
+            </div>
+            <div class="card-body">
+                <form id="createCustomDayForm" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input type="text" id="customDayName" class="form-control"
+                            placeholder="e.g., Company Anniversary" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="customDayDate" class="form-control" required>
+                    </div>
+                    <input type="hidden" id="customDayType" value="custom">
+
+                    <div class="col-12">
+                        <label class="form-label">Description (optional)</label>
+                        <textarea id="customDayDesc" class="form-control" rows="2"
+                            placeholder="Brief description…"></textarea>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-calendar-plus me-2"></i>Add to
+                            Calendar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Special Day Templates</h5>
+            </div>
+            <div class="card-body">
+                <div id="tplList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"><span
+                                class="visually-hidden">Loading…</span></div>
+                        <p class="mt-2">Loading templates…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="createTplModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Special Day Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createTplForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Pick Special Day (this month)</label>
+                        <select id="createTplSpecialDaySelect" class="form-select">
+                            <option value="">Select a special day (this month)</option>
+                        </select>
+                        <div class="form-text">Selecting a day will auto-fill the template fields below.</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Name</label>
+                                <input type="text" name="name" class="form-control" required
+                                    placeholder="e.g., Independence Day Greeting">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Channel</label>
+                                <select name="channel" class="form-select" required>
+                                    <option value="sms">SMS</option>
+                                    <option value="email">Email</option>
+                                    <option value="inapp">In-App</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audience</label>
+                                <select name="audience" id="audienceSelect" class="form-select" required>
+                                    <option value="">Loading…</option>
+                                </select>
+                                <div class="form-text">Segments: All Users, All Clients, All Marketers, Royal Elite,
+                                    Estate Ambassador</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Send Time</label>
+                                <input type="time" name="time" class="form-control" value="09:00">
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="createEnabled" checked>
+                                <label class="form-check-label" for="createEnabled">Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Subject (optional)</label>
+                                <input type="text" name="subject" class="form-control"
+                                    placeholder="Subject for email/in-app">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea name="message" class="form-control" rows="8" placeholder="Your message…"
+                                    required></textarea>
+                                <div class="form-text">You can use variables like {name}, {email}, {phone}.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                                <h6 class="mb-2">Preview</h6>
+                                <div id="specialTplPreview" class="bg-white p-3 border rounded"
+                                    style="min-height: 100px;">
+                                    <p class="text-muted mb-1">Preview your subject and message here…</p>
+                                    <div class="small text-muted">Variables like {name}, {email}, {phone} will be
+                                        replaced when sending.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" id="btnPreviewSpecialTpl"><i
+                            class="fas fa-eye me-2"></i>Preview</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Template Modal -->
+<div class="modal fade" id="editTplModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Special Day Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTplForm">
+                {% csrf_token %}
+                <input type="hidden" name="id" id="editTplId">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Name</label>
+                                <input type="text" name="name" id="editTplName" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Channel</label>
+                                <select name="channel" id="editTplChannel" class="form-select" required>
+                                    <option value="sms">SMS</option>
+                                    <option value="email">Email</option>
+                                    <option value="inapp">In-App</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audience</label>
+                                <select name="audience" id="editTplAudience" class="form-select" required></select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Send Time</label>
+                                <input type="time" name="time" id="editTplTime" class="form-control">
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="editTplEnabled">
+                                <label class="form-check-label" for="editTplEnabled">Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Subject (optional)</label>
+                                <input type="text" name="subject" id="editTplSubject" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea name="message" id="editTplMessage" class="form-control" rows="8"
+                                    required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm and Status Modals -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm</h5><button type="button" class="btn-close"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmBody">Are you sure?</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmOkBtn">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Status</h5><button type="button" class="btn-close"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="statusBody">Done.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const URLS = {
+            audience: "{% url 'adminSupport:api_audience_options' %}",
+            specialTemplates: "{% url 'adminSupport:api_special_templates_list' %}",
+            specialDays: "{% url 'adminSupport:api_special_days' %}",
+            customDays: "{% url 'adminSupport:api_custom_special_days' %}"
+        };
+        function getCSRF() { const el = document.querySelector('[name=csrfmiddlewaretoken]'); return el ? el.value : ''; }
+        let cur = new Date();
+        let eventsCache = [];
+        let customDaysCache = [];
+        let customDaysLoaded = false;
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const ymdLocal = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+        function setHeader() {
+            const m = monthNames[cur.getMonth()];
+            const y = cur.getFullYear();
+            document.getElementById('calMonthLabel').textContent = m;
+            document.getElementById('calYearLabel').textContent = y;
+            const listMY = document.getElementById('listMonthYear');
+            if (listMY) listMY.textContent = `${m} ${y}`;
+        }
+        function startOfCalendarGrid(d) { const fd = new Date(d.getFullYear(), d.getMonth(), 1); const offset = fd.getDay(); const gridStart = new Date(fd); gridStart.setDate(fd.getDate() - offset); return gridStart; }
+        function isNigeriaEvent(ev) { try { if (ev.extendedProps && (ev.extendedProps.countryCode === 'NG' || ev.extendedProps.source === 'nigerian')) return true; } catch { } try { return /Nigeria|Independence|Democracy|Workers|Good Friday|Easter|Boxing|Christmas|New Year|Eid|Ramadan|Children|Father|Mother/i.test(ev.title || ''); } catch { } return false; }
+        function buildCalendar() { const tbody = document.getElementById('calendarBody'); const gridStart = startOfCalendarGrid(cur); const rows = []; let ptr = new Date(gridStart); for (let r = 0; r < 6; r++) { const cells = []; for (let c = 0; c < 7; c++) { const dateStr = ymdLocal(ptr); const inMonth = ptr.getMonth() === cur.getMonth(); const dayNum = ptr.getDate(); const todays = new Date(); const isToday = ptr.toDateString() === todays.toDateString(); const dayEvents = eventsCache.filter(e => (e.start || '').startsWith(dateStr)); const items = dayEvents.slice(0, 3).map(ev => { const tag = isNigeriaEvent(ev) ? '🇳🇬 ' : ''; return `<div class="small text-truncate" title="${escapeAttr(ev.title || '')}">${tag}${escapeHtml(ev.title || '')}</div>`; }).join(''); const more = dayEvents.length > 3 ? `<div class="small text-muted">+${dayEvents.length - 3} more</div>` : ''; cells.push(`<td class="align-top ${inMonth ? '' : 'text-muted'}" style="min-height:90px"><div class="d-flex justify-content-between"><div class="fw-semibold">${dayNum}</div>${isToday ? '<span class="badge bg-warning text-dark">Today</span>' : ''}</div><div>${items}${more}</div></td>`); ptr.setDate(ptr.getDate() + 1); } rows.push(`<tr>${cells.join('')}</tr>`); } tbody.innerHTML = rows.join(''); }
+        function scheduleMonthAutoAdvance() {
+            const now = new Date(); const nextMonthFirst = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 1, 0, 0); const delay = Math.max(5_000, nextMonthFirst.getTime() - now.getTime()); setTimeout(async () => { // Snap to system month on boundary
+                const sysNow = new Date(); cur = new Date(sysNow.getFullYear(), sysNow.getMonth(), 1); await reloadCalendar(); scheduleMonthAutoAdvance();
+            }, delay);
+        }
+        async function loadEvents() {
+            const y = cur.getFullYear();
+            const m = cur.getMonth() + 1;
+            try {
+                const resp = await fetch(`${URLS.specialDays}?year=${y}&month=${m}`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error('Failed to load events');
+                const data = await resp.json();
+                eventsCache = data.events || [];
+            } catch (err) {
+                console.error('Backend events failed, attempting Nager NG fallback…', err);
+                // Fallback: Nager API for Nigeria, filtered to current month
+                try {
+                    const r = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/NG`);
+                    if (!r.ok) throw new Error('Nager NG API failed');
+                    const holidays = await r.json();
+                    const monthStr = String(m).padStart(2, '0');
+                    eventsCache = holidays
+                        .filter(h => (h.date || '').startsWith(`${y}-${monthStr}-`))
+                        .map((h, idx) => ({
+                            id: `ng-${y}${monthStr}-${idx}`,
+                            title: h.localName || h.name,
+                            start: h.date,
+                            extendedProps: { countryCode: 'NG', source: 'nigerian', name: h.localName || h.name, type: 'national' }
+                        }));
+                } catch (fbErr) {
+                    console.warn('Nager fallback failed; using minimal static NG set.', fbErr);
+                    const fallback = [
+                        { date: `${y}-01-01`, title: "New Year's Day" },
+                        { date: `${y}-06-12`, title: 'Democracy Day' },
+                        { date: `${y}-10-01`, title: 'Independence Day' },
+                        { date: `${y}-12-25`, title: 'Christmas Day' },
+                        { date: `${y}-12-26`, title: 'Boxing Day' }
+                    ];
+                    const monthStr2 = String(m).padStart(2, '0');
+                    eventsCache = fallback
+                        .filter(h => h.date.startsWith(`${y}-${monthStr2}-`))
+                        .map((h, idx) => ({ id: `ng-fb-${y}${monthStr2}-${idx}`, title: h.title, start: h.date, extendedProps: { countryCode: 'NG', source: 'nigerian', name: h.title, type: 'national' } }));
+                }
+            }
+            // Enrich with additional Nigerian observances (unofficial/popular days)
+            try {
+                const addl = buildAdditionalNigeriaEventsForMonth(y, m);
+                const seen = new Set((eventsCache || []).map(ev => normalizeHolidayKey((ev.start || '').slice(0, 10), (ev.extendedProps?.name || ev.title || ''))));
+                for (const ev of addl) {
+                    const key = normalizeHolidayKey((ev.start || '').slice(0, 10), (ev.extendedProps?.name || ev.title || ''));
+                    if (!seen.has(key)) {
+                        eventsCache.push(ev);
+                        seen.add(key);
+                    }
+                }
+            } catch { }
+        }
+        async function loadCustomDays(force = false) {
+            if (customDaysLoaded && !force) {
+                return customDaysCache;
+            }
+            try {
+                const resp = await fetch(URLS.customDays, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error('Failed to load custom special days');
+                const data = await resp.json();
+                customDaysCache = Array.isArray(data.customDays) ? data.customDays : [];
+            } catch (err) {
+                console.error('Failed to load custom special days', err);
+                customDaysCache = [];
+            } finally {
+                customDaysLoaded = true;
+            }
+            return customDaysCache;
+        }
+        async function reloadCalendar() {
+            setHeader();
+            await loadCustomDays();
+            await loadEvents();
+            buildCalendar();
+            renderEventsTable(document.getElementById('eventsSearch')?.value || '');
+        }
+
+        // Populate the "Pick Special Day" dropdown in the Create Template modal using current-month events
+        function populateCreateTplSpecialDayDropdown() {
+            const sel = document.getElementById('createTplSpecialDaySelect');
+            if (!sel) return;
+            const items = (eventsCache || [])
+                .filter(ev => isNigeriaEvent(ev) || ev.extendedProps?.custom_admin || (ev.extendedProps?.source || '').toLowerCase() === 'custom')
+                .slice()
+                .sort((a, b) => (a.start || '').localeCompare(b.start || '') || (a.title || '').localeCompare(b.title || ''))
+                .map(ev => {
+                    const d = (ev.start || '').slice(0, 10);
+                    const nice = d ? new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+                    const name = ev.extendedProps?.name || ev.title || 'Event';
+                    const flag = (ev.extendedProps?.countryCode === 'NG' || ev.extendedProps?.source === 'nigerian') ? '🇳🇬 ' : '';
+                    const text = `${flag}${name} — ${nice}`;
+                    return `<option value="${escapeAttr(ev.id || d + name)}" data-date="${escapeAttr(d)}" data-name="${escapeAttr(name)}" data-type="${escapeAttr(ev.extendedProps?.type || 'nigerian')}">${escapeHtml(text)}</option>`;
+                });
+            sel.innerHTML = ['<option value="">Select a special day (this month)</option>'].concat(items).join('');
+        }
+
+        // Build suggested subject/message content based on selected event
+        function buildSuggestedContentFromEvent(evName) {
+            const subject = `Happy ${evName}!`;
+            const message = `Dear {name},\n\nWishing you a joyful ${evName}!\n\nFrom all of us at Real Estate MS.\n\n— This is an automated greeting.`;
+            return { subject, message };
+        }
+        // Additional Nigerian observances per month (unofficial/popular)
+        function buildAdditionalNigeriaEventsForMonth(year, month) {
+            const pad = (n) => String(n).padStart(2, '0');
+            const y = year;
+            const m = month; // 1-based
+            const mIdx = m - 1; // 0-based
+            const res = [];
+            const push = (date, name, type = 'custom') => {
+                if (!date) return;
+                res.push({
+                    id: `ng-extra-${date}-${name.replace(/\s+/g, '-').toLowerCase()}`,
+                    title: name,
+                    start: date,
+                    extendedProps: { countryCode: 'NG', source: 'nigerian', name, type }
+                });
+            };
+            // Helpers for nth weekday (e.g., Mother's/Father's Day)
+            const nthWeekday = (y, m0, weekday, nth) => {
+                const first = new Date(y, m0, 1);
+                const firstWeekday = first.getDay();
+                const offset = (7 + weekday - firstWeekday) % 7;
+                const day = 1 + offset + (nth - 1) * 7;
+                return new Date(y, m0, day);
+            };
+            // Include Islamic holidays (Eid al-Fitr, Eid al-Adha, Mawlid) using year mapping
+            const islamic = getNigeriaIslamicHolidaysForYear(y).filter(h => h.date.slice(5, 7) === pad(m));
+            for (const h of islamic) { push(h.date, h.title, 'religious'); }
+            // Include Good Friday and Easter Monday based on computed Easter Sunday
+            const easter = computeEasterSunday(y);
+            const gf = new Date(easter); gf.setDate(easter.getDate() - 2);
+            const em = new Date(easter); em.setDate(easter.getDate() + 1);
+            const gfStr = `${y}-${pad(gf.getMonth() + 1)}-${pad(gf.getDate())}`;
+            const emStr = `${y}-${pad(em.getMonth() + 1)}-${pad(em.getDate())}`;
+            if (gfStr.slice(5, 7) === pad(m)) push(gfStr, 'Good Friday', 'religious');
+            if (emStr.slice(5, 7) === pad(m)) push(emStr, 'Easter Monday', 'religious');
+            // Build for the requested month only (non-Islamic popular/official observances)
+            switch (mIdx) {
+                case 0: // Jan
+                    push(`${y}-01-15`, 'Armed Forces Remembrance Day', 'national');
+                    break;
+                case 1: // Feb
+                    push(`${y}-02-14`, "Valentine's Day", 'commercial');
+                    break;
+                case 4: { // May
+                    push(`${y}-05-01`, "Workers' Day", 'national');
+                    push(`${y}-05-27`, "Children's Day", 'custom');
+                    const mothers = nthWeekday(y, 4, 0, 2); // 2nd Sun in May
+                    push(`${y}-05-${pad(mothers.getDate())}`, "Mother's Day", 'custom');
+                    break;
+                }
+                case 5: { // June
+                    const fathers = nthWeekday(y, 5, 0, 3); // 3rd Sun in June
+                    push(`${y}-06-${pad(fathers.getDate())}`, "Father's Day", 'custom');
+                    push(`${y}-06-12`, 'Democracy Day', 'national');
+                    break;
+                }
+                case 9: // Oct
+                    push(`${y}-10-01`, 'Independence Day', 'national');
+                    push(`${y}-10-05`, "Teachers' Day", 'custom');
+                    break;
+                case 11: // Dec
+                    push(`${y}-12-25`, 'Christmas Day', 'national');
+                    push(`${y}-12-26`, 'Boxing Day', 'national');
+                    break;
+                default:
+                    break;
+            }
+            return res;
+        }
+
+        // Anonymous Gregorian algorithm to compute Easter Sunday
+        function computeEasterSunday(Y) {
+            const a = Y % 19;
+            const b = Math.floor(Y / 100);
+            const c = Y % 100;
+            const d = Math.floor(b / 4);
+            const e = b % 4;
+            const f = Math.floor((b + 8) / 25);
+            const g = Math.floor((b - f + 1) / 3);
+            const h = (19 * a + b - d - g + 15) % 30;
+            const i = Math.floor(c / 4);
+            const k = c % 4;
+            const l = (32 + 2 * e + 2 * i - h - k) % 7;
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            const month = Math.floor((h + l - 7 * m + 114) / 31); // 3 = March, 4 = April
+            const day = ((h + l - 7 * m + 114) % 31) + 1;
+            return new Date(Y, month - 1, day);
+        }
+
+        // Year mapping for key Islamic holidays as observed in Nigeria (approx/officially declared dates)
+        function getNigeriaIslamicHolidaysForYear(year) {
+            // Source: typical Nigeria observances; adjust if backend provides authoritative dates.
+            const map = {
+                2024: {
+                    fitr: ['2024-04-10', '2024-04-11'],
+                    adha: ['2024-06-16', '2024-06-17'],
+                    mawlid: ['2024-09-16']
+                },
+                2025: {
+                    fitr: ['2025-03-31', '2025-04-01'],
+                    adha: ['2025-06-06', '2025-06-07'],
+                    mawlid: ['2025-09-04']
+                },
+                2026: {
+                    fitr: ['2026-03-21', '2026-03-22'],
+                    adha: ['2026-05-27', '2026-05-28'],
+                    mawlid: ['2026-08-24']
+                }
+            };
+            const rec = map[year] || {};
+            const out = [];
+            (rec.fitr || []).forEach(d => out.push({ date: d, title: 'Eid al-Fitr (Sallah)' }));
+            (rec.adha || []).forEach(d => out.push({ date: d, title: 'Eid al-Adha (Sallah)' }));
+            (rec.mawlid || []).forEach(d => out.push({ date: d, title: "Mawlid an-Nabi (Eid-el-Maulud)" }));
+            return out;
+        }
+
+        function normalizeHolidayKey(date, name) {
+            const n = (name || '').toLowerCase();
+            let k = n;
+            if (/(eid|id)[^a-zA-Z]*f(itr)?/.test(n)) k = 'eidfitr';
+            else if (/(eid|id)[^a-zA-Z]*(adha|kabir)/.test(n)) k = 'eidadha';
+            else if (/maw(l)?id|maulud|prophet/.test(n)) k = 'mawlid';
+            return `${date}|${k}`;
+        }
+
+        // Render the monthly table from eventsCache with optional text filter
+        function renderEventsTable(filterText) {
+            const tbody = document.getElementById('eventsTableBody');
+            const countEl = document.getElementById('eventsCount');
+            if (!tbody) return;
+            const text = (filterText || '').trim().toLowerCase();
+            // Sort by date then name
+            const rows = (eventsCache || [])
+                .slice()
+                .sort((a, b) => (a.start || '').localeCompare(b.start || '') || (a.title || '').localeCompare(b.title || ''))
+                .filter(ev => {
+                    if (!text) return true;
+                    const hay = `${ev.title || ''} ${ev.extendedProps?.name || ''} ${ev.extendedProps?.description || ''}`.toLowerCase();
+                    return hay.includes(text);
+                })
+                .map(ev => {
+                    const d = (ev.start || '').slice(0, 10);
+                    const nice = d ? new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : '';
+                    const name = escapeHtml(ev.extendedProps?.name || ev.title || 'Event');
+                    const type = escapeHtml(ev.extendedProps?.type || (isNigeriaEvent(ev) ? 'nigerian' : 'custom'));
+                    const country = ev.extendedProps?.countryCode === 'NG' || ev.extendedProps?.source === 'nigerian' ? '🇳🇬 Nigeria' : (escapeHtml(ev.extendedProps?.countryCode || '—'));
+                    const flag = (ev.extendedProps?.countryCode === 'NG' || ev.extendedProps?.source === 'nigerian') ? '🇳🇬 ' : '';
+                    return `<tr>
+          <td><span class="text-nowrap">${nice}</span></td>
+          <td>${flag}${name}</td>
+          <td><span class="badge bg-light text-dark text-capitalize">${type}</span></td>
+          <td>${country}</td>
+        </tr>`;
+                });
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No special days found for this month.</td></tr>';
+            } else {
+                tbody.innerHTML = rows.join('');
+            }
+            if (countEl) countEl.textContent = String((eventsCache || []).length);
+        }
+
+        // Hook into search input
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 'eventsSearch') {
+                renderEventsTable(e.target.value);
+            }
+        });
+
+        // When calendar is reloaded (month change/refresh), also refresh the create modal dropdown
+        const _origReload = reloadCalendar;
+        reloadCalendar = async function () {
+            await _origReload();
+            populateCreateTplSpecialDayDropdown();
+            // Notify base layout about the currently displayed month and total events so the sidebar badge matches this page
+            try {
+                const detail = { year: cur.getFullYear(), month: cur.getMonth() + 1, count: Array.isArray(eventsCache) ? eventsCache.length : 0 };
+                window.dispatchEvent(new CustomEvent('autoSpecialMonthChanged', { detail }));
+            } catch { /* no-op */ }
+        };
+
+        // Wire the dropdown to auto-fill template fields
+        document.getElementById('createTplSpecialDaySelect')?.addEventListener('change', (e) => {
+            const opt = e.target.selectedOptions && e.target.selectedOptions[0];
+            if (!opt || !opt.value) return;
+            const nameVal = opt.getAttribute('data-name') || '';
+            const { subject, message } = buildSuggestedContentFromEvent(nameVal);
+            const nameInput = document.querySelector('#createTplForm input[name="name"]');
+            const subjInput = document.querySelector('#createTplForm input[name="subject"]');
+            const msgInput = document.querySelector('#createTplForm textarea[name="message"]');
+            if (nameInput) nameInput.value = `${nameVal} Greeting`;
+            if (subjInput) subjInput.value = subject;
+            if (msgInput) msgInput.value = message;
+        });
+
+        // Also (re)populate when the modal is shown
+        document.getElementById('createTplModal')?.addEventListener('shown.bs.modal', () => {
+            populateCreateTplSpecialDayDropdown();
+        });
+
+        // Preview for Create Special Day Template
+        function updateSpecialTplPreview() {
+            const subj = document.querySelector('#createTplForm input[name="subject"]').value || '';
+            const msg = document.querySelector('#createTplForm textarea[name="message"]').value || '';
+            const replaceVars = (s) => (s || '')
+                .replace(/\{name\}/g, 'Victor Godwin')
+                .replace(/\{email\}/g, 'victor.godwin@example.com')
+                .replace(/\{phone\}/g, '+234 800 000 0000');
+            const html = `<div><strong>Subject:</strong> ${escapeHtml(replaceVars(subj))}</div><hr><div style="white-space:pre-wrap;">${escapeHtml(replaceVars(msg))}</div>`;
+            const box = document.getElementById('specialTplPreview');
+            if (box) box.innerHTML = html;
+        }
+        document.getElementById('btnPreviewSpecialTpl')?.addEventListener('click', updateSpecialTplPreview);
+        document.querySelector('#createTplForm input[name="subject"]')?.addEventListener('input', updateSpecialTplPreview);
+        document.querySelector('#createTplForm textarea[name="message"]')?.addEventListener('input', updateSpecialTplPreview);
+
+        // Handle add custom special day form
+        document.getElementById('createCustomDayForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('customDayName').value.trim();
+            const date = document.getElementById('customDayDate').value;
+            const description = document.getElementById('customDayDesc').value.trim();
+            if (!name || !date) { showStatus('Please provide name and date', true); return; }
+            await loadCustomDays();
+            const exists = (customDaysCache || []).some(d => (d.date === date) && ((d.name || '').toLowerCase() === name.toLowerCase()));
+            if (exists) { showStatus('A special day with same name and date already exists', true); return; }
+            const payload = {
+                name,
+                date,
+                description,
+                category: 'custom',
+                countryCode: 'NG',
+                isRecurring: false,
+            };
+            try {
+                const resp = await fetch(URLS.customDays, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRF(),
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload),
+                });
+                if (!resp.ok) {
+                    let errMsg = 'Failed to create custom special day';
+                    try {
+                        const errData = await resp.json();
+                        if (errData && errData.error) errMsg = errData.error;
+                    } catch (_) { }
+                    showStatus(errMsg, true);
+                    return;
+                }
+                customDaysLoaded = false;
+                await reloadCalendar();
+                showStatus('Custom special day added');
+                e.target.reset();
+            } catch (err) {
+                console.error('Failed to create custom special day', err);
+                showStatus('Failed to create custom special day', true);
+            }
+        });
+        async function loadTemplates() { const box = document.getElementById('tplList'); try { const resp = await fetch(URLS.specialTemplates); if (!resp.ok) throw new Error('Failed'); const data = await resp.json(); const items = (data.templates || []).map(t => renderTplItem(t)).join(''); box.innerHTML = items || '<div class="text-muted">No templates yet.</div>'; } catch (e) { box.innerHTML = '<div class="text-danger">Failed to load templates.</div>'; } }
+        function renderTplItem(t) {
+            const enabledBadge = t.enabled ? '<span class="badge bg-success ms-2">Enabled</span>' : '<span class="badge bg-secondary ms-2">Disabled</span>';
+            const nameHtml = `<div class="tpl-title">${escapeHtml(t.name || 'Untitled')}${enabledBadge}</div>`;
+            const metaHtml = `<div class="small text-muted tpl-meta">${escapeHtml(t.channel || '')} • ${escapeHtml(t.audience || '')}${t.time ? ` • ${escapeHtml(t.time)}` : ''}</div>`;
+            const subjectHtml = t.subject ? `<div class="small tpl-meta"><strong>Subject:</strong> ${escapeHtml(t.subject)}</div>` : '';
+            const messageText = (t.message || '').slice(0, 280); // show a bit more but wrap properly
+            const messageHtml = `<div class="small tpl-message" title="${escapeAttr(t.message || '')}">${escapeHtml(messageText)}${(t.message || '').length > 280 ? '…' : ''}</div>`;
+            const actionsHtml = `<div class="btn-group tpl-actions"><button class="btn btn-sm btn-outline-primary" data-action="edit" data-id="${t.id}"><i class="fas fa-edit"></i></button><button class="btn btn-sm btn-outline-warning" data-action="toggle" data-id="${t.id}"><i class="fas fa-toggle-on"></i></button><button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}"><i class="fas fa-trash"></i></button></div>`;
+            return `<div class="border rounded p-2 mb-2 tpl-card">
+      <div class="tpl-card-row">
+        <div class="tpl-card-content">
+          ${nameHtml}
+          ${metaHtml}
+          ${subjectHtml}
+          ${messageHtml}
+        </div>
+        ${actionsHtml}
+      </div>
+    </div>`;
+        }
+        async function loadAudience(selectEl) { try { const resp = await fetch(URLS.audience); const data = await resp.json(); const opts = data.options || []; selectEl.innerHTML = '<option value="">Select audience</option>' + opts.map(o => `<option value="${o.value}">${o.label} (${o.count})</option>`).join(''); } catch (e) { selectEl.innerHTML = '<option value="all">All Users</option><option value="clients">All Clients</option><option value="marketers">All Marketers</option><option value="royal_elite">Royal Elite</option><option value="estate_ambassador">Estate Ambassador</option>'; } }
+        
+        async function onCreate(e) { e.preventDefault(); const fd = new FormData(e.target); const payload = { name: fd.get('name') || '', channel: fd.get('channel') || 'sms', audience: fd.get('audience') || 'all', subject: fd.get('subject') || null, message: fd.get('message') || '', time: fd.get('time') || null, enabled: document.getElementById('createEnabled').checked }; try { const resp = await fetch(URLS.specialTemplates, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() }, body: JSON.stringify(payload) }); if (!resp.ok) { throw new Error('Create failed'); } bootstrap.Modal.getInstance(document.getElementById('createTplModal'))?.hide(); await loadTemplates(); showStatus('Template created successfully'); e.target.reset(); await loadAudience(document.getElementById('audienceSelect')); } catch (err) { showStatus('Failed to create template', true); } }
+        function attachTplActions() { document.getElementById('tplList').addEventListener('click', async (ev) => { const btn = ev.target.closest('button[data-action]'); if (!btn) return; const id = btn.getAttribute('data-id'); const action = btn.getAttribute('data-action'); if (action === 'edit') { openEdit(id); } else if (action === 'toggle') { toggleTemplate(id); } else if (action === 'delete') { confirmDialog('Delete this template?', async () => { await deleteTemplate(id); }); } }); }
+        async function fetchTpl(id) { const url = `${URLS.specialTemplates}${id}/`; const r = await fetch(url); if (!r.ok) throw new Error('Load failed'); return await r.json(); }
+        async function openEdit(id) { try { const t = await fetchTpl(id); document.getElementById('editTplId').value = t.id; document.getElementById('editTplName').value = t.name || ''; document.getElementById('editTplChannel').value = t.channel || 'sms'; document.getElementById('editTplSubject').value = t.subject || ''; document.getElementById('editTplMessage').value = t.message || ''; document.getElementById('editTplTime').value = (t.time || '').slice(0, 5); document.getElementById('editTplEnabled').checked = !!t.enabled; await loadAudience(document.getElementById('editTplAudience')); document.getElementById('editTplAudience').value = t.audience || 'all'; new bootstrap.Modal(document.getElementById('editTplModal')).show(); } catch (e) { showStatus('Failed to load template', true); } }
+        async function saveEdit(e) { e.preventDefault(); const fd = new FormData(e.target); const id = document.getElementById('editTplId').value; const payload = { name: fd.get('name') || '', channel: fd.get('channel') || 'sms', audience: fd.get('audience') || 'all', subject: fd.get('subject') || null, message: fd.get('message') || '', time: fd.get('time') || null, enabled: document.getElementById('editTplEnabled').checked }; try { const r = await fetch(`${URLS.specialTemplates}${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() }, body: JSON.stringify(payload) }); if (!r.ok) throw new Error('Save failed'); bootstrap.Modal.getInstance(document.getElementById('editTplModal'))?.hide(); await loadTemplates(); showStatus('Template updated'); } catch (e) { showStatus('Failed to update template', true); } }
+        async function toggleTemplate(id) { try { const t = await fetchTpl(id); const newEnabled = !(t.enabled); const r = await fetch(`${URLS.specialTemplates}${id}/`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() }, body: JSON.stringify({ enabled: newEnabled }) }); if (!r.ok) throw new Error('Toggle failed'); await loadTemplates(); showStatus(`Template ${newEnabled ? 'enabled' : 'disabled'}`); } catch (e) { showStatus('Failed to toggle template', true); } }
+        async function deleteTemplate(id) { try { const r = await fetch(`${URLS.specialTemplates}${id}/`, { method: 'DELETE', headers: { 'X-CSRFToken': getCSRF() } }); if (!(r.ok || r.status === 204)) throw new Error('Delete failed'); await loadTemplates(); showStatus('Template deleted'); } catch (e) { showStatus('Failed to delete template', true); } }
+        function confirmDialog(text, onOk) { document.getElementById('confirmBody').textContent = text || 'Are you sure?'; const ok = document.getElementById('confirmOkBtn'); const handler = () => { onOk && onOk(); ok.removeEventListener('click', handler); }; ok.addEventListener('click', handler); new bootstrap.Modal(document.getElementById('confirmModal')).show(); }
+        function showStatus(text, isErr) { document.getElementById('statusBody').textContent = text || (isErr ? 'Error' : 'Done'); const m = new bootstrap.Modal(document.getElementById('statusModal')); m.show(); setTimeout(() => { try { m.hide(); } catch { } }, 1400); }
+        function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[m])); }
+        function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+        document.getElementById('btnPrevMonth').addEventListener('click', async () => { cur.setMonth(cur.getMonth() - 1); await reloadCalendar(); });
+        document.getElementById('btnNextMonth').addEventListener('click', async () => { cur.setMonth(cur.getMonth() + 1); await reloadCalendar(); });
+        document.getElementById('createTplForm').addEventListener('submit', onCreate);
+        document.getElementById('editTplForm').addEventListener('submit', saveEdit);
+        attachTplActions();
+        loadAudience(document.getElementById('audienceSelect'));
+        loadAudience(document.getElementById('editTplAudience'));
+        reloadCalendar();
+        loadTemplates();
+        scheduleMonthAutoAdvance();
+    })();
+</script>
+{% endblock %}

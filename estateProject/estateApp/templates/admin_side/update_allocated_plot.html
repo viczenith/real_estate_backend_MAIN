@@ -1,0 +1,1243 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+  <style>
+    /* Advanced Premium Form Container Styles */
+    * {
+      box-sizing: border-box;
+    }
+
+    .update-form-wrapper {
+      min-height: 100vh;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    /* Background Gradient Animation */
+    .update-form-wrapper::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
+      z-index: -1;
+    }
+
+    .form-container {
+      background: #fff;
+      border-radius: 24px;
+      padding: 0;
+      box-shadow: 
+        0 10px 40px rgba(102, 126, 234, 0.12),
+        0 2px 8px rgba(102, 126, 234, 0.08);
+      width: 100%;
+      animation: slideUpFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      border: 1px solid rgba(102, 126, 234, 0.08);
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 
+        0 20px 60px rgba(102, 126, 234, 0.18),
+        0 4px 12px rgba(102, 126, 234, 0.12);
+    }
+
+    @keyframes slideUpFadeIn {
+      0% { 
+        opacity: 0; 
+        transform: translateY(50px) scale(0.95);
+      }
+      100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Premium Form Header with Advanced Gradient */
+    .form-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 50px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated Background Pattern */
+    .form-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 30% 50%, rgba(255,255,255,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+      animation: rotateGradient 25s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotateGradient {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Floating Particles */
+    .form-header::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-image: 
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(2px 2px at 90% 60%, white, transparent),
+        radial-gradient(1px 1px at 33% 85%, white, transparent);
+      background-size: 200% 200%;
+      background-position: 0% 0%;
+      animation: floatParticles 30s ease-in-out infinite;
+      opacity: 0.3;
+    }
+
+    @keyframes floatParticles {
+      0%, 100% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+    }
+
+    .form-header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Enhanced Form Icon */
+    .form-icon {
+      width: 90px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      backdrop-filter: blur(10px);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+      animation: iconFloat 3s ease-in-out infinite;
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+
+    .form-icon::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0; }
+    }
+
+    .form-icon i {
+      font-size: 44px;
+      color: white;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    .form-header h2 {
+      font-weight: 800;
+      color: white;
+      margin: 0 0 12px;
+      font-size: 32px;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      animation: slideInFromTop 0.6s ease-out;
+    }
+
+    @keyframes slideInFromTop {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-header p {
+      color: rgba(255, 255, 255, 0.95);
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      animation: slideInFromTop 0.6s ease-out 0.1s backwards;
+    }
+
+    /* Enhanced Form Body */
+    .form-body {
+      padding: 50px 40px;
+      background: linear-gradient(to bottom, #fff 0%, #fafbff 100%);
+    }
+
+    /* Advanced Alert Messages */
+    .alert-container {
+      margin-bottom: 35px;
+      animation: slideDownBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes slideDownBounce {
+      0% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+      }
+      70% {
+        transform: translateY(5px) scale(1.02);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .alert {
+      border-radius: 14px;
+      padding: 18px 24px;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+      font-weight: 500;
+    }
+
+    .alert::before {
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      font-size: 22px;
+      animation: iconBounce 0.6s ease-in-out;
+    }
+
+    @keyframes iconBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+
+    .alert::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      animation: slideInFromLeft 0.4s ease-out;
+    }
+
+    @keyframes slideInFromLeft {
+      from { height: 0; }
+      to { height: 100%; }
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+      color: #155724;
+      border-left: 4px solid #28a745;
+    }
+
+    .alert-success::before {
+      content: "\f058";
+      color: #28a745;
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+      color: #721c24;
+      border-left: 4px solid #dc3545;
+    }
+
+    .alert-danger::before {
+      content: "\f06a";
+      color: #dc3545;
+    }
+
+    .alert-warning {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      color: #856404;
+      border-left: 4px solid #ffc107;
+    }
+
+    .alert-warning::before {
+      content: "\f071";
+      color: #ffc107;
+    }
+
+    .alert-info {
+      background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+      color: #0c5460;
+      border-left: 4px solid #17a2b8;
+    }
+
+    .alert-info::before {
+      content: "\f05a";
+      color: #17a2b8;
+    }
+
+    /* Advanced Form Group Styling */
+    .form-group {
+      margin-bottom: 32px;
+      position: relative;
+      animation: fadeInUp 0.5s ease-out backwards;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.15s; }
+    .form-group:nth-child(3) { animation-delay: 0.2s; }
+    .form-group:nth-child(4) { animation-delay: 0.25s; }
+    .form-group:nth-child(5) { animation-delay: 0.3s; }
+    .form-group:nth-child(6) { animation-delay: 0.35s; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-label {
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .form-label i {
+      color: #667eea;
+      font-size: 18px;
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .form-label .required {
+      color: #f44336;
+      margin-left: 2px;
+      animation: requiredBlink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes requiredBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Enhanced Input Fields */
+    .form-control,
+    .form-select {
+      border-radius: 14px;
+      border: 2px solid #e2e8f0;
+      padding: 16px 20px;
+      font-size: 15px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(to bottom, #f8fafc, #ffffff);
+      width: 100%;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .form-control:hover,
+    .form-select:hover {
+      border-color: #cbd5e0;
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 
+        0 0 0 5px rgba(102, 126, 234, 0.12),
+        0 4px 20px rgba(102, 126, 234, 0.15);
+      background: #fff;
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .form-control:disabled,
+    .form-select:disabled {
+      background: linear-gradient(135deg, #f1f3f5, #e9ecef);
+      cursor: not-allowed;
+      opacity: 0.8;
+      border-color: #dee2e6;
+    }
+
+    select option:disabled {
+      color: #999;
+      background-color: #f5f5f5;
+      font-style: italic;
+    }
+
+    select option {
+      padding: 12px;
+      font-weight: 500;
+    }
+
+    /* Enhanced Info Text */
+    .info-text {
+      font-size: 13px;
+      color: #718096;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(102, 126, 234, 0.04);
+      border-radius: 8px;
+      border-left: 3px solid #667eea;
+      animation: fadeIn 0.3s ease-out 0.2s backwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .info-text i {
+      color: #667eea;
+      font-size: 14px;
+    }
+
+    /* Advanced Radio Button Styling */
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .radio-item {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .form-check {
+      position: relative;
+      margin: 0;
+    }
+
+    .form-check input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .form-check label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      color: #4a5568;
+      position: relative;
+      padding-left: 58px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .form-check label i {
+      position: absolute;
+      right: 20px;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      opacity: 0.5;
+    }
+
+    .form-check label::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #cbd5e0;
+      border-radius: 50%;
+      background: white;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-check label::after {
+      content: '';
+      position: absolute;
+      left: 27px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+      transform: scale(0);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .form-check input[type="radio"]:checked + label {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+      color: white;
+      box-shadow: 
+        0 8px 25px rgba(102, 126, 234, 0.35),
+        0 3px 10px rgba(102, 126, 234, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .form-check input[type="radio"]:checked + label i {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    .form-check input[type="radio"]:checked + label::before {
+      background: white;
+      border-color: white;
+      transform: rotate(360deg) scale(1.1);
+    }
+
+    .form-check input[type="radio"]:checked + label::after {
+      transform: scale(1);
+      background: #667eea;
+    }
+
+    .form-check label:hover {
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+    }
+
+    .form-check input[type="radio"]:checked + label:hover {
+      box-shadow: 
+        0 10px 30px rgba(102, 126, 234, 0.4),
+        0 4px 12px rgba(102, 126, 234, 0.25);
+    }
+
+    /* Premium Button Styling */
+    .form-actions {
+      display: flex;
+      gap: 18px;
+      margin-top: 45px;
+      padding-top: 35px;
+      border-top: 2px solid #f1f3f5;
+      animation: fadeInUp 0.6s ease-out 0.4s backwards;
+    }
+
+    .btn {
+      padding: 16px 36px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 
+        0 6px 20px rgba(102, 126, 234, 0.4),
+        0 2px 8px rgba(102, 126, 234, 0.2);
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 10px 30px rgba(102, 126, 234, 0.5),
+        0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+      color: #4a5568;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #cbd5e0, #b0b9c9);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn i {
+      position: relative;
+      z-index: 1;
+      font-size: 18px;
+    }
+
+    .btn span {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Advanced Loading State */
+    .btn.loading {
+      pointer-events: none;
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
+
+    .btn.loading i {
+      animation: spinPulse 1s linear infinite;
+    }
+
+    @keyframes spinPulse {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.2); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* Smooth Fade Transitions */
+    .fade-enter {
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transform: translateY(-10px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fade-enter-active {
+      opacity: 1;
+      max-height: 600px;
+      transform: translateY(0);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .form-container {
+        border-radius: 20px;
+      }
+
+      .form-header {
+        padding: 40px 25px;
+      }
+
+      .form-header h2 {
+        font-size: 26px;
+      }
+
+      .form-body {
+        padding: 35px 25px;
+      }
+
+      .form-icon {
+        width: 75px;
+        height: 75px;
+      }
+
+      .form-icon i {
+        font-size: 38px;
+      }
+
+      .radio-group {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .radio-item {
+        min-width: 100%;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .form-header {
+        padding: 30px 20px;
+      }
+
+      .form-header h2 {
+        font-size: 22px;
+      }
+
+      .form-body {
+        padding: 30px 20px;
+      }
+
+      .form-control,
+      .form-select {
+        padding: 14px 18px;
+        font-size: 14px;
+      }
+
+      .form-check label {
+        padding: 16px 20px;
+        padding-left: 54px;
+      }
+
+      .btn {
+        padding: 14px 28px;
+        font-size: 14px;
+      }
+    }
+
+    /* Advanced Scrollbar */
+    .form-body::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .form-body::-webkit-scrollbar-track {
+      background: #f1f3f5;
+      border-radius: 10px;
+    }
+
+    .form-body::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+
+    .form-body::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+  </style>
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>
+        <i class="fas fa-edit"></i> Update Allocated Plot
+      </h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{% url 'admin-dashboard' %}">
+              <i class="fas fa-home"></i> Home
+            </a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="{% url 'view-allocated-plot' id=allocation.estate.id %}">
+              <i class="fas fa-map-marked-alt"></i> Allocated Plots
+            </a>
+          </li>
+          <li class="breadcrumb-item active">Update Allocated Plot</li>
+        </ol>
+      </nav>
+    </div>
+
+    <section class="section contact">
+      <div class="row gy-4">
+        <div class="col-xl-12">
+          <div class="form-container">
+            <!-- Form Header -->
+            <div class="form-header">
+              <div class="form-header-content">
+                <div class="form-icon">
+                  <i class="fas fa-edit"></i>
+                </div>
+                <h2>Update Plot Allocation</h2>
+                <p>Modify the allocation details for {{ allocation.client.full_name }}</p>
+              </div>
+            </div>
+
+            <!-- Form Body -->
+            <div class="form-body">
+              <form id="allocationForm" method="POST" action="{% url 'update_allocated_plot' %}">
+                {% csrf_token %}
+
+                {% if messages %}
+                  <div class="alert-container">
+                    {% for message in messages %}
+                      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
+                        {{ message|safe }}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                
+                <!-- Hidden fields -->
+                <input type="hidden" name="allocation_id" value="{{ allocation.id }}">
+                <input type="hidden" name="clientName" value="{{ allocation.client.id }}">
+                <input type="hidden" name="estateName" value="{{ allocation.estate.id }}">
+
+                <!-- Client Name -->
+                <div class="form-group">
+                  <label for="clientName" class="form-label">
+                    <i class="fas fa-user"></i>
+                    Client Name
+                  </label>
+                  <select id="clientName" name="clientName" class="form-select" disabled required>
+                    <option value="" disabled>Select a client</option>
+                    {% for client in clients %}
+                      <option value="{{ client.id }}" {% if allocation.client.id == client.id %}selected{% endif %}>
+                        {{ client.full_name }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Client field is locked for this update
+                  </small>
+                </div>
+
+                <!-- Estate Name -->
+                <div class="form-group">
+                  <label for="estateName" class="form-label">
+                    <i class="fas fa-building"></i>
+                    Estate Name
+                  </label>
+                  <select id="estateName" name="estateName" class="form-select" disabled required>
+                    <option value="" disabled>Select an estate</option>
+                    {% for estate in estates %}
+                      <option value="{{ estate.id }}" {% if allocation.estate.id == estate.id %}selected{% endif %}>
+                        {{ estate.name }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Estate field is locked for this update
+                  </small>
+                </div>
+
+                <!-- Plot Sizes -->
+                <div class="form-group">
+                  <label for="plotSize" class="form-label">
+                    <i class="fas fa-ruler-combined"></i>
+                    Estate Plot Size
+                    <span class="required">*</span>
+                  </label>
+                  <select id="plotSize" name="plotSize" class="form-select" required>
+                    <option value="" disabled selected>Select a plot size</option>
+                    {% for unit in plot_size_units %}
+                      <option value="{{ unit.id }}"
+                        {% if allocation and allocation.plot_size_unit and allocation.plot_size_unit.id == unit.id %}selected{% endif %}>
+                        {{ unit.plot_size.size }}
+                        {% if allocation and allocation.plot_size_unit and unit.id == allocation.plot_size_unit.id %}
+                          (Currently Allocated)
+                        {% endif %}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <small class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Change the plot size for this allocation
+                  </small>
+                </div>
+
+                <!-- Payment Type -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Payment Type
+                    <span class="required">*</span>
+                  </label>
+                  <div class="radio-group">
+                    <div class="radio-item">
+                      <div class="form-check">
+                        <input type="radio" name="paymentType" id="fullPayment" value="full"
+                          {% if allocation.payment_type == 'full' %}checked{% endif %} required>
+                        <label for="fullPayment">
+                          <i class="fas fa-check-circle"></i>
+                          Full Payment
+                        </label>
+                      </div>
+                    </div>
+                    <div class="radio-item">
+                      <div class="form-check">
+                        <input type="radio" name="paymentType" id="partPayment" value="part"
+                          {% if allocation.payment_type == 'part' %}checked{% endif %} required>
+                        <label for="partPayment">
+                          <i class="fas fa-coins"></i>
+                          Part Payment
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <small class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Choose the payment method for this allocation
+                  </small>
+                </div>
+
+                <!-- Plot Number Container -->
+                <div class="form-group" id="plotNumberContainer"
+                  style="display: {% if allocation.payment_type == 'full' %}block{% else %}none{% endif %};">
+                  <label for="plotNumber" class="form-label">
+                    <i class="fas fa-map-pin"></i>
+                    Estate Plot Number
+                    <span class="required">*</span>
+                  </label>
+                  <select id="plotNumber" name="plotNumber" class="form-select">
+                    <option value="" disabled selected>Select a plot number</option>
+                  </select>
+                  <small class="info-text">
+                    <i class="fas fa-info-circle"></i>
+                    Available plot numbers for the selected estate
+                  </small>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Cancel</span>
+                  </button>
+                  <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save"></i>
+                    <span>Update Allocation</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fullPaymentRadio = document.getElementById('fullPayment');
+      const partPaymentRadio = document.getElementById('partPayment');
+      const plotNumberContainer = document.getElementById('plotNumberContainer');
+      const estateSelect = document.getElementById('estateName');
+      const plotNumberSelect = document.getElementById('plotNumber');
+      const allocationPlotNumberId = {{ allocation.plot_number.id|default_if_none:'null' }};
+      const submitBtn = document.getElementById('submitBtn');
+      const allocationForm = document.getElementById('allocationForm');
+      
+      // Get estate ID and allocation ID from hidden inputs
+      const estateIdInput = document.querySelector('input[name="estateName"]');
+      const estateId = estateIdInput ? estateIdInput.value : '{{ allocation.estate.id }}';
+      const allocationId = '{{ allocation.id }}';
+
+      // Toggle Plot Number visibility with animation
+      function togglePlotNumberContainer(show) {
+        if (show) {
+          plotNumberContainer.classList.remove('fade-enter');
+          plotNumberContainer.style.display = 'block';
+          setTimeout(() => {
+            plotNumberContainer.classList.add('fade-enter-active');
+          }, 10);
+          loadPlotNumbers(estateId);
+        } else {
+          plotNumberContainer.classList.remove('fade-enter-active');
+          plotNumberContainer.classList.add('fade-enter');
+          setTimeout(() => {
+            plotNumberContainer.style.display = 'none';
+          }, 300);
+          plotNumberSelect.value = '';
+        }
+      }
+
+      // Payment type change handlers
+      fullPaymentRadio.addEventListener('change', function() {
+        if (this.checked) {
+          togglePlotNumberContainer(true);
+        }
+      });
+
+      partPaymentRadio.addEventListener('change', function() {
+        if (this.checked) {
+          togglePlotNumberContainer(false);
+        }
+      });
+
+      // Load plot numbers from server
+      function loadPlotNumbers(estateIdValue) {
+        console.log('Loading plots for estate ID:', estateIdValue, 'allocation ID:', allocationId); // Debug log
+        plotNumberSelect.innerHTML = '<option value="" disabled selected>Loading plot numbers...</option>';
+        plotNumberSelect.disabled = true;
+        
+        if (estateIdValue) {
+          // Include allocation_id in the request so the view can include the current plot
+          fetch(`/load-plots/?estate_id=${estateIdValue}&allocation_id=${allocationId}`)
+            .then(response => {
+              console.log('Response status:', response.status); // Debug log
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Received data:', data); // Debug log
+              
+              // The API returns an object with plot_numbers array
+              const plotNumbers = data.plot_numbers || [];
+              
+              plotNumberSelect.innerHTML = '<option value="" disabled selected>Select a plot number</option>';
+              
+              if (plotNumbers.length === 0) {
+                plotNumberSelect.innerHTML = '<option value="" disabled selected>No plots available</option>';
+              } else {
+                plotNumbers.forEach(plot => {
+                  const option = document.createElement('option');
+                  option.value = plot.id;
+                  option.textContent = plot.number;
+                  
+                  // Check if this plot is the current one
+                  if (plot.id == allocationPlotNumberId) {
+                    option.selected = true;
+                    option.textContent += ' (Current)';
+                  }
+                  
+                  plotNumberSelect.appendChild(option);
+                });
+              }
+              
+              plotNumberSelect.disabled = false;
+              console.log('Plot numbers loaded successfully'); // Debug log
+            })
+            .catch(error => {
+              console.error("Error loading plot numbers:", error);
+              plotNumberSelect.innerHTML = '<option value="" disabled selected>Failed to load plots</option>';
+              plotNumberSelect.disabled = false;
+              
+              // Show error toast with more details
+              showToast(`Failed to load plot numbers: ${error.message}`, 'error');
+            });
+        } else {
+          console.error('Estate ID is missing'); // Debug log
+          plotNumberSelect.innerHTML = '<option value="" disabled selected>Estate ID not found</option>';
+          plotNumberSelect.disabled = false;
+          showToast('Estate ID is missing. Please refresh the page.', 'error');
+        }
+      }
+
+      // Form submission handler with loading state
+      allocationForm.addEventListener('submit', function(e) {
+        // Add loading state to button
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner"></i><span>Updating...</span>';
+        
+        // Validate form
+        if (!allocationForm.checkValidity()) {
+          e.preventDefault();
+          submitBtn.classList.remove('loading');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-save"></i><span>Update Allocation</span>';
+          showToast('Please fill in all required fields.', 'error');
+        }
+      });
+
+      // Toast notification function
+      function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `custom-toast ${type}-toast`;
+        toast.innerHTML = `
+          <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+          <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      // Load plot numbers on page load if payment type is full
+      if (fullPaymentRadio.checked) {
+        loadPlotNumbers(estateId);
+      }
+
+      // Add smooth scroll to first error
+      const firstError = document.querySelector('.alert-danger');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    // Add ripple effect to radio buttons
+    document.querySelectorAll('.form-check label').forEach(label => {
+      label.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.6);
+          width: 100px;
+          height: 100px;
+          margin-left: -50px;
+          margin-top: -50px;
+          left: ${e.clientX - this.offsetLeft}px;
+          top: ${e.clientY - this.offsetTop}px;
+          animation: ripple-animation 0.6s;
+          pointer-events: none;
+        `;
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+
+    // Ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple-animation {
+        from {
+          opacity: 1;
+          transform: scale(0);
+        }
+        to {
+          opacity: 0;
+          transform: scale(2);
+        }
+      }
+      
+      .form-check label {
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Custom Toast Styles */
+      .custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        padding: 18px 24px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        z-index: 10000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+
+      .custom-toast.show {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      .custom-toast i {
+        font-size: 20px;
+      }
+
+      .success-toast {
+        border-left: 4px solid #4caf50;
+        color: #2d3748;
+      }
+
+      .success-toast i {
+        color: #4caf50;
+      }
+
+      .error-toast {
+        border-left: 4px solid #f44336;
+        color: #2d3748;
+      }
+
+      .error-toast i {
+        color: #f44336;
+      }
+
+      .info-toast {
+        border-left: 4px solid #2196f3;
+        color: #2d3748;
+      }
+
+      .info-toast i {
+        color: #2196f3;
+      }
+
+      @media (max-width: 576px) {
+        .custom-toast {
+          right: 10px;
+          left: 10px;
+          transform: translateY(-100px);
+        }
+
+        .custom-toast.show {
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+{% endblock %}

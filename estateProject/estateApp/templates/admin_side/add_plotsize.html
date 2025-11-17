@@ -1,0 +1,606 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .form-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .form-header h2 {
+        font-weight: 600;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .form-header p {
+        font-size: 14px;
+        color: #777;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 16px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+    }
+
+    .table-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+        transform: translateX(5px);
+    }
+
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 60px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-assigned {
+        background: linear-gradient(135deg, #00b894 0%, #00d2d3 100%);
+        color: white;
+    }
+
+    .status-not-assigned {
+        background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+        color: white;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(253, 203, 110, 0.4);
+        color: white;
+    }
+
+    .estate-names {
+        font-size: 11px;
+        color: #666;
+        font-style: italic;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .warning-box {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe5b4 100%);
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+    }
+
+    .warning-box i {
+        color: #ff9800;
+        font-size: 24px;
+        margin-right: 10px;
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Plot Size Management</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+                </li>
+                <li class="breadcrumb-item active">Add Plot Size</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section">
+        <div class="row">
+            <!-- Add Plot Size Form -->
+            <div class="col-lg-5">
+                <div class="form-container">
+                    <div class="form-header">
+                        <h2><i class="fas fa-ruler-combined me-2"></i>Add Plot Size</h2>
+                        <p>Define available plot sizes for estates</p>
+                    </div>
+                    <form method="POST" id="plotSizeForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="size" class="form-label fw-bold">Plot Size <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="size" name="size"
+                                placeholder="e.g., 300sqm, 500sqm, 600sqm" required>
+                            <small class="text-muted">Enter the plot size (e.g., 300sqm, 500sqm)</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus-circle me-2"></i>Add Plot Size
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Plot Size List -->
+            <div class="col-lg-7">
+                <div class="table-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4><i class="fas fa-list me-2"></i>Existing Plot Sizes</h4>
+                    <span class="badge bg-primary" style="font-size: 14px;">Total: <span id="totalCount">{{ plot_sizes|length }}</span></span>
+                </div>                    {% if plot_sizes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Plot Size</th>
+                                    <th>Status</th>
+                                    <th>Estates Using</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plotSizeTable">
+                                {% for plot_size in plot_sizes %}
+                                <tr id="row-{{ plot_size.id }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><strong>{{ plot_size.size }}</strong></td>
+                                    <td>
+                                        {% if plot_size.is_assigned %}
+                                            <span class="status-badge status-assigned">
+                                                <i class="fas fa-check-circle me-1"></i>Assigned ({{ plot_size.estate_count }} Estate{{ plot_size.estate_count|pluralize }})
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge status-not-assigned">
+                                                <i class="fas fa-circle me-1"></i>Not Assigned
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if plot_size.estate_names %}
+                                            <div class="estate-names">
+                                                {{ plot_size.estate_names|join:", " }}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if plot_size.is_assigned %}
+                                            <button class="btn btn-sm btn-warning" 
+                                                    onclick="openEditModal({{ plot_size.id }}, '{{ plot_size.size }}', {{ plot_size.estate_count }}, '{{ plot_size.estate_names|join:", " }}')">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-danger"
+                                                onclick="deletePlotSize({{ plot_size.id }}, '{{ plot_size.size }}')">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-ruler-combined"></i>
+                        <h5>No Plot Sizes Added Yet</h5>
+                        <p>Add your first plot size using the form on the left</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Edit Plot Size Modal -->
+<div class="modal fade" id="editPlotSizeModal" tabindex="-1" aria-labelledby="editPlotSizeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlotSizeModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Edit Plot Size - Critical Warning
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-box">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>IMPORTANT NOTICE:</strong>
+                            <p class="mb-0 mt-2">
+                                This plot size is currently assigned to <strong id="modal-estate-count"></strong> 
+                                and is being used by existing clients. 
+                                Changing this plot size will:
+                            </p>
+                            <ul class="mt-2 mb-0">
+                                <li><strong>Update all estates</strong> currently using this plot size</li>
+                                <li><strong>Affect all clients</strong> allocated to plots with this size</li>
+                                <li><strong>Modify transaction records</strong> linked to this plot size</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <p class="mb-2"><strong>Estates affected:</strong></p>
+                    <div class="alert alert-info" id="modal-estate-names"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Current Plot Size:</label>
+                    <input type="text" class="form-control" id="current-plot-size" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">New Plot Size: <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="new-plot-size" 
+                           placeholder="Enter new plot size (e.g., 400sqm, 550sqm)">
+                </div>
+
+                <input type="hidden" id="edit-plot-size-id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="confirmUpdatePlotSize()">
+                    <i class="fas fa-edit me-1"></i>Proceed to Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Handle form submission
+    document.getElementById('plotSizeForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const size = formData.get('size');
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred. Please try again.'
+                });
+            });
+    });
+
+    // Delete plot size
+    function deletePlotSize(id, size) {
+        Swal.fire({
+            title: 'Delete Plot Size?',
+            text: `Are you sure you want to delete "${size}"? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/delete-plotsize/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`row-${id}`).remove();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            // Update count
+                            const currentCount = parseInt(document.getElementById('totalCount').textContent);
+                            document.getElementById('totalCount').textContent = currentCount - 1;
+
+                            // Check if table is empty
+                            if (currentCount - 1 === 0) {
+                                location.reload();
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred. Please try again.'
+                        });
+                    });
+            }
+        });
+    }
+
+    // Open edit modal
+    function openEditModal(id, currentSize, estateCount, estateNames) {
+        document.getElementById('edit-plot-size-id').value = id;
+        document.getElementById('current-plot-size').value = currentSize;
+        document.getElementById('new-plot-size').value = '';
+        
+        const estateCountText = estateCount === 1 ? '1 estate' : `${estateCount} estates`;
+        document.getElementById('modal-estate-count').textContent = estateCountText;
+        document.getElementById('modal-estate-names').textContent = estateNames || 'No estates listed';
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editPlotSizeModal'));
+        modal.show();
+    }
+
+    // Confirm update with second warning
+    function confirmUpdatePlotSize() {
+        const plotSizeId = document.getElementById('edit-plot-size-id').value;
+        const currentSize = document.getElementById('current-plot-size').value;
+        const newSize = document.getElementById('new-plot-size').value.trim();
+
+        if (!newSize) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Please enter a new plot size'
+            });
+            return;
+        }
+
+        if (newSize.toLowerCase() === currentSize.toLowerCase()) {
+            Swal.fire({
+                icon: 'info',
+                title: 'No Change',
+                text: 'The new plot size is the same as the current one'
+            });
+            return;
+        }
+
+        // Second confirmation - Are you sure?
+        Swal.fire({
+            title: 'Final Confirmation',
+            html: `
+                <div style="text-align: left;">
+                    <p><strong>Are you absolutely sure?</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <p class="mb-2">You are about to change:</p>
+                        <ul class="mb-0">
+                            <li><strong>From:</strong> ${currentSize}</li>
+                            <li><strong>To:</strong> ${newSize}</li>
+                        </ul>
+                    </div>
+                    <p style="color: #d33;"><strong>⚠️ This will affect all estates and client allocations using this plot size!</strong></p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, Update It!',
+            cancelButtonText: 'No, Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updatePlotSize(plotSizeId, newSize);
+            }
+        });
+    }
+
+    // Update plot size
+    function updatePlotSize(plotSizeId, newSize) {
+        const formData = new FormData();
+        formData.append('action', 'update');
+        formData.append('plot_size_id', plotSizeId);
+        formData.append('new_size', newSize);
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editPlotSizeModal'));
+            modal.hide();
+
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Updated Successfully!',
+                    text: data.message,
+                    timer: 3000,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: data.message
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'An error occurred. Please try again.'
+            });
+        });
+    }
+</script>
+
+{% endblock %}

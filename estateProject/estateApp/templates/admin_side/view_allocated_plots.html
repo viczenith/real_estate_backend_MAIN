@@ -1,0 +1,1765 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* Modern Color Palette & Variables */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Smooth Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.02);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    /* Page Title Styling */
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pagetitle h1 i {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #764ba2;
+        transform: translateX(2px);
+    }
+
+    /* Action Buttons Container */
+    .action-buttons-container {
+        animation: fadeInUp 0.8s ease-out;
+        margin-bottom: 25px;
+    }
+
+    .action-buttons-container .btn {
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-buttons-container .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .action-buttons-container .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .action-buttons-container .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-buttons-container .btn-info {
+        background: var(--info-gradient);
+        color: white;
+    }
+
+    .action-buttons-container .btn-success {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .action-buttons-container .btn-danger {
+        background: var(--danger-gradient);
+        color: white;
+    }
+
+    .action-buttons-container .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .action-buttons-container .btn i {
+        margin-right: 6px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .action-buttons-container .btn span {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Card Header - Premium Design */
+    .card-header {
+        background: var(--card-bg);
+        border: none;
+        border-radius: 20px 20px 0 0;
+        padding: 25px 30px;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+        animation: slideInRight 0.8s ease-out;
+    }
+
+    .card-header h6 {
+        font-size: 20px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+    }
+
+    .card-header small {
+        color: var(--text-color);
+        opacity: 0.7;
+        font-size: 14px;
+    }
+
+    .card-header .fw-bold {
+        color: #667eea;
+    }
+
+    /* Premium Table Styling */
+    .table-responsive {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        animation: fadeInUp 1s ease-out;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .table thead th {
+        border: none;
+        padding: 18px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .table tbody td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border: none;
+    }
+
+    /* Badge Styling */
+    .badge {
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge.bg-info {
+        background: var(--info-gradient) !important;
+        color: white;
+    }
+
+    .badge.bg-success {
+        background: var(--success-gradient) !important;
+        color: white;
+    }
+
+    .badge.bg-warning {
+        background: var(--warning-gradient) !important;
+        color: white;
+    }
+
+    .badge.bg-dark {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
+        color: white;
+    }
+
+    .badge.bg-light {
+        background: rgba(102, 126, 234, 0.1) !important;
+        color: #667eea;
+        border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+
+    /* Search Bar Premium Design */
+    .search-container {
+        animation: fadeInUp 0.9s ease-out;
+        margin-bottom: 25px;
+    }
+
+    #searchInput {
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 25px 0 0 25px;
+        padding: 14px 24px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    #searchInput:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    #searchInput::placeholder {
+        color: rgba(0, 0, 0, 0.4);
+        font-style: italic;
+    }
+
+    [data-theme="dark"] #searchInput::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .searchButton {
+        border-radius: 0 25px 25px 0 !important;
+        padding: 14px 24px;
+        background: var(--success-gradient) !important;
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .searchButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(17, 153, 142, 0.3);
+    }
+
+    /* Export Buttons */
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+        animation: fadeInUp 0.85s ease-out;
+    }
+
+    .export-buttons .btn {
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid;
+    }
+
+    .export-buttons .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+
+    .export-buttons .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .export-buttons .btn-outline-success {
+        border-color: #11998e;
+        color: #11998e;
+    }
+
+    .export-buttons .btn-outline-success:hover {
+        background: var(--success-gradient);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Allocation Table Card */
+    .allocation-card {
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        animation: fadeInUp 1.1s ease-out;
+        transition: all 0.4s ease;
+    }
+
+    .allocation-card:hover {
+        box-shadow: var(--card-shadow-hover);
+        transform: translateY(-2px);
+    }
+
+    .allocation-card .card-body {
+        padding: 25px;
+    }
+
+    /* Action Buttons in Table */
+    .btn-sm {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 2px solid #eb3349;
+        color: #eb3349;
+    }
+
+    .btn-outline-danger:hover {
+        background: var(--danger-gradient);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .empty-state-icon i {
+        font-size: 50px;
+        color: white;
+    }
+
+    .empty-state h5 {
+        color: var(--text-color);
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: var(--text-color);
+        opacity: 0.7;
+        margin-bottom: 20px;
+    }
+
+    .empty-state .alert-link {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .empty-state .alert-link:hover {
+        color: #764ba2;
+        transform: translateX(4px);
+    }
+
+    /* Mobile Card View */
+    .mobile-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .mobile-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .mobile-card .card-body {
+        padding: 20px;
+    }
+
+    .mobile-card .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .mobile-card hr {
+        border-color: rgba(102, 126, 234, 0.1);
+        margin: 15px 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .pagetitle h1 {
+            font-size: 24px;
+        }
+
+        .action-buttons-container .btn {
+            padding: 10px 16px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .card-header {
+            padding: 20px;
+        }
+
+        .table tbody td::before {
+            font-weight: 600;
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        #searchInput {
+            font-size: 14px;
+            padding: 12px 20px;
+        }
+
+        .export-buttons {
+            flex-direction: column;
+        }
+
+        .export-buttons .btn {
+            width: 100%;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .card-header {
+        border-bottom-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .table tbody tr:hover {
+        background: rgba(162, 155, 254, 0.1);
+    }
+
+    [data-theme="dark"] #searchInput {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] #searchInput:focus {
+        border-color: #a29bfe;
+        box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.1);
+    }
+
+    /* Loading Animation */
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+</style>
+
+<main id="main" class="main">
+
+    <div class="pagetitle">
+        <h1><i class="fas fa-chart-pie"></i> Plot Allocation for {{ estate.name }}</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}"><i class="fas fa-home"></i> Home</a>
+                </li>
+                <li class="breadcrumb-item"><a href="{% url 'view-estate' %}">Estate List</a></li>
+                <li class="breadcrumb-item active">Plot Allocation</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section contact">
+        <!-- OTHER ESTATE UPLOADS -->
+        <div class="action-buttons-container">
+            <div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'add_estate_layout' %}?estate_id={{ estate.id }}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-plus"></i> <span>Add Layout</span>
+                    </a>
+                    <a href="{% url 'update_estate_amenities' %}?estate_id={{ estate.id }}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-plus"></i> <span>Add Amenities</span>
+                    </a>
+                    <a href="{% url 'add_prototypes' %}?estate_id={{ estate.id }}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-plus"></i> <span>Add Prototypes</span>
+                    </a>
+                    <a href="{% url 'add_floor_plan' %}?estate_id={{ estate.id }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-plus"></i> <span>Add Floor Plans</span>
+                    </a>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'add_progress_status' %}?estate_id={{ estate.id }}" class="btn btn-danger">
+                        <i class="bi bi-bar-chart-fill"></i> <span>Add Work Progress</span>
+                    </a>
+                    <a href="{% url 'add_estate_map' %}?estate_id={{ estate.id }}" class="btn btn-primary">
+                        <i class="bi bi-map"></i> <span>Add Map</span>
+                    </a>
+                    <a href="{% url 'estate_details' %}?estate_id={{ estate.id }}" class="btn btn-primary">
+                        <i class="bi bi-images"></i> <span>View Estate Details</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h6 class="card-title mb-0"><i class="fas fa-building"></i> {{ estate.name }}</h6>
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt"></i> Location: {{ estate.location }} |
+                        <i class="fas fa-ruler-combined"></i> Size: <span class="fw-bold">{{ estate.estate_size }}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        <!-- MANAGE ESTATE -->
+        <div class="container mt-4">
+            <form method="post" id="actionForm">
+                {% csrf_token %}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped d-none d-md-table">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th><i class="fas fa-ruler-combined"></i> Plot Sizes & Units</th>
+                                <th><i class="fas fa-map-marked-alt"></i> Plot Numbers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for estate_plot in estate_plots %}
+                            <tr>
+                                <td>
+                                    {% if estate_plot.plotsizeunits.all %}
+                                    {% for unit in estate_plot.plotsizeunits.all %}
+                                    <div class="mb-2">
+                                        <span
+                                            class="badge {% if unit.full_allocations < unit.total_units %}bg-info{% else %}bg-success{% endif %}">
+                                            <i class="fas fa-ruler"></i> {{ unit.plot_size.size }}
+                                        </span>
+                                        <span class="ms-2">
+                                            <strong>Allocation Status:</strong>
+                                            <span
+                                                class="{% if unit.full_allocations == unit.total_units %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                                {{ unit.full_allocations }}/{{ unit.total_units }}
+                                            </span>
+                                            {% if unit.full_allocations == unit.total_units and unit.part_allocations == 0 %}
+                                            <span class="badge bg-success ms-2">
+                                                <i class="fas fa-check-circle"></i> Fully Allocated
+                                            </span>
+                                            {% endif %}
+                                            {% if unit.part_allocations > 0 or unit.full_allocations == unit.total_units %}
+                                            <span class="badge bg-light text-dark ms-2 border">
+                                                <span class="badge bg-success px-2 me-1">{{ unit.full_allocations }}</span> Allocated •
+                                                <span class="badge bg-warning px-2">{{ unit.part_allocations }}</span>
+                                                Reserved
+                                            </span>
+                                            {% endif %}
+                                            {% if unit.full_allocations < unit.total_units %}
+                                            <span class="badge bg-info text-dark ms-2">
+                                                <i class="fas fa-layer-group"></i> {{ unit.computed_available_units }}
+                                                Available
+                                            </span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                    {% else %}
+                                    <span class="text-muted"><i class="fas fa-exclamation-circle"></i> No plot sizes
+                                        configured</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if estate_plot.plot_numbers.all %}
+                                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                                        {% for number in estate_plot.plot_numbers.all %}
+                                        <span
+                                            class="badge me-1 
+                                                {% if number.plotallocation_set.all %}bg-success{% else %}bg-info{% endif %}"
+                                            title="{% if number.plotallocation_set.all %}Allocated{% else %}Available{% endif %}">
+                                            {{ number.number }}
+                                            <i
+                                                class="bi bi-{% if number.plotallocation_set.all %}lock{% else %}unlock{% endif %} ms-1"></i>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <span class="badge bg-dark text-light">
+                                            <i class="bi bi-check-circle"></i>
+                                            {{ estate_plot.allocated_plot_count }}/{{ estate_plot.plot_numbers.count }}
+                                            Allocated
+                                        </span>
+                                        {% if estate_plot.available_plot_count > 0 %}
+                                        <span class="badge bg-info text-dark ms-1">
+                                            <i class="bi bi-file-earmark"></i>
+                                            {{ estate_plot.available_plot_count }} Available
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">No plot numbers assigned</span>
+                                    {% endif %}
+                                </td>
+
+
+
+                                <!-- <td>
+                                <a href="{% url 'edit-estate-plot' estate_plot.id %}" 
+                                   class="btn btn-sm btn-warning">
+                                   <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td> -->
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4">
+                                    <div class="alert alert-warning">
+                                        No plot configurations found.
+                                        <a href="{% url 'add-estate-plot' %}" class="alert-link">
+                                            Add Plot Configuration
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile-Friendly Stacked View -->
+                <div class="d-md-none">
+                    {% for estate_plot in estate_plots %}
+                    <div class="mobile-card card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary mb-3">
+                                <i class="fas fa-chart-area"></i> Plot Configuration
+                            </h6>
+
+                            <div class="mb-3">
+                                <strong class="d-block mb-2">
+                                    <i class="fas fa-ruler-combined"></i> Plot Sizes & Units
+                                </strong>
+                                {% if estate_plot.plotsizeunits.all %}
+                                {% for unit in estate_plot.plotsizeunits.all %}
+                                <div class="mb-2 p-2 bg-light rounded">
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-ruler"></i> {{ unit.plot_size.size }}
+                                    </span>
+                                    <div class="mt-2">
+                                        <strong>Allocated:</strong>
+                                        <span
+                                            class="{% if unit.full_allocations == unit.total_units %}text-danger fw-bold{% endif %}">
+                                            {{ unit.full_allocations }}/{{ unit.total_units }}
+                                        </span>
+                                        {% if unit.full_allocations == unit.total_units and unit.part_allocations == 0 %}
+                                        <span class="badge bg-success mt-1">
+                                            <i class="fas fa-check-circle"></i> Fully Allocated
+                                        </span>
+                                        {% endif %}
+                                        {% if unit.part_allocations > 0 or unit.full_allocations == unit.total_units %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-success">
+                                                {{ unit.full_allocations }} Allocated
+                                            </span>
+                                            <span class="badge bg-warning text-dark">
+                                                {{ unit.part_allocations }} Reserved
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <span class="text-muted">
+                                    <i class="fas fa-exclamation-circle"></i> No plot sizes configured
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <strong class="d-block mb-2">
+                                    <i class="fas fa-map-marked-alt"></i> Plot Numbers
+                                </strong>
+                                {% if estate_plot.plot_numbers.all %}
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    {% for number in estate_plot.plot_numbers.all %}
+                                    <span
+                                        class="badge {% if number.is_allocated %}bg-success{% else %}bg-info{% endif %}">
+                                        <i class="fas fa-map-pin"></i> {{ number.number }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">
+                                    <i class="fas fa-exclamation-circle"></i> No plot numbers assigned
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <hr>
+                            <!--                     
+                    <a href="{% url 'edit-estate-plot' estate_plot.id %}" 
+                       class="btn btn-sm btn-warning w-100">
+                       <i class="fas fa-edit"></i> Edit Configuration
+                    </a> -->
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> No plot configurations found.
+                        <a href="{% url 'add-estate-plot' %}" class="alert-link fw-bold">
+                            <i class="fas fa-plus-circle"></i> Add Plot Configuration
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </form>
+
+            <!-- Beautiful Delete Confirmation Modal -->
+            <div id="deleteModal" class="delete-modal" style="display: none;">
+                <div class="delete-modal-overlay"></div>
+                <div class="delete-modal-content">
+                    <div class="delete-modal-header">
+                        <div class="delete-icon-wrapper">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <button class="delete-modal-close" onclick="closeDeleteModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="delete-modal-body">
+                        <h3>Confirm Deletion</h3>
+                        <p>Are you sure you want to delete this plot allocation?</p>
+                        <p class="delete-warning">This action cannot be undone and will permanently remove all
+                            associated data.</p>
+                    </div>
+                    <div class="delete-modal-footer">
+                        <button class="btn-modal-cancel" onclick="closeDeleteModal()">
+                            <i class="fas fa-times-circle"></i>
+                            Cancel
+                        </button>
+                        <button class="btn-modal-delete" id="confirmDeleteBtn">
+                            <i class="fas fa-trash-alt"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Beautiful Bulk Delete Confirmation Modal -->
+            <div id="bulkDeleteModal" class="delete-modal" style="display: none;">
+                <div class="delete-modal-overlay"></div>
+                <div class="delete-modal-content">
+                    <div class="delete-modal-header">
+                        <div class="delete-icon-wrapper">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <button class="delete-modal-close" onclick="closeBulkDeleteModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="delete-modal-body">
+                        <h3>Confirm Bulk Deletion</h3>
+                        <p>Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected plot
+                            allocation(s)?</p>
+                        <p class="delete-warning">This action cannot be undone and will permanently remove all selected
+                            allocations and their associated data.</p>
+                    </div>
+                    <div class="delete-modal-footer">
+                        <button class="btn-modal-cancel" onclick="closeBulkDeleteModal()">
+                            <i class="fas fa-times-circle"></i>
+                            Cancel
+                        </button>
+                        <button class="btn-modal-delete" id="confirmBulkDeleteBtn">
+                            <i class="fas fa-trash-alt"></i>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                /* Beautiful Delete Modal Styles */
+                .delete-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .delete-modal-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(5px);
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .delete-modal-content {
+                    position: relative;
+                    background: white;
+                    border-radius: 20px;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.4s ease;
+                    overflow: hidden;
+                }
+
+                .delete-modal-header {
+                    position: relative;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 30px;
+                    text-align: center;
+                }
+
+                .delete-icon-wrapper {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 80px;
+                    height: 80px;
+                    background: white;
+                    border-radius: 50%;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                    animation: iconPulse 2s ease-in-out infinite;
+                }
+
+                .delete-icon-wrapper i {
+                    font-size: 40px;
+                    color: #f44336;
+                }
+
+                .delete-modal-close {
+                    position: absolute;
+                    top: 15px;
+                    right: 15px;
+                    width: 35px;
+                    height: 35px;
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    border-radius: 50%;
+                    color: white;
+                    font-size: 18px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.3s ease;
+                }
+
+                .delete-modal-close:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: rotate(90deg);
+                }
+
+                .delete-modal-body {
+                    padding: 40px 30px;
+                    text-align: center;
+                }
+
+                .delete-modal-body h3 {
+                    font-size: 28px;
+                    font-weight: 700;
+                    color: #2d3748;
+                    margin-bottom: 15px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+
+                .delete-modal-body p {
+                    font-size: 16px;
+                    color: #4a5568;
+                    margin-bottom: 10px;
+                    line-height: 1.6;
+                }
+
+                .delete-warning {
+                    font-size: 14px !important;
+                    color: #e53e3e !important;
+                    font-weight: 500;
+                    padding: 12px;
+                    background: #fff5f5;
+                    border-radius: 8px;
+                    border-left: 4px solid #f44336;
+                    margin-top: 20px !important;
+                }
+
+                .delete-modal-footer {
+                    padding: 20px 30px 30px;
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                }
+
+                .btn-modal-cancel,
+                .btn-modal-delete {
+                    flex: 1;
+                    padding: 14px 24px;
+                    border: none;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .btn-modal-cancel {
+                    background: #e2e8f0;
+                    color: #4a5568;
+                }
+
+                .btn-modal-cancel:hover {
+                    background: #cbd5e0;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+
+                .btn-modal-delete {
+                    background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+                    color: white;
+                    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+                }
+
+                .btn-modal-delete:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+                }
+
+                .btn-modal-delete:active {
+                    transform: translateY(0);
+                }
+
+                /* Animations */
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                    }
+
+                    to {
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                    }
+
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes iconPulse {
+
+                    0%,
+                    100% {
+                        transform: scale(1);
+                    }
+
+                    50% {
+                        transform: scale(1.05);
+                    }
+                }
+
+                /* Mobile Responsive */
+                @media (max-width: 576px) {
+                    .delete-modal-content {
+                        width: 95%;
+                        margin: 20px;
+                    }
+
+                    .delete-modal-body h3 {
+                        font-size: 24px;
+                    }
+
+                    .delete-modal-body p {
+                        font-size: 14px;
+                    }
+
+                    .btn-modal-cancel,
+                    .btn-modal-delete {
+                        font-size: 14px;
+                        padding: 12px 20px;
+                    }
+
+                    .delete-icon-wrapper {
+                        width: 70px;
+                        height: 70px;
+                    }
+
+                    .delete-icon-wrapper i {
+                        font-size: 35px;
+                    }
+                }
+            </style>
+
+            <style>
+                @media (max-width: 768px) {
+                    .table-responsive {
+                        overflow-x: auto;
+                    }
+
+                    .table th,
+                    .table td {
+                        white-space: nowrap;
+                        font-size: 14px;
+                    }
+
+                    .badge {
+                        font-size: 12px;
+                        padding: 4px 6px;
+                    }
+
+                    .btn-sm {
+                        font-size: 12px;
+                        padding: 5px 8px;
+                    }
+                }
+            </style>
+
+
+            <script>
+                // Select All functionality
+                document.getElementById('selectAll').addEventListener('change', function (e) {
+                    const checkboxes = document.querySelectorAll('input[name="selected"]');
+                    checkboxes.forEach(checkbox => checkbox.checked = e.target.checked);
+                });
+
+                // Handle delete action with beautiful modal
+                document.querySelector('button[name="delete"]').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const selectedCheckboxes = document.querySelectorAll('input[name="selected"]:checked');
+                    const count = selectedCheckboxes.length;
+
+                    if (count === 0) {
+                        showErrorMessage('Please select at least one plot allocation to delete.');
+                        return;
+                    }
+
+                    // Update count in modal
+                    document.getElementById('bulkDeleteCount').textContent = count;
+
+                    // Show bulk delete modal
+                    const modal = document.getElementById('bulkDeleteModal');
+                    modal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Confirm bulk delete
+                document.getElementById('confirmBulkDeleteBtn').addEventListener('click', function () {
+                    // Submit the form
+                    document.querySelector('form[method="post"]').submit();
+                });
+
+                // Close bulk delete modal
+                function closeBulkDeleteModal() {
+                    const modal = document.getElementById('bulkDeleteModal');
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+
+                // Close modal when clicking overlay for bulk delete
+                document.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('delete-modal-overlay') &&
+                        e.target.closest('#bulkDeleteModal')) {
+                        closeBulkDeleteModal();
+                    }
+                });
+            </script>
+        </div>
+
+
+
+
+        <div class="row gy-4">
+            <div class="col-xl-12">
+                <div class="card top-selling overflow-auto">
+                    <div class="card-body pb-0">
+                        <!-- Download Button -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 mb-3 flex-wrap gap-3">
+                            <h5 class="card-title mb-0"
+                                style="font-weight: 700; background: var(--primary-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">
+                                <i class="fas fa-chart-bar"></i> Plot Allocations Report
+                            </h5>
+                            <div class="export-buttons">
+                                <button onclick="downloadEstateCSV('{{ estate.id }}')"
+                                    class="btn btn-outline-secondary">
+                                    <i class="bi bi-download me-2"></i>Export CSV
+                                </button>
+                                <!-- <button onclick="downloadEstatePDF('{{ estate.id }}')" class="btn btn-outline-success">
+                  <i class="bi bi-file-pdf me-2"></i>Export PDF
+                </button> -->
+                            </div>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="search-container mb-3 mt-4">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control"
+                                    placeholder="🔍 Search clients, plot numbers, or payment types...">
+                                <button class="btn searchButton" type="button" onclick="clearSearch()">
+                                    <i class="bi bi-x-lg"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="allocation-card card mb-3">
+
+
+                            <div class="card-body p-2">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="medium text-bg-dark">
+                                            <tr>
+                                                <th scope="col"><i class="fas fa-user"></i> Client</th>
+                                                <th scope="col"><i class="fas fa-ruler-combined"></i> Plot Size</th>
+                                                <th scope="col"><i class="fas fa-credit-card"></i> Payment Type</th>
+                                                <th scope="col"><i class="fas fa-map-marker-alt"></i> Plot Number</th>
+                                                <th scope="col"><i class="fas fa-calendar-alt"></i> Date</th>
+                                                <th scope="col" class="text-end"><i class="fas fa-cog"></i> Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for allocation in estate.plotallocation_set.all %}
+                                            <tr data-id="{{ allocation.id }}">
+                                                <td data-label="Client">
+                                                    <strong>{{ allocation.client.full_name }}</strong>
+                                                </td>
+                                                <td data-label="Size">
+                                                    <span class="badge bg-info">{{ allocation.plot_size.size }}</span>
+                                                </td>
+                                                <td data-label="Payment">
+                                                    <span
+                                                        class="badge {% if allocation.payment_type == 'full' %}bg-success{% else %}bg-warning{% endif %}">
+                                                        <i
+                                                            class="fas fa-{% if allocation.payment_type == 'full' %}check-circle{% else %}clock{% endif %}"></i>
+                                                        {{ allocation.get_payment_type_display }}
+                                                    </span>
+                                                </td>
+
+                                                <td data-label="Plot No.">
+                                                    {% if allocation.payment_type == 'full' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-map-pin"></i> {{ allocation.plot_number.number }}
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="bi bi-clock-history ms-1"></i> Reserved
+                                                    </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td data-label="Date">
+                                                    <i class="far fa-calendar"></i> {{ allocation.date_allocated|date:"M d, Y" }}
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="d-flex gap-2 justify-content-end">
+                                                        <a href="{% url 'update_allocated_plot' %}?allocation_id={{ allocation.id }}"
+                                                            class="btn btn-sm btn-outline-primary update-btn">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-danger delete-btn">
+                                                            <i class="bi bi-trash3"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="empty-state">
+                                                    <div class="empty-state-icon">
+                                                        <i class="fas fa-folder-open"></i>
+                                                    </div>
+                                                    <h5>No Allocations Found</h5>
+                                                    <p>There are no plot allocations for this estate yet.</p>
+                                                    <a href="{% url 'plot-allocation' %}" class="btn btn-primary">
+                                                        <i class="fas fa-plus-circle"></i> Add First Allocation
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- end card-body -->
+            </div><!-- end card -->
+        </div><!-- end col-xl-12 -->
+
+        <script>
+            // Download functionality
+            function downloadEstateCSV(estateId) {
+                window.location = `/download-allocations/?estate_id=${estateId}`;
+            }
+            // function downloadEstatePDF(estateId) {
+            //     window.location = `/download-estate-pdf/${estateId}/`;
+            // }
+
+
+            // Event delegation for dynamic buttons - Updated to use custom modal
+            document.addEventListener('click', function (e) {
+                const row = e.target.closest('tr[data-id]');
+                if (!row) return;
+
+                const allocationId = row.dataset.id;
+
+                if (e.target.closest('.delete-btn')) {
+                    e.preventDefault();
+                    openDeleteModal(row, allocationId);
+                }
+            });
+
+            // THE CORRECTED
+            document.addEventListener('DOMContentLoaded', function () {
+                const searchInput = document.getElementById('searchInput');
+                const table = searchInput.closest('.card-body').querySelector('.table tbody'); // Target only this table
+
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = table.querySelectorAll('tr'); // Select rows only from the specific table
+
+                    rows.forEach(row => {
+                        const rowData = [
+                            row.querySelector('td[data-label="Client"]')?.textContent || '',
+                            row.querySelector('td[data-label="Size"]')?.textContent || '',
+                            row.querySelector('td[data-label="Payment"]')?.textContent || '',
+                            row.querySelector('td[data-label="Plot No."]')?.textContent || '',
+                            row.querySelector('td[data-label="Date"]')?.textContent || ''
+                        ].join(' ').toLowerCase();
+
+                        row.style.display = rowData.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            });
+
+            function clearSearch() {
+                const searchInput = document.getElementById('searchInput');
+                const table = searchInput.closest('.card-body').querySelector('.table tbody');
+
+                searchInput.value = '';
+                table.querySelectorAll('tr').forEach(row => {
+                    row.style.display = '';
+                });
+            }
+
+        </script>
+
+        <!-- Include jQuery -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+        <style>
+            /* Custom Toast Notifications */
+            .custom-toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                padding: 18px 24px;
+                border-radius: 12px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 15px;
+                font-weight: 500;
+                z-index: 10000;
+                transform: translateX(400px);
+                opacity: 0;
+                transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+
+            .custom-toast.show {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .custom-toast i {
+                font-size: 20px;
+            }
+
+            .success-toast {
+                border-left: 4px solid #4caf50;
+                color: #2d3748;
+            }
+
+            .success-toast i {
+                color: #4caf50;
+            }
+
+            .error-toast {
+                border-left: 4px solid #f44336;
+                color: #2d3748;
+            }
+
+            .error-toast i {
+                color: #f44336;
+            }
+
+            @media (max-width: 576px) {
+                .custom-toast {
+                    right: 10px;
+                    left: 10px;
+                    transform: translateY(-100px);
+                }
+
+                .custom-toast.show {
+                    transform: translateY(0);
+                }
+            }
+        </style>
+
+        <script>
+
+            // Delete Allocation functionality with Beautiful Custom Modal
+            let currentDeleteRow = null;
+            let currentAllocationId = null;
+
+            // Open delete modal
+            function openDeleteModal(row, allocationId) {
+                currentDeleteRow = row;
+                currentAllocationId = allocationId;
+                const modal = document.getElementById('deleteModal');
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Close delete modal
+            function closeDeleteModal() {
+                const modal = document.getElementById('deleteModal');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                currentDeleteRow = null;
+                currentAllocationId = null;
+            }
+
+            // Close modal when clicking overlay
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('delete-modal-overlay')) {
+                    closeDeleteModal();
+                }
+            });
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeDeleteModal();
+                }
+            });
+
+            // Handle delete button clicks
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.delete-btn').forEach(function (button) {
+                    button.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const row = this.closest('tr');
+                        const allocationId = row.getAttribute('data-id');
+                        openDeleteModal(row, allocationId);
+                    });
+                });
+
+                // Confirm delete button
+                document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+                    if (currentAllocationId && currentDeleteRow) {
+                        const deleteBtn = this;
+                        deleteBtn.disabled = true;
+                        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+                        $.ajax({
+                            url: "{% url 'delete_allocation' %}",
+                            method: "POST",
+                            data: JSON.stringify({ allocation_id: currentAllocationId }),
+                            contentType: "application/json",
+                            headers: {
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    // Success animation
+                                    currentDeleteRow.style.transition = 'all 0.5s ease';
+                                    currentDeleteRow.style.backgroundColor = '#d4edda';
+                                    currentDeleteRow.style.transform = 'scale(0.95)';
+
+                                    setTimeout(function () {
+                                        currentDeleteRow.style.opacity = '0';
+                                        setTimeout(function () {
+                                            currentDeleteRow.remove();
+                                            closeDeleteModal();
+
+                                            // Show success message
+                                            showSuccessMessage('Allocation deleted successfully!');
+                                        }, 300);
+                                    }, 500);
+                                } else {
+                                    closeDeleteModal();
+                                    showErrorMessage(response.error || 'An error occurred while deleting.');
+                                }
+                                deleteBtn.disabled = false;
+                                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+                            },
+                            error: function (xhr) {
+                                closeDeleteModal();
+                                showErrorMessage('An error occurred while deleting.');
+                                deleteBtn.disabled = false;
+                                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Success message function
+            function showSuccessMessage(message) {
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast success-toast';
+                toast.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                `;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // Error message function
+            function showErrorMessage(message) {
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast error-toast';
+                toast.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>${message}</span>
+                `;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        </script>
+
+        <style>
+            #searchInput {
+                outline: none;
+                border: 1px solid #ccc;
+                max-width: 400px;
+                padding: 0.5rem 1rem;
+                border-bottom-left-radius: 20px;
+                border-top-left-radius: 20px;
+                border-bottom-right-radius: 0;
+                border-top-right-radius: 0;
+                transition: all 0.3s ease;
+            }
+
+            #searchInput:focus {
+                border: 1px solid #666;
+                box-shadow: none;
+            }
+
+            #searchInput .searchButton {
+                border-bottom-right-radius: 20px;
+                border-top-right-radius: 20px;
+            }
+
+            #searchInput::placeholder {
+                font-style: italic;
+                font-size: 12px;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .table {
+                font-size: 0.875rem;
+            }
+
+            .table thead th {
+                font-weight: 500;
+            }
+
+            .table tbody td {
+                vertical-align: middle;
+            }
+
+            @media (max-width: 768px) {
+                #searchInput {
+                    max-width: 100%;
+                }
+
+                .input-group button {
+                    padding: 0.375rem 0.75rem;
+                }
+
+                .table-responsive table {
+                    font-size: 0.8rem;
+                }
+
+                .table thead {
+                    display: none;
+                }
+
+                .table tbody tr {
+                    display: flex;
+                    flex-direction: column;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    margin-bottom: 1rem;
+                    padding: 0.75rem;
+                }
+
+                .table tbody td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0.5rem;
+                    border: none;
+                }
+
+                .table tbody td::before {
+                    content: attr(data-label);
+                    font-weight: 500;
+                    color: #6c757d;
+                    margin-right: 1rem;
+                }
+
+                .table tbody td:last-child {
+                    justify-content: flex-end;
+                    padding-top: 0.75rem;
+                    border-top: 1px solid #dee2e6;
+                }
+            }
+        </style>
+        </div>
+    </section>
+
+    <style>
+        .payment-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .estate-card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+    </style>
+
+    <script>
+        // Function to handle delete functionality
+        function handleDeleteSuccess(response, row) {
+            if (response.success) {
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'Allocation deleted successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#667eea'
+                });
+
+                // Refresh plot data
+                const estateId = $('#estateName').val();
+                if (estateId) {
+                    loadPlotData(estateId);
+                }
+
+                row.remove();
+            }
+        }
+
+        // Add this function
+        function loadPlotData(estateId) {
+            fetch(`/load-plots/?estate_id=${estateId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update plot size dropdown
+                    const sizeSelect = $('#plotSize');
+                    sizeSelect.empty().append('<option value="" disabled selected>Select plot size</option>');
+                    data.plot_size_units.forEach(unit => {
+                        sizeSelect.append(new Option(unit.formatted_size, unit.id));
+                    });
+
+                    // Update plot number dropdown
+                    const numSelect = $('#plotNumber');
+                    numSelect.empty().append('<option value="" disabled selected>Select plot number</option>');
+                    data.plot_numbers.forEach(num => {
+                        numSelect.append(new Option(num.number, num.id));
+                    });
+                });
+        }
+
+    </script>
+</main>
+
+
+
+{% endblock %}

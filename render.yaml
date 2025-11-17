@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: real-estate-backend
+    env: python
+    buildCommand: |
+      chmod +x render-build.sh
+      ./render-build.sh
+    startCommand: |
+      cd /opt/render/project/src && \
+      export PYTHONPATH=$PYTHONPATH:/opt/render/project/src/estateProject && \
+      cd /opt/render/project/src/estateProject && \
+      gunicorn estateProject.wsgi:application \
+        --workers 4 \
+        --bind 0.0.0.0:$PORT \
+        --pythonpath /opt/render/project/src/estateProject
+    plan: free
+    envVars:
+      - key: PYTHONPATH
+        value: /opt/render/project/src/estateProject
+      - key: DJANGO_SETTINGS_MODULE
+        value: estateProject.settings
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"    
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: POSTGRES_DB
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        value: "5432"
+      - key: REDIS_URL
+        sync: false
+      - key: FIREBASE_CREDENTIALS_PATH
+        sync: false
+      - key: FIREBASE_DEFAULT_ICON
+        value: "ic_chat_notification"
+      - key: FIREBASE_DEFAULT_COLOR
+        value: "#075E54"
+      - key: FIREBASE_DEFAULT_CHANNEL_ID
+        value: "chat_messages"
+      - key: FIREBASE_DEFAULT_SOUND
+        value: "default"
+      - key: CELERY_BROKER_URL
+        value: "redis://redis:6379/0"
+      - key: CELERY_RESULT_BACKEND
+        value: "redis://redis:6379/1"
+    autoDeploy: true
+    staticPublishPath: estateProject/staticfiles

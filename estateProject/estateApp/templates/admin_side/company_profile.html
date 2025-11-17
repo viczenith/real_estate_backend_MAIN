@@ -1,0 +1,701 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Company Console</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Home</a></li>
+                <li class="breadcrumb-item active">Console</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="container py-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width:64px;height:64px;border-radius:12px;overflow:hidden;background:#f3f4f6;display:flex;align-items:center;justify-content:center">
+                    {% if company and company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.company_name }} Logo" style="width:100%;height:100%;object-fit:cover">
+                    {% else %}
+                        <i class="bi bi-buildings" style="font-size:28px;color:#6b7280"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="mb-0">{{ company.company_name|default:'Company Console' }}</h2>
+                    <small class="text-muted">Manage company details, users and app metrics</small>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editCompanyModal">
+                    <i class="bi bi-pencil-square me-1"></i> Edit Company Details
+                </button>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="companyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Overview</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">Admins</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="support-tab" data-bs-toggle="tab" data-bs-target="#support" type="button" role="tab">AdminSupport</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="apps-tab" data-bs-toggle="tab" data-bs-target="#apps" type="button" role="tab">App Metrics</button>
+            </li>
+        </ul>
+
+        <div class="tab-content pt-3">
+            <!-- Overview -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <div class="card h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <strong>Company Details</strong>
+                            </div>
+                            <div class="card-body">
+                                {% if company %}
+                                    <div class="row mb-3">
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Company Name</div>
+                                            <div class="fw-semibold">{{ company.company_name }}</div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Registration Number</div>
+                                            <div class="fw-semibold">{{ company.registration_number }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Registration Date</div>
+                                            <div class="fw-semibold">{{ company.registration_date|date:'M d, Y' }}</div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Email</div>
+                                            <div class="fw-semibold">{{ company.email }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Phone</div>
+                                            <div class="fw-semibold">{{ company.phone }}</div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">Location / Address</div>
+                                            <div class="fw-semibold">{{ company.location }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">CEO Name</div>
+                                            <div class="fw-semibold">{{ company.ceo_name }}</div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="text-muted small">CEO Date of Birth</div>
+                                            <div class="fw-semibold">{{ company.ceo_dob|date:'M d, Y' }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">No company linked yet. Use Edit to register details.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-3">
+                            <div class="card-header bg-white"><strong>Key Stats</strong></div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 d-flex align-items-center gap-3">
+                                            <div class="text-primary"><i class="bi bi-people" style="font-size:1.4rem"></i></div>
+                                            <div>
+                                                <div class="text-muted small">Clients</div>
+                                                <div class="fs-5 fw-bold">{{ total_clients|default:0|intcomma }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 d-flex align-items-center gap-3">
+                                            <div class="text-success"><i class="bi bi-person-badge" style="font-size:1.4rem"></i></div>
+                                            <div>
+                                                <div class="text-muted small">Marketers</div>
+                                                <div class="fs-5 fw-bold">{{ total_marketers|default:0|intcomma }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 d-flex align-items-center gap-3">
+                                            <div class="text-warning"><i class="bi bi-building" style="font-size:1.4rem"></i></div>
+                                            <div>
+                                                <div class="text-muted small">Estates</div>
+                                                <div class="fs-5 fw-bold">{{ total_estates|default:0|intcomma }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 d-flex align-items-center gap-3">
+                                            <div class="text-danger"><i class="bi bi-check2-square" style="font-size:1.4rem"></i></div>
+                                            <div>
+                                                <div class="text-muted small">Full Alloc.</div>
+                                                <div class="fs-5 fw-bold">{{ total_full_allocations|default:0|intcomma }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="border rounded p-3 d-flex align-items-center gap-3">
+                                            <div class="text-info"><i class="bi bi-file-earmark-text" style="font-size:1.4rem"></i></div>
+                                            <div>
+                                                <div class="text-muted small">Part Alloc.</div>
+                                                <div class="fs-5 fw-bold">{{ total_part_allocations|default:0|intcomma }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header bg-white"><strong>Activity</strong></div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div><span class="badge bg-success">Active Users</span></div>
+                                    <div class="fw-bold">{{ active_users_count|intcomma }}</div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <div><span class="badge bg-secondary">Inactive Users</span></div>
+                                    <div class="fw-bold">{{ inactive_users_count|intcomma }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users -->
+            <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                <div class="card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>Registered Users</strong>
+                        <small class="text-muted">Latest 20</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Last Login</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in registered_users %}
+                                <tr>
+                                    <td>{{ u.full_name }}</td>
+                                    <td>{{ u.email }}</td>
+                                    <td><span class="badge bg-outline-secondary" style="border:1px solid #ccc;color:#555">{{ u.role|default:'-' }}</span></td>
+                                    <td>{{ u.last_login|date:'M d, Y H:i'|default:'—' }}</td>
+                                    <td>{{ u.date_joined|date:'M d, Y' }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center text-muted">No users yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admins -->
+            <div class="tab-pane fade" id="admins" role="tabpanel" aria-labelledby="admins-tab">
+                <div class="card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>Admin Users</strong>
+                        <span class="badge bg-primary">{{ admin_users|length }}</span>
+                    </div>
+                                <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Phone</th>
+                                                    <th>Joined</th>
+                                                    <th>Last Login</th>
+                                                    <th>Login Location</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end">Actions</th>
+                                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in admin_users %}
+                                <tr>
+                                    <td>{{ a.full_name }}</td>
+                                    <td>{{ a.email }}</td>
+                                    <td>{{ a.phone|default:'-' }}</td>
+                                                <td>{{ a.date_joined|date:'M d, Y' }}</td>
+                                                    <td>{{ a.last_login|date:'M d, Y H:i'|default:'—' }}</td>
+                                                    <td>
+                                                        {% if a.last_login_location %}
+                                                            {{ a.last_login_location }}
+                                                        {% elif a.last_login_ip %}
+                                                            {{ a.last_login_ip }}
+                                                        {% else %}
+                                                            —
+                                                        {% endif %}
+                                                    </td>
+                                                <td>
+                                                    {% if a.is_active %}
+                                                        <span class="badge bg-success">Active</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Muted</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-end">
+                                                    {% if request.user.id != a.id %}
+                                                        <button class="btn btn-sm btn-outline-warning me-2" data-action="toggle-mute" data-user-id="{{ a.id }}" data-current="{{ a.is_active|yesno:'active,muted' }}">
+                                                            {% if a.is_active %}<i class="bi bi-volume-mute"></i> Mute{% else %}<i class="bi bi-volume-up"></i> Unmute{% endif %}
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" data-action="delete-admin" data-user-id="{{ a.id }}" data-name="{{ a.full_name }}">
+                                                            <i class="bi bi-trash"></i> Delete
+                                                        </button>
+                                                    {% else %}
+                                                        <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted">No admin users found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                        <div class="card mt-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>Support Users</strong>
+                        <span class="badge bg-secondary">{{ support_users|length }}</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Phone</th>
+                                                    <th>Joined</th>
+                                                    <th>Last Login</th>
+                                                    <th>Login Location</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end">Actions</th>
+                                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in support_users %}
+                                <tr>
+                                    <td>{{ s.full_name }}</td>
+                                    <td>{{ s.email }}</td>
+                                    <td>{{ s.phone|default:'-' }}</td>
+                                            <td>{{ s.date_joined|date:'M d, Y' }}</td>
+                                                    <td>{{ s.last_login|date:'M d, Y H:i'|default:'—' }}</td>
+                                                    <td>
+                                                        {% if s.last_login_location %}
+                                                            {{ s.last_login_location }}
+                                                        {% elif s.last_login_ip %}
+                                                            {{ s.last_login_ip }}
+                                                        {% else %}
+                                                            —
+                                                        {% endif %}
+                                                    </td>
+                                            <td>
+                                                {% if s.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Muted</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                {% if request.user.id != s.id %}
+                                                    <button class="btn btn-sm btn-outline-warning me-2" data-action="toggle-mute" data-user-id="{{ s.id }}" data-current="{{ s.is_active|yesno:'active,muted' }}">
+                                                        {% if s.is_active %}<i class="bi bi-volume-mute"></i> Mute{% else %}<i class="bi bi-volume-up"></i> Unmute{% endif %}
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" data-action="delete-admin" data-user-id="{{ s.id }}" data-name="{{ s.full_name }}">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted">No support users found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AdminSupport -->
+            <div class="tab-pane fade" id="support" role="tabpanel" aria-labelledby="support-tab">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <strong>Staff Roster (linked users)</strong>
+                                <span class="badge bg-info">{{ staff_roster_count }}</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in staff_roster %}
+                                        <tr>
+                                            <td>{{ r.user.full_name }}</td>
+                                            <td>{{ r.user.email }}</td>
+                                            <td>{% if r.active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="3" class="text-center text-muted">No roster entries.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <strong>Staff Members (directory)</strong>
+                                <span class="badge bg-info">{{ staff_members_count }}</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for m in staff_members %}
+                                        <tr>
+                                            <td>{{ m.full_name }}</td>
+                                            <td>{{ m.email }}</td>
+                                            <td>{{ m.role|default:'—' }}</td>
+                                            <td>{% if m.active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="4" class="text-center text-muted">No staff members yet.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Metrics -->
+            <div class="tab-pane fade" id="apps" role="tabpanel" aria-labelledby="apps-tab">
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-white"><strong>Downloads</strong></div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2"><span>Android</span><span class="fw-bold">{{ app_metrics.android_downloads|default:0|intcomma }}</span></div>
+                                <div class="d-flex justify-content-between mb-2"><span>iOS</span><span class="fw-bold">{{ app_metrics.ios_downloads|default:0|intcomma }}</span></div>
+                                <div class="d-flex justify-content-between border-top pt-2"><span>Total</span><span class="fw-bold">{{ total_downloads|intcomma }}</span></div>
+                                {% if app_metrics %}
+                                <small class="text-muted d-block mt-2">Updated {{ app_metrics.last_updated|date:'M d, Y H:i' }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card h-100">
+                            <div class="card-header bg-white"><strong>Active vs Inactive Users</strong></div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-sm-6">
+                                        <div class="p-3 border rounded text-center">
+                                            <div class="display-6 text-success">{{ active_users_count|intcomma }}</div>
+                                            <div class="text-muted">Active (30 days)</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="p-3 border rounded text-center">
+                                            <div class="display-6 text-secondary">{{ inactive_users_count|intcomma }}</div>
+                                            <div class="text-muted">Inactive</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mt-3">
+            <a href="{% url 'admin-dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Edit Company Modal -->
+    <div class="modal fade" id="editCompanyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Company Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="companyEditForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        {% if company %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Company Name</label>
+                                <input type="text" name="company_name" class="form-control" value="{{ company.company_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Registration Number</label>
+                                <input type="text" name="registration_number" class="form-control" value="{{ company.registration_number }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Registration Date</label>
+                                <input type="date" name="registration_date" class="form-control" value="{{ company.registration_date|date:'Y-m-d' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Location</label>
+                                <input type="text" name="location" class="form-control" value="{{ company.location }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CEO Name</label>
+                                <input type="text" name="ceo_name" class="form-control" value="{{ company.ceo_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CEO Date of Birth</label>
+                                <input type="date" name="ceo_dob" class="form-control" value="{{ company.ceo_dob|date:'Y-m-d' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ company.email }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="text" name="phone" class="form-control" value="{{ company.phone }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Logo</label>
+                                <input type="file" name="logo" class="form-control" accept="image/*">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check mt-3">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if company.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                            <div class="alert alert-info">No company record to edit.</div>
+                        {% endif %}
+                        <div class="alert d-none mt-3" id="companyEditFeedback"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    (function() {
+        const form = document.getElementById('companyEditForm');
+        if (!form) return;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const url = '{% url "company-profile-update" %}';
+            const feedback = document.getElementById('companyEditFeedback');
+
+            const formData = new FormData(form);
+            // Normalize checkbox
+            if (!form.querySelector('input[name="is_active"]').checked) {
+                // send unchecked as empty; Django treats absence as False for BooleanField when binding instance
+            }
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                const data = await res.json();
+                feedback.classList.remove('d-none', 'alert-danger', 'alert-success');
+                if (data.ok) {
+                    feedback.classList.add('alert-success');
+                    feedback.textContent = data.message || 'Saved';
+                    // Optimistic reload to reflect latest values
+                    setTimeout(() => { window.location.reload(); }, 800);
+                } else {
+                    feedback.classList.add('alert-danger');
+                    if (data.errors) {
+                        const msgs = Object.entries(data.errors).map(([k,v]) => `${k}: ${v}`).join(' | ');
+                        feedback.textContent = msgs;
+                    } else {
+                        feedback.textContent = data.error || 'Update failed';
+                    }
+                }
+            } catch (err) {
+                feedback.classList.remove('d-none');
+                feedback.classList.add('alert-danger');
+                feedback.textContent = 'Network or server error. Please try again.';
+            }
+        });
+    })();
+
+        // Admin actions: mute/unmute and delete with confirmation modals
+            (function() {
+                const adminTab = document.getElementById('admins');
+                if (!adminTab) return;
+
+            // Create reusable modal elements
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'modal fade';
+            confirmModal.id = 'confirmActionModal';
+            confirmModal.tabIndex = -1;
+            confirmModal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmActionTitle">Confirm Action</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3 text-warning"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i></div>
+                                <div>
+                                    <p class="mb-1" id="confirmActionText"></p>
+                                    <small class="text-muted" id="confirmActionCaption"></small>
+                                </div>
+                            </div>
+                            <div class="mt-3" id="confirmExtra"></div>
+                            <div class="alert d-none mt-3" id="confirmFeedback"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="confirmActionBtn">Proceed</button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(confirmModal);
+            const bsConfirmModal = new bootstrap.Modal(confirmModal);
+
+            let pending = null; // {type, userId, desired}
+                adminTab.addEventListener('click', function(e) {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const userId = btn.getAttribute('data-user-id');
+                const action = btn.getAttribute('data-action');
+                const feedback = confirmModal.querySelector('#confirmFeedback');
+                feedback.classList.add('d-none');
+                feedback.textContent = '';
+
+                if (action === 'toggle-mute') {
+                    const current = btn.getAttribute('data-current'); // 'active' or 'muted'
+                    const desired = current === 'active' ? 'mute' : 'unmute';
+                    pending = { type: 'mute', userId, desired };
+                    confirmModal.querySelector('#confirmActionTitle').textContent = desired === 'mute' ? 'Mute Admin' : 'Unmute Admin';
+                    confirmModal.querySelector('#confirmActionText').textContent = desired === 'mute' ? 'Are you sure you want to mute this admin account?' : 'Unmute this admin account?';
+                    confirmModal.querySelector('#confirmActionCaption').textContent = desired === 'mute' ? 'Muted admins cannot log in until unmuted.' : '';
+                    confirmModal.querySelector('#confirmExtra').innerHTML = '';
+                    bsConfirmModal.show();
+                }
+                if (action === 'delete-admin') {
+                    const name = btn.getAttribute('data-name') || 'this admin';
+                    pending = { type: 'delete', userId };
+                    confirmModal.querySelector('#confirmActionTitle').textContent = 'Delete Admin Account';
+                    confirmModal.querySelector('#confirmActionText').innerHTML = `You are about to <strong>delete</strong> ${name}.`;
+                    confirmModal.querySelector('#confirmActionCaption').textContent = 'This is a soft delete: the user will be deactivated and cannot log in.';
+                    confirmModal.querySelector('#confirmExtra').innerHTML = `
+                        <label class="form-label mt-2">Reason (optional)</label>
+                        <textarea class="form-control" id="deleteReason" rows="2" placeholder="Add a note..."></textarea>`;
+                    bsConfirmModal.show();
+                }
+            });
+
+                function getCookie(name) {
+                    const value = `; ${document.cookie}`;
+                    const parts = value.split(`; ${name}=`);
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                }
+
+                confirmModal.querySelector('#confirmActionBtn').addEventListener('click', async function() {
+                if (!pending) return;
+                const feedback = confirmModal.querySelector('#confirmFeedback');
+                try {
+                            let url = '';
+                    const form = new FormData();
+                        const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '';
+                        form.append('csrfmiddlewaretoken', csrfToken);
+                    if (pending.type === 'mute') {
+                                url = `/company-profile/admin/${pending.userId}/toggle-mute/`;
+                        form.append('desired', pending.desired);
+                    } else if (pending.type === 'delete') {
+                                url = `/company-profile/admin/${pending.userId}/delete/`;
+                        const reason = confirmModal.querySelector('#deleteReason')?.value || '';
+                        form.append('reason', reason);
+                    }
+
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: form
+                    });
+                    const data = await res.json();
+                    feedback.classList.remove('d-none', 'alert-danger', 'alert-success');
+                            if (data.ok) {
+                        feedback.classList.add('alert-success');
+                        feedback.textContent = data.message || 'Success';
+                        setTimeout(() => { window.location.reload(); }, 600);
+                    } else {
+                        feedback.classList.add('alert-danger');
+                        feedback.textContent = data.error || 'Action failed';
+                    }
+                } catch (err) {
+                    feedback.classList.remove('d-none');
+                    feedback.classList.add('alert-danger');
+                    feedback.textContent = 'Network or server error. Please try again.';
+                }
+            });
+        })();
+</script>
+{% endblock %}
+

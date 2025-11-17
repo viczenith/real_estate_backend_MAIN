@@ -1,0 +1,1075 @@
+
+
+
+We are going to create a Flutter page that replicates the Django marketer profile page
+THIS IS MARKETER PROFILE PAGE WITH ITS DRF. I WANT YOU TO LOOK INTO EVERY OF THE SECTIONS OF THE PAGE AND WIRE IT BACKEND TO PULL EXACTLY ALL THAT THE DJANGO HTML MARKETER PROFILE PAGE CONTAINS INTO THE FLUTTER REPLICAL OF THE PAGE.
+
+IN THE FLUTTER MARKETER PROFILE PAGE, MODIFY EVERY SECTIONS AND REMOVE SECTIONS THAT ARE NOT CONSISTENT WITH THE DJANGO MARKETER PROFILE PAGE DATA.
+
+I PROVIDED THE CLIENT APISERVICE AND THE PROFILE PAGE FOR YOU TO MODIFY TO MAKE IT MARKETER PAGE AND APISERVICE IN RESPECT TO THE WEB APP PAGES I HAVE PROVIDED ALREADY.
+
+WIRE FOR ME THE FLUTTER PAGE AND GIVE ME COMPLETE CORRECT CODE OF THE FLUTTER PAGE.
+
+{% extends 'marketer_base.html' %}
+{% load static humanize %}
+{% block content %}
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1>Profile</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+            <li class="breadcrumb-item active">Profile</li>
+          </ol>
+        </nav>
+      </div>
+      <div class="d-flex">
+        <div class="search-bar me-3">
+          <input type="text" class="form-control" placeholder="Search...">
+          <button class="btn btn-search"><i class="bi bi-search"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section profile">
+    <div class="row">
+      <div class="col-xl-4">
+        <div class="card profile-card">
+          <div class="card-body d-flex flex-column align-items-center">
+            <!-- <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle">
+            <h2 class="mt-3">{{ user.full_name }}</h2>
+            <h4 class="text-muted">{{ user.job | default:"Marketer" }}</h4> -->
+            <div class="text-center mb-4">
+              {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Profile" class="profile-avatar">
+              {% else %}
+                <img src="{% static 'assets/img/profile_avatar.jpeg' %}" alt="Profile" class="profile-avatar">
+              {% endif %}
+              <h2 class="mt-3">{{ user.full_name }}</h2>
+              <h4 class="text-muted">{{ user.job | default:"Marketer" }}</h4>
+            </div>
+            
+            <!-- Performance Summary -->
+            <div class="performance-summary mt-4 justify-content-between">
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="stat-value">{{ performance.commission_rate|floatformat:1 }}%
+
+                  </div>
+                  <div class="stat-label">Commission</div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-value" style="font-size: 16px;">
+                    {% if user_entry.has_target %}
+                      <span>+{{ user_entry.diff_pct|floatformat:0 }}% {{ user_entry.category }}</span>
+                    {% else %}
+                      <span><em>{{ current_year }} Target is yet to be set</em></span>
+                    {% endif %}
+                  </div>
+                  <div class="stat-label">{{ current_year }} Target</div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-value">{{ performance.closed_deals }}</div>
+                  <div class="stat-label">Deals</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Badges -->
+            <div class="badges mt-4">
+              <span class="badge bg-gold">Gold</span>
+              <span class="badge bg-silver">Elite Marketer</span>
+              <span class="badge bg-bronze">Consistent Performer</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card">
+          <div class="card-body pt-3">
+            <!-- Bordered Tabs -->
+            <ul class="nav nav-tabs nav-tabs-bordered">
+              <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Details</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">Edit Profile</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#performance">Performance</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#top-performers">Top Performers</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">Password</button>
+              </li>
+            </ul>
+            
+            <div class="tab-content pt-4">
+              <!-- Details Tab -->
+              <div class="tab-pane fade show active" id="profile-overview">
+                <div class="profile-container">
+                  {% if success %}
+                    <div class="alert alert-success alert-container">{{ success }}</div>
+                  {% elif error %}
+                    <div class="alert alert-danger alert-container">{{ error }}</div>
+                  {% endif %}
+
+                  {% if messages %}
+                    <div class="alert-container">
+                      {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} mb-3">{{ message|safe }}</div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                  
+                  <!-- <div class="text-center mb-4">
+                    {% if user.profile_image %}
+                      <img src="{{ user.profile_image.url }}" alt="Profile" class="profile-avatar">
+                    {% else %}
+                      <img src="{% static 'assets/img/profile_avatar.jpeg' %}" alt="Profile" class="profile-avatar">
+                    {% endif %}
+                    <h3 class="mt-3">{{ user.full_name }}</h3>
+                    <p class="text-muted">{{ user.job | default:"Marketer" }}</p>
+                  </div> -->
+                  
+                  <div class="profile-about">
+                    <h5 class="card-title mb-3">About You</h5>
+                    <p class="mb-0">{{ user.about|default:"Share something about yourself..." }}</p>
+                  </div>
+
+                  <h5 class="card-title mb-4">Profile Details</h5>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-person"></i> Full Name
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.full_name }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-building"></i> Company
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.company|default:"-" }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-briefcase"></i> Job
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.job|default:"-" }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-globe"></i> Country
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.country|default:"-" }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-geo-alt"></i> Address
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.address|default:"-" }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-telephone"></i> Phone
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.phone|default:"-" }}</div>
+                  </div>
+
+                  <div class="row profile-detail-row">
+                    <div class="col-lg-3 col-md-4 detail-label">
+                      <i class="bi bi-envelope"></i> Email
+                    </div>
+                    <div class="col-lg-9 col-md-8 detail-value">{{ user.email }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Edit Profile Tab -->
+              <div class="tab-pane fade" id="profile-edit">
+                <div class="form-container">
+                  <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="update_profile" value="1">
+<!--                     
+                    {% if messages %}
+                      <div class="mb-4">
+                        {% for message in messages %}
+                          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                      </div>
+                    {% endif %} -->
+                    
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="profileImage" class="form-label">Profile Image</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="d-flex flex-column align-items-center">
+                          {% if user.profile_image %}
+                            <img src="{{ user.profile_image.url }}" alt="{{ user.full_name }} Profile Image" class="profile-avatar mb-3">
+                          {% else %}
+                            <img src="{% static 'assets/img/profile_avatar.jpeg' %}" alt="Profile Image" class="profile-avatar mb-3">
+                          {% endif %}
+                          <div class="d-flex">
+                            <input type="file" name="profile_image" class="form-control d-none" id="profileImageInput">
+                            <button type="button" class="btn btn-primary" onclick="document.getElementById('profileImageInput').click();">
+                              <i class="bi bi-upload me-1"></i> Change Photo
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2">
+                              <i class="bi bi-trash me-1"></i> Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="fullName" class="form-label">Full Name</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-person"></i></span>
+                          <input name="fullName" disabled type="text" class="form-control" id="fullName" value="{{ user.full_name }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="about" class="form-label">About You</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                          <textarea name="about" class="form-control" id="about" rows="4" placeholder="Write about yourself">{{ user.about }}</textarea>
+                        </div>
+                      </div>
+                    </div>
+                
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="company" class="form-label">Company</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-building"></i></span>
+                          <input name="company" type="text" class="form-control" id="company" value="{{ user.company }}">
+                        </div>
+                      </div>
+                    </div>
+                
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="job" class="form-label">Job</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+                          <input name="job" type="text" class="form-control" id="job" value="{{ user.job }}">
+                        </div>
+                      </div>
+                    </div>
+                
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="country" class="form-label">Country</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                          <input name="country" type="text" class="form-control" id="country" value="{{ user.country }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="Address" class="form-label">Address</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                          <input name="address" disabled type="text" class="form-control" id="Address" value="{{ user.address }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="Phone" class="form-label">Phone</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                          <input name="phone" disabled type="text" class="form-control" id="Phone" value="{{ user.phone }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row mb-4">
+                      <div class="col-md-4 col-lg-3 col-form-label">
+                        <label for="Email" class="form-label">Email</label>
+                      </div>
+                      <div class="col-md-8 col-lg-9">
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                          <input name="email" disabled type="email" class="form-control" id="Email" value="{{ user.email }}">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                      <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-save me-2"></i>Save Changes
+                      </button>
+                      <button type="reset" class="btn btn-outline-secondary btn-lg ms-3 px-5">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div> 
+              
+              <!-- PERFORMANCE TAB -->
+              <div class="tab-pane fade" id="performance">
+                <h5 class="card-title">Your Performance</h5>
+
+                <div class="row mb-4">
+                  <!-- Closed Deals -->
+                  <div class="col-md-4">
+                    <div class="card stat-card bg-success text-white">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <h6 class="text-white-50">CLOSED DEALS</h6>
+                            <h4>{{ performance.closed_deals }}</h4>
+                          </div>
+                          <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Commission Earned -->
+                  <div class="col-md-4">
+                    <div class="card stat-card bg-info text-white">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <h6 class="text-white-50">COMMISSION EARNED</h6>
+                            <h4>₦{{ performance.commission_earned|intcomma }}</h4>
+                          </div>
+                          <i class="bi bi-cash-coin fs-1 opacity-50"></i>
+                        </div>
+                        <div class="progress mt-2" style="height:5px;">
+                          <div class="progress-bar bg-light" role="progressbar"
+                              style="width:{{ performance.commission_rate }}%">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="card">
+                  <div class="card-header bg-light">
+                    <h6>Performance Metrics</h6>
+                  </div>
+                  <div class="card-body">
+                    <!-- Yearly Target Achievement -->
+                    <div class="metric mb-4">
+                      <div class="d-flex justify-content-between">
+                        <span>Yearly Target Achieved <strong class="badge bg-success">{{ current_year }}</strong></span>
+                        {% if performance.yearly_target_achievement is not None %}
+                          <strong>{{ performance.yearly_target_achievement|floatformat:0 }}%</strong>
+                        {% else %}
+                          <strong class="text-muted">Yet to be set</strong>
+                        {% endif %}
+                      </div>
+                      <div class="progress mt-1" style="height:8px;">
+                        {% if performance.yearly_target_achievement is not None %}
+                          <div class="progress-bar bg-info" role="progressbar"
+                              style="width:{{ performance.yearly_target_achievement }}%">
+                          </div>
+                        {% else %}
+                          <div class="progress-bar bg-secondary" role="progressbar" style="width:0%"></div>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <!-- Commission Rate -->
+                    <div class="metric">
+                      <div class="d-flex justify-content-between">
+                        <span>Commission Rate</span>
+                        <strong>{{ performance.commission_rate|floatformat:1 }}%</strong>
+                      </div>
+                      <div class="progress mt-1" style="height:8px;">
+                        <div class="progress-bar bg-warning" role="progressbar"
+                            style="width:{{ performance.commission_rate }}%">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              
+              <!-- Top Performers Tab -->
+              <div class="tab-pane fade" id="top-performers">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <h5 class="card-title mb-0">Top Performers</h5>
+                </div>
+                
+                <!-- Top Performers Leaderboard -->
+                <div class="card mb-4">
+                  <div class="card-header bg-light d-flex justify-content-between">
+                    <h6 class="mb-0">Leaderboard</h6>
+                    <h6 class="mb-0 badge text-bg-success">{{ current_year }}</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="leaderboard">
+                      {% for item in top3 %}
+                        <div class="leaderboard-item 
+                                    {% if item.rank == 1 %}gold
+                                    {% elif item.rank == 2 %}silver
+                                    {% elif item.rank == 3 %}bronze{% endif %}">
+                          
+                          <div class="rank">{{ item.rank }}</div>
+                          
+                          <div class="avatar">
+                            <img
+                              src="{% if item.marketer.profile_image %}{{ item.marketer.profile_image.url }}{% else %}{% static 'assets/img/profile_avatar.jpeg' %}{% endif %}"
+                              alt="{{ item.marketer.full_name }}"
+                            >
+                            <span class="badge 
+                              {% if item.rank == 1 %}bg-gold
+                              {% elif item.rank == 2 %}bg-silver
+                              {% elif item.rank == 3 %}bg-bronze{% endif %}">
+                                {% if item.rank == 1 %}Gold
+                                {% elif item.rank == 2 %}Silver
+                                {% elif item.rank == 3 %}Bronze{% endif %}
+                            </span>
+                          </div>
+                          
+                          <div class="info">
+                            <div class="name">{{ item.marketer.full_name }}</div>
+                            <div class="stats">
+                              {% if item.has_target %}
+                                <span>+{{ item.diff_pct|floatformat:0 }}% {{ item.category }}</span>
+                              {% else %}
+                                <span><em>{{ current_year }} Target is yet to be set</em></span>
+                              {% endif %}
+                            </div>
+                          </div>
+                          
+                          <div class="percentage">Top {{ item.rank }}%</div>
+                        </div>
+                      {% endfor %}
+                      
+                      {% if user_entry %}
+                        <hr>
+                        <div class="leaderboard-item current-user">
+                          <div class="rank">{{ user_entry.rank }}</div>
+                          
+                          <div class="avatar">
+                            <img
+                              src="{% if user_entry.marketer.profile_image %}{{ user_entry.marketer.profile_image.url }}{% else %}{% static 'assets/img/profile_avatar.jpeg' %}{% endif %}"
+                              alt="{{ user_entry.marketer.full_name }}"
+                            >
+                            <span class="badge bg-primary">You</span>
+                          </div>
+                          
+                          <div class="info">
+                            <div class="name">{{ user_entry.marketer.full_name }}</div>
+                            <div class="stats">
+                              {% if user_entry.has_target %}
+                                <span>+{{ user_entry.diff_pct|floatformat:0 }}% {{ user_entry.category }}</span>
+                              {% else %}
+                                <span><em>{{ current_year }} Target is yet to be set</em></span>
+                              {% endif %}
+                            </div>
+                          </div>
+                          
+                          <div class="percentage">Top {{ user_entry.rank }}%</div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Change Password Tab -->
+              <div class="tab-pane fade" id="profile-change-password">
+                <div class="password-form-card">
+                  <div class="password-form-header text-center">
+                    <h4 class="text-white mb-0"><i class="bi bi-shield-lock me-2"></i>Change Password</h4>
+                    <p class="text-white-50 mb-0">Secure your account with a new password</p>
+                  </div>
+                  
+                  <div class="card-body">
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="change_password" value="1">
+
+                      {% if success %}
+                        <div class="alert alert-success alert-container">{{ success }}</div>
+                      {% elif error %}
+                        <div class="alert alert-danger alert-container">{{ error }}</div>
+                      {% endif %}
+                      
+                      <div class="mb-4">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <div class="password-input-group">
+                          <i class="bi bi-lock"></i>
+                          <input name="currentPassword" type="password" class="form-control form-control-lg" id="currentPassword" placeholder="Enter your current password" required>
+                          <span class="password-toggle" onclick="togglePassword('currentPassword')">
+                            <i class="bi bi-eye"></i>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="mb-4">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <div class="password-input-group">
+                          <i class="bi bi-key"></i>
+                          <input name="newPassword" type="password" class="form-control form-control-lg" id="newPassword" placeholder="Create a new password" required>
+                          <span class="password-toggle" onclick="togglePassword('newPassword')">
+                            <i class="bi bi-eye"></i>
+                          </span>
+                        </div>
+                        <div class="password-strength mt-2">
+                          <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                        </div>
+                        <div class="form-text">Use 8+ characters with a mix of letters, numbers & symbols</div>
+                      </div>
+
+                      <div class="mb-4">
+                        <label for="renewPassword" class="form-label">Confirm New Password</label>
+                        <div class="password-input-group">
+                          <i class="bi bi-key-fill"></i>
+                          <input name="renewPassword" type="password" class="form-control form-control-lg" id="renewPassword" placeholder="Re-enter your new password" required>
+                          <span class="password-toggle" onclick="togglePassword('renewPassword')">
+                            <i class="bi bi-eye"></i>
+                          </span>
+                        </div>
+                        <div class="form-text" id="passwordMatchText"></div>
+                      </div>
+
+                      <div class="text-center mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                          <i class="bi bi-check-circle me-2"></i>Update Password
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  .profile-container {
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+  }
+  
+  .profile-detail-row {
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.3s;
+  }
+  
+  .profile-detail-row:hover {
+    background-color: rgba(37, 117, 252, 0.03);
+  }
+  
+  .detail-label {
+    font-weight: 600;
+    color: #495057;
+    display: flex;
+    align-items: center;
+  }
+  
+  .detail-label i {
+    margin-right: 10px;
+    color: #2575fc;
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+  }
+  
+  .detail-value {
+    color: #343a40;
+    font-weight: 500;
+  }
+  
+  .form-container {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+  
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .password-form-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  }
+  
+  .password-form-header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 20px;
+  }
+  
+  .password-input-group {
+    position: relative;
+  }
+  
+  .password-input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+  
+  .password-input-group input {
+    padding-left: 45px;
+  }
+  
+  .password-strength {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 5px;
+    background: #e9ecef;
+    overflow: hidden;
+  }
+  
+  .password-strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s;
+  }
+  
+  .password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+  }
+  
+  .profile-about {
+    background: rgba(37, 117, 252, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid #2575fc;
+    margin-bottom: 25px;
+  }
+  
+  .alert-container {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .profile-card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: none;
+  }
+  
+  .profile-card img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .performance-summary {
+    background: rgba(37, 117, 252, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    width: 100%;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2575fc;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .badges .badge {
+    margin: 0 3px;
+    font-weight: 500;
+    border-radius: 20px;
+    padding: 0.5em 0.8em;
+  }
+  
+  .bg-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000;
+  }
+  
+  .bg-silver {
+    background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%);
+    color: #000;
+  }
+  
+  .bg-bronze {
+    background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    color: #fff;
+  }
+  
+  .stat-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border: none;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .leaderboard {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s;
+  }
+  
+  .leaderboard-item:last-child {
+    border-bottom: none;
+  }
+  
+  .leaderboard-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .leaderboard-item.gold {
+    background: rgba(255, 215, 0, 0.05);
+    border-left: 4px solid #FFD700;
+  }
+  
+  .leaderboard-item.silver {
+    background: rgba(192, 192, 192, 0.05);
+    border-left: 4px solid #C0C0C0;
+  }
+  
+  .leaderboard-item.bronze {
+    background: rgba(205, 127, 50, 0.05);
+    border-left: 4px solid #CD7F32;
+  }
+  
+  .leaderboard-item.current-user {
+    background: rgba(37, 117, 252, 0.08);
+    border-left: 4px solid #2575fc;
+  }
+  
+  .leaderboard-item .rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    width: 40px;
+    text-align: center;
+    color: #495057;
+  }
+  
+  .leaderboard-item .avatar {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 0 15px;
+  }
+  
+  .leaderboard-item .avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .leaderboard-item .avatar .badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    font-size: 0.6rem;
+    padding: 0.25em 0.6em;
+  }
+  
+  .leaderboard-item .info {
+    flex: 1;
+  }
+  
+  .leaderboard-item .name {
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .leaderboard-item .stats {
+    display: flex;
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+  
+  .leaderboard-item .stats span {
+    margin-right: 15px;
+  }
+  
+  .leaderboard-item .percentage {
+    font-weight: 600;
+    color: #2575fc;
+    min-width: 70px;
+    text-align: right;
+  }
+  
+  .metric {
+    margin-bottom: 1.5rem;
+  }
+  
+  .search-bar {
+    position: relative;
+    width: 250px;
+  }
+  
+  .search-bar .form-control {
+    border-radius: 30px;
+    padding-left: 45px;
+    height: 45px;
+  }
+  
+  .btn-search {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6c757d;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Target Progress Chart
+    const targetCtx = document.getElementById('targetChart').getContext('2d');
+    const targetChart = new Chart(targetCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Achieved', 'Remaining'],
+        datasets: [{
+          data: [87, 13],
+          backgroundColor: [
+            '#28a745',
+            '#e9ecef'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.label}: ${context.parsed}%`;
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Performance Distribution Chart
+    // const distCtx = document.getElementById('distributionChart').getContext('2d');
+    // const distChart = new Chart(distCtx, {
+    //   type: 'bar',
+    //   data: {
+    //     labels: ['Top 10%', '11-25%', '26-50%', '51-75%', 'Bottom 25%'],
+    //     datasets: [{
+    //       label: 'Marketers',
+    //       data: [3, 7, 15, 20, 5],
+    //       backgroundColor: [
+    //         '#FFD700',
+    //         '#C0C0C0',
+    //         '#CD7F32',
+    //         '#2575fc',
+    //         '#6c757d'
+    //       ]
+    //     }]
+    //   },
+    //   options: {
+    //     responsive: true,
+    //     plugins: {
+    //       legend: {
+    //         display: false
+    //       }
+    //     },
+    //     scales: {
+    //       y: {
+    //         beginAtZero: true,
+    //         title: {
+    //           display: true,
+    //           text: 'Number of Marketers'
+    //         }
+    //       }
+    //     }
+    //   }
+    // });
+    
+    // Leaderboard animation
+    const leaderboardItems = document.querySelectorAll('.leaderboard-item');
+    leaderboardItems.forEach((item, index) => {
+      setTimeout(() => {
+        item.style.opacity = 0;
+        item.style.transform = 'translateY(20px)';
+        item.style.display = 'flex';
+        
+        setTimeout(() => {
+          item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          item.style.opacity = 1;
+          item.style.transform = 'translateY(0)';
+        }, 10);
+      }, index * 150);
+    });
+  });
+
+
+  // Password visibility toggle
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.parentElement.querySelector('.password-toggle i');
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  }
+  
+  // Password strength indicator
+  document.getElementById('newPassword').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('passwordStrengthBar');
+    let strength = 0;
+    
+    // Check password length
+    if (password.length >= 8) strength += 25;
+    if (password.length >= 12) strength += 15;
+    
+    // Check for lowercase letters
+    if (/[a-z]/.test(password)) strength += 15;
+    
+    // Check for uppercase letters
+    if (/[A-Z]/.test(password)) strength += 15;
+    
+    // Check for numbers
+    if (/\d/.test(password)) strength += 15;
+    
+    // Check for special characters
+    if (/[^A-Za-z0-9]/.test(password)) strength += 15;
+    
+    // Update strength bar
+    strengthBar.style.width = strength + '%';
+    
+    // Update color based on strength
+    if (strength < 50) {
+      strengthBar.style.backgroundColor = '#dc3545';
+    } else if (strength < 80) {
+      strengthBar.style.backgroundColor = '#ffc107';
+    } else {
+      strengthBar.style.backgroundColor = '#28a745';
+    }
+  });
+  
+  // Password confirmation check
+  document.getElementById('renewPassword').addEventListener('input', function() {
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = this.value;
+    const matchText = document.getElementById('passwordMatchText');
+    
+    if (confirmPassword === '') {
+      matchText.textContent = '';
+      matchText.style.color = '';
+    } else if (password === confirmPassword) {
+      matchText.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> Passwords match';
+      matchText.style.color = '#28a745';
+    } else {
+      matchText.innerHTML = '<i class="bi bi-x-circle-fill text-danger me-1"></i> Passwords do not match';
+      matchText.style.color = '#dc3545';
+    }
+  });
+  
+  // Profile image preview
+  document.getElementById('profileImageInput').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      const avatar = document.querySelector('.profile-avatar');
+      
+      reader.onload = function(e) {
+        avatar.src = e.target.result;
+      }
+      
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+</script>
+
+{% endblock %}
+
+
+

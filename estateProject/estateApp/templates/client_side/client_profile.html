@@ -1,0 +1,1198 @@
+{% extends 'client_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Profile</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+        <li class="breadcrumb-item active">Profile</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+  
+
+  <section class="section profile">
+    <div class="row gy-4">
+      <!-- LEFT COLUMN -->
+      <div class="col-12 col-md-4">
+        <div class="card profile-card">
+          <div class="card-body pt-4 text-center">
+            {% if client.profile_image %}
+              <img src="{{ client.profile_image.url }}"
+                   alt="{{ client.full_name }} Profile"
+                   class="rounded-circle mb-3 img-fluid"
+                   style="max-width: 150px; height: auto; object-fit: cover;">
+            {% else %}
+              <img src="{% static 'assets/img/profile_avatar.jpeg' %}"
+                   alt="Avatar"
+                   class="rounded-circle mb-3 img-fluid"
+                   style="max-width: 150px;">
+            {% endif %}
+
+            <!-- Client Rank Badge -->
+            <div class="rank-badge mt-2">
+              <div class="d-flex align-items-center justify-content-center p-2 rounded rank-badge-inner">
+                <i class="bi bi-trophy-fill me-2 rank-trophy"></i>
+                <div class="text-start">
+                  <div class="small text-muted">Rank</div>
+                  {% with tag=client.rank_tag %}
+                  <div class="mb-1">
+                    <span class="badge badge-rank 
+                      {% if tag == 'Royal Elite' %}rank-royal{% elif tag == 'Estate Ambassador' %}rank-ambassador{% elif tag == 'Prime Investor' %}rank-prime{% elif tag == 'Smart Owner' %}rank-smart{% else %}rank-first{% endif %}">
+                      {{ tag }}
+                    </span>
+                  </div>
+                  {% endwith %}
+                  <!-- <small class="text-muted">₦{{ client.total_value|floatformat:0|intcomma }} • {{ client.plot_count }} plots</small> -->
+                </div>
+              </div>
+            </div>
+            
+            {% if client.assigned_marketer %}
+            <div class="marketer-badge mt-3">
+              <div class="d-flex align-items-center bg-light p-2 rounded justify-content-center">
+                <i class="bi bi-person-badge-fill text-primary me-2"></i>
+                <div class="text-start">
+                  <div class="small text-muted">Assigned Marketer</div>
+                  <strong>{{ client.assigned_marketer.full_name }}</strong>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            
+            <div class="stats-container mt-4">
+              <div class="row text-center">
+                <div class="col-6 border-end">
+                  <div class="stat-value" style="font-size: 16px;">{{ client.plot_count }}</div>
+                  <div class="stat-label">Properties</div>
+                </div>
+                <div class="col-6">
+                  <div class="stat-value" style="font-size: 16px;">₦{{ client.total_value|floatformat:"2g" }}</div>
+                  <div class="stat-label">Total Value</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Info Card -->
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Contact Information</h5>
+            <div class="contact-item d-flex align-items-start mb-3">
+              <i class="bi bi-envelope me-2"></i>
+              <div>{{ user.email }}</div>
+            </div>
+            <div class="contact-item d-flex align-items-start mb-3">
+              <i class="bi bi-telephone me-2"></i>
+              <div>{{ user.phone }}</div>
+            </div>
+            <div class="contact-item d-flex align-items-start mb-3">
+              <i class="bi bi-geo-alt me-2"></i>
+              <div>{{ user.address }}</div>
+            </div>
+            <div class="contact-item d-flex align-items-start">
+              <i class="bi bi-building me-2"></i>
+              <div>{{ user.company|default:"Not specified" }}</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- End LEFT COLUMN -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-12 col-md-8 mt-4 mt-md-0">
+        <div class="card">
+          <div class="card-body pt-3">
+            <ul class="nav nav-tabs nav-tabs-bordered" id="profileTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#profile-overview" type="button" role="tab">Overview</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="properties-tab" data-bs-toggle="tab" data-bs-target="#profile-properties" type="button" role="tab">Properties</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="appreciation-tab" data-bs-toggle="tab" data-bs-target="#profile-appreciation" type="button" role="tab">Value Appreciation</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#profile-edit" type="button" role="tab">Edit Profile</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#profile-change-password" type="button" role="tab">Password</button>
+              </li>
+            </ul>
+            
+            <div class="tab-content pt-3">
+              <!-- Overview Tab -->
+              <div class="tab-pane fade show active" id="profile-overview" role="tabpanel" aria-labelledby="overview-tab">
+                <div class="row">
+                  <div class="col-lg-8 col-12">
+                    {% if messages %}
+                      <div class="col-12">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                          {{ message|safe }}
+                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <h5 class="card-title">About</h5>
+                    <p class="fst-italic">{{ user.about|default:"No information provided" }}</p>
+
+                    <h5 class="card-title">Profile Details</h5>
+                    <div class="info-grid">
+                      <div class="info-item">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value">{{ user.full_name }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Country</span>
+                        <span class="info-value">{{ user.country|default:"Not specified" }}</span>
+                      </div>
+                      <!-- <div class="info-item">
+                        <span class="info-label">Assigned Marketer</span>
+                        <span class="info-value">
+                          {% if user.assigned_marketer %}
+                            {{ user.assigned_marketer.full_name }}
+                          {% else %}
+                            Not assigned
+                          {% endif %}
+                        </span>
+                      </div> -->
+
+                      <div class="info-item p-3 bg-light rounded">
+                        <span class="info-label">Assigned Marketer</span>
+                        <span class="info-value">
+                          {% if client.assigned_marketer %}{{ client.assigned_marketer.full_name }}{% else %}Not assigned{% endif %}
+                        </span>
+                      </div>
+                      <div class="info-item">
+                        <span class="info-label">Date Registered</span>
+                        <span class="info-value">{{ user.date_registered|date:"M d, Y" }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-lg-4 col-12 mt-4 mt-lg-0">
+                    <div class="card summary-card h-100">
+                      <div class="card-body d-flex flex-column justify-content-center p-3">
+                        <h5 class="card-title text-center text-lg-start mb-3">Portfolio Summary</h5>
+
+                        <ul class="list-unstyled mb-0">
+                          <li class="d-flex justify-content-between align-items-center py-2 border-bottom flex-wrap">
+                            <span class="text-truncate me-2" style="max-width: 70%;">Total Properties:</span>
+                            <strong class="flex-shrink-0">{{ client.plot_count }}</strong>
+                          </li>
+                          <li class="d-flex justify-content-between align-items-center py-2 border-bottom flex-wrap">
+                            <span class="text-truncate me-2" style="max-width: 70%;">Total Investment:</span>
+                            <strong class="flex-shrink-0">₦{{ client.total_value|floatformat:"2g" }}</strong>
+                          </li>
+                          <li class="d-flex justify-content-between align-items-center py-2 border-bottom flex-wrap">
+                            <span class="text-truncate me-2" style="max-width: 70%;">Current Value:</span>
+                            <strong class="flex-shrink-0">₦{{ current_value|floatformat:"2g" }}</strong>
+                          </li>
+                          <li class="d-flex justify-content-between align-items-center py-2 flex-wrap">
+                            <span class="text-truncate me-2" style="max-width: 70%;">Total Appreciation:</span>
+                            <strong class="flex-shrink-0 text-success">+₦{{ appreciation_total|floatformat:"2g" }}</strong>
+                          </li>
+                        </ul>
+                      </div>
+                    
+                    </div>
+                  </div>
+                </div>
+              </div><!-- End Overview Tab -->
+
+              <!-- Properties Tab -->
+              <div class="tab-pane fade" id="profile-properties" role="tabpanel" aria-labelledby="properties-tab">
+                <h5 class="card-title">Property Portfolio</h5>
+                <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Estate</th>
+                      <th scope="col">Plot Size</th>
+                      <th scope="col">Plot Number</th>
+                      <th scope="col">Purchase Price</th>
+                      <th scope="col">Purchase Date</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">View Receipts</th>
+                      <th scope="col">Plot Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for transaction in transactions %}
+                      <tr data-id="{{ transaction.allocation.id }}">
+                        <td data-label="#">{{ forloop.counter }}</td>
+                        <td data-label="Estate Name" class="fw-bold">
+                          <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-2 text-primary"></i>
+                            {{ transaction.allocation.estate.name }}
+                          </div>
+                        </td>
+                        <td data-label="Plot Size">{{ transaction.allocation.plot_size.size }}</td>
+                        <td data-label="Plot Number">
+                          {% if transaction.allocation.plot_number %}
+                            <span class="badge bg-success">
+                              {{ transaction.allocation.plot_number.number }}
+                            </span>
+                          {% else %}
+                            <span class="badge bg-warning">Reserved</span>
+                          {% endif %}
+                        </td>
+                        <td class="fw-bold" data-label="Total Amount">₦{{ transaction.total_amount|floatformat:"2g" }}</td>
+                        <td data-label="Date Purchased">{{ transaction.transaction_date|date:"M d, Y" }}</td>
+                        <td data-label="Payment Status">
+                          <span class="badge bg-{% if transaction.status == 'Paid Complete' or transaction.status == 'Fully Paid' %}success{% elif transaction.status == 'Overdue' %}danger{% else %}warning{% endif %}">
+                            {{ transaction.status }}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            class="btn btn-sm btn-outline-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#transactionDetailsModal"
+                            data-id="{{ transaction.id }}"
+                          >
+                            <i class="bi bi-receipt"></i> View Receipts
+                          </button>
+                        </td>
+                        <td class="text-end">
+                          {% if transaction.allocation and transaction.allocation.estate and transaction.allocation.plot_size %}
+                            <a
+                              href="{% url 'view-client-estate' transaction.allocation.estate.id transaction.allocation.plot_size.id %}"
+                              class="btn btn-sm btn-outline-primary"
+                            >
+                              <i class="bi bi-book"></i> View Plot Details
+                            </a>
+                          {% else %}
+                            <span class="text-muted">N/A</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="9" class="text-center py-4">
+                          <i class="bi bi-house-exclamation display-6 text-muted"></i>
+                          <p class="mt-3">No properties found</p>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+
+                </div>
+              </div>
+
+              <!-- Transaction Details Modal -->
+              <div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                      <h5 class="modal-title">Transaction Details</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <table class="table table-sm">
+                            <tr><th>Estate</th><td id="td_estate"></td></tr>
+                            <tr><th>Plot Size</th><td id="td_plot_size"></td></tr>
+                            <tr><th>Date</th><td id="td_date"></td></tr>
+                            <tr><th>Amount</th><td id="td_amount"></td></tr>
+                            <tr><th>Type</th><td id="td_payment_type"></td></tr>
+                          </table>
+                        </div>
+                        <div class="col-md-6">
+                          <table class="table table-sm">
+                            <tr><th>Status</th><td id="td_status"></td></tr>
+                            <tr id="row_duration" style="display:none;"><th>Duration</th><td id="td_duration"></td></tr>
+                            <tr id="row_plan" style="display:none;"><th>Plan</th><td id="td_plan"></td></tr>
+                            <tr id="row_first" style="display:none;"><th>1st</th><td id="td_first"></td></tr>
+                            <tr id="row_second" style="display:none;"><th>2nd</th><td id="td_second"></td></tr>
+                            <tr id="row_third" style="display:none;"><th>3rd</th><td id="td_third"></td></tr>
+                          </table>
+                        </div>
+                      </div>
+                      <div id="td_payment_history" class="mt-3">
+                        <h6>Payment Receipts</h6>
+                        <div class="table-responsive">
+                          <table class="table table-sm table-hover align-middle">
+                            <thead>
+                              <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Installment</th>
+                                <th>Reference</th>
+                                <th class="text-end">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody id="payment_history_body">
+                              <!-- Payment records will be loaded here -->
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Value Appreciation Tab -->
+              <div class="tab-pane fade" id="profile-appreciation" role="tabpanel" aria-labelledby="appreciation-tab">
+                <h5 class="card-title">Property Value Appreciation</h5>
+                <p class="text-muted">Detailed view of property value growth over time</p>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                  {% for transaction in transactions %}
+                  <div class="col">
+                    <div class="card appreciation-card h-100">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <h6 class="card-title mb-0">
+                            <i class="bi bi-building me-1 text-primary"></i>
+                            {{ transaction.allocation.estate.name }}
+                          </h6>
+                          <span class="badge bg-light text-dark">{{ transaction.allocation.plot_size.size }}</span>
+                        </div>
+                        
+                        <div class="appreciation-details mb-3">
+                          <div class="appreciation-item d-flex justify-content-between">
+                            <span>Purchase Price:</span>
+                            <strong>₦{{ transaction.total_amount|floatformat:"2g" }}</strong>
+                          </div>
+                          <div class="appreciation-item d-flex justify-content-between">
+                            <span>Current Value:</span>
+                            <strong>₦{{ transaction.current_value|floatformat:"2g" }}</strong>
+                          </div>
+                          <div class="appreciation-item d-flex justify-content-between">
+                            <span>Value Increase:</span>
+                            <strong class="{% if transaction.appreciation >= 0 %}text-success{% else %}text-danger{% endif %}">
+                              {% if transaction.appreciation >= 0 %}+{% else %}-{% endif %}₦{{ transaction.abs_appreciation|floatformat:"2g" }}
+                            </strong>
+                          </div>
+                          <div class="appreciation-item d-flex justify-content-between">
+                            <span>Growth Rate:</span>
+                            <strong class="{% if transaction.growth_rate >= 0 %}text-success{% else %}text-danger{% endif %}">
+                              {% if transaction.growth_rate >= 0 %}+{% endif %}{{ transaction.growth_rate|floatformat:"2" }}%
+                            </strong>
+                          </div>
+                        </div>
+                        
+                        <div class="progress mb-1" style="height: 8px;">
+                          <div class="progress-bar {% if transaction.growth_rate >= 0 %}bg-success{% else %}bg-danger{% endif %}" 
+                               role="progressbar" 
+                               style="width: {{ transaction.abs_growth_rate|default:0 }}%;" 
+                               aria-valuenow="{{ transaction.abs_growth_rate|default:0 }}" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted mb-3">
+                          <span>Purchase</span>
+                          <span>Current</span>
+                        </div>
+                        
+                        <div class="timeline">
+                          <div class="timeline-item mb-3">
+                            <div class="timeline-point bg-success"></div>
+                            <div class="timeline-content">
+                              <span class="timeline-date">{{ transaction.transaction_date|date:"M Y" }}</span>
+                              <div class="timeline-value">₦{{ transaction.total_amount|floatformat:"2g" }}</div>
+                            </div>
+                          </div>
+                          <div class="timeline-item">
+                            <div class="timeline-point bg-primary"></div>
+                            <div class="timeline-content">
+                              <span class="timeline-date">Now</span>
+                              <div class="timeline-value">₦{{ transaction.current_value|floatformat:"2g" }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% empty %}
+                  <div class="col-12">
+                    <div class="text-center py-5 text-muted">
+                      <i class="bi bi-graph-up display-6"></i>
+                      <p class="mt-3">No appreciation data available</p>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                
+                <div class="card mt-4">
+                  <div class="card-body">
+                    <h5 class="card-title text-center">Portfolio Summary</h5>
+                    <div class="row row-cols-1 row-cols-md-3 g-3 text-center">
+                      <div class="col">
+                        <div class="summary-box bg-light-success d-flex align-items-center justify-content-center p-3 rounded h-100">
+                          <div>
+                            <i class="bi bi-arrow-up-right-circle fs-3 text-success mb-1"></i>
+                            <div>Total Appreciation</div>
+                            <strong class="text-success">+₦{{ appreciation_total|floatformat:"2g" }}</strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="summary-box bg-light-primary d-flex align-items-center justify-content-center p-3 rounded h-100">
+                          <div>
+                            <i class="bi bi-percent fs-3 text-primary mb-1"></i>
+                            <div>Average Growth</div>
+                            <strong class="text-success">+{{ average_growth|floatformat:"2" }}%</strong>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="summary-box bg-light-info d-flex align-items-center justify-content-center p-3 rounded h-100">
+                          <div>
+                            <i class="bi bi-building fs-3 text-info mb-1"></i>
+                            <div>Highest Growth</div>
+                            <strong>{{ highest_growth_property }} <strong class="text-success">(+{{ highest_growth_rate|floatformat:"2" }}%)</strong></strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div><!-- End Value Appreciation Tab -->
+
+              <!-- Edit Profile Tab -->
+              <div class="tab-pane fade" id="profile-edit" role="tabpanel" aria-labelledby="edit-tab">
+                <form id="profileForm" method="POST" enctype="multipart/form-data" class="row g-3">
+                  {% csrf_token %}
+                  <!-- {% if messages %}
+                    <div class="col-12">
+                      {% for message in messages %}
+                      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %} -->
+                  <input type="hidden" name="action" value="update_profile">
+                  
+                  <div class="col-12 text-center">
+                    {% if user.profile_image %}
+                      <img src="{{ user.profile_image.url }}" alt="{{ user.full_name }} Profile" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" id="profilePreview">
+                    {% else %}
+                      <img src="{% static 'assets/img/profile_avatar.jpeg' %}" alt="Profile" class="rounded-circle mb-3" style="width: 150px; height: 150px;" id="profilePreview">
+                    {% endif %}
+                    <div class="mb-4">
+                      <input type="file" name="profile_image" class="form-control d-none" id="profileImageInput" onchange="showFileName()">
+                      <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('profileImageInput').click();">
+                        <i class="bi bi-upload me-1"></i> Change Photo
+                      </button>
+                      <div class="mt-2 small" id="fileNameDisplay"></div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input name="fullName" type="text" class="form-control" id="fullName" value="{{ user.full_name }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input name="email" type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                  </div>
+                  <div class="col-12">
+                    <label for="about" class="form-label">About</label>
+                    <textarea name="about" class="form-control" id="about" rows="3">{{ user.about }}</textarea>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="company" class="form-label">Company</label>
+                    <input name="company" type="text" class="form-control" id="company" value="{{ user.company|default:'' }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="job" class="form-label">Job</label>
+                    <input name="job" type="text" class="form-control" id="job" value="{{ user.job|default:'' }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="country" class="form-label">Country</label>
+                    <input name="country" type="text" class="form-control" id="country" value="{{ user.country|default:'' }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="address" class="form-label">Address</label>
+                    <input name="address" type="text" class="form-control" id="address" value="{{ user.address|default:'' }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input name="phone" type="text" class="form-control" id="phone" value="{{ user.phone|default:'' }}">
+                  </div>
+                  <div class="col-12 text-center mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                    <button type="reset" class="btn btn-outline-secondary ms-2">Reset</button>
+                  </div>
+                </form>
+              </div><!-- End Edit Profile Tab -->
+
+              <!-- Change Password Tab -->
+              <div class="tab-pane fade" id="profile-change-password" role="tabpanel" aria-labelledby="password-tab">
+                <form id="passwordForm" method="POST" class="row g-3">
+                  {% csrf_token %}
+                  <!-- {% if messages %}
+                    <div class="col-12">
+                      {% for message in messages %}
+                      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %} -->
+                  
+                  <input type="hidden" name="action" value="change_password">
+                  
+                  <div class="col-12">
+                    <label for="currentPassword" class="form-label">Current Password</label>
+                    <input name="currentPassword" type="password" class="form-control" id="currentPassword" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input name="newPassword" type="password" class="form-control" id="newPassword" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="renewPassword" class="form-label">Confirm New Password</label>
+                    <input name="renewPassword" type="password" class="form-control" id="renewPassword" required>
+                  </div>
+                  <div class="col-12 text-center mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Change Password</button>
+                  </div>
+                </form>
+              </div><!-- End Change Password Tab -->
+
+            </div><!-- End Tab Content -->
+          </div>
+        </div>
+      </div><!-- End RIGHT COLUMN -->
+    </div><!-- End ROW -->
+  </section>
+</main>
+
+
+<style>
+  @font-face {
+    font-family: "SF Pro";
+    src: url("https://fonts.cdnfonts.com/sf-pro-display.woff2") format("woff2");
+  }
+
+  body {
+    font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .receipt-btn {
+    padding: 3px 8px;
+    font-size: 0.875rem;
+  }
+
+  .profile-card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  .marketer-badge {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 8px 15px;
+    width: 100%;
+  }
+  
+  .stats-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 15px 0;
+  }
+
+  /* Rank badge styling */
+  .rank-badge-inner {
+    background: linear-gradient(45deg, #f8f9fa, #eef2ff);
+    border: 1px solid rgba(65, 84, 241, 0.1);
+  }
+  .rank-trophy {
+    color: #f59e0b; /* amber */
+  }
+  .badge-rank {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.2px;
+  }
+  .badge-rank.rank-royal {
+    background: linear-gradient(45deg, #6a11cb, #2575fc);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(37,117,252,0.25);
+  }
+  .badge-rank.rank-ambassador {
+    background: linear-gradient(45deg, #fbbf24, #f59e0b);
+    color: #111827;
+  }
+  .badge-rank.rank-prime {
+    background: linear-gradient(45deg, #3b82f6, #06b6d4);
+    color: #0b132a;
+  }
+  .badge-rank.rank-smart {
+    background: linear-gradient(45deg, #10b981, #34d399);
+    color: #06281b;
+  }
+  .badge-rank.rank-first {
+    background: linear-gradient(45deg, #9ca3af, #6b7280);
+    color: #fff;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4154f1;
+  }
+  
+  .stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+  
+  .contact-item i {
+    font-size: 1.2rem;
+    color: #4154f1;
+    min-width: 30px;
+    padding-top: 3px;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  .info-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px 15px;
+  }
+  
+  .info-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .info-value {
+    display: block;
+    font-weight: 600;
+    margin-top: 3px;
+  }
+  
+  .summary-card {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    border: none;
+  }
+  
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .summary-item.highlight {
+    font-weight: 600;
+    border-bottom: none;
+    padding-top: 12px;
+    margin-top: 5px;
+  }
+  
+  .appreciation-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    height: 100%;
+  }
+  
+  .appreciation-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .appreciation-details {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+  }
+  
+  .appreciation-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-top: 20px;
+  }
+  
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    height: calc(100% - 10px);
+    width: 2px;
+    background-color: #dee2e6;
+  }
+  
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .timeline-point {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    z-index: 2;
+  }
+  
+  .timeline-content {
+    padding: 8px 0;
+  }
+  
+  .timeline-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .timeline-value {
+    font-weight: 600;
+  }
+  
+  .summary-box {
+    border-radius: 10px;
+    padding: 15px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  
+  .summary-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+  
+  .summary-icon i {
+    font-size: 1.5rem;
+  }
+  
+  .summary-content span {
+    display: block;
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+  
+  .summary-content strong {
+    font-size: 1.1rem;
+  }
+  
+  .bg-light-success {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+  }
+  
+  .bg-light-primary {
+    background-color: rgba(65, 84, 241, 0.1) !important;
+  }
+  
+  .bg-light-info {
+    background-color: rgba(23, 162, 184, 0.1) !important;
+  }
+  
+  .nav-tabs .nav-link {
+    font-weight: 600;
+    color: #495057;
+    padding: 12px 20px;
+  }
+  
+  .nav-tabs .nav-link.active {
+    color: #4154f1;
+    border-bottom: 3px solid #4154f1;
+  }
+  
+  .table th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+  }
+  
+  .table-hover tbody tr:hover {
+    background-color: rgba(65, 84, 241, 0.05);
+  }
+  
+  .badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+  }
+
+  .card {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+  }
+
+  .table {
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1d1d1f;
+  }
+
+  .table thead {
+    background: rgba(245, 245, 247, 0.9);
+    font-size: 17px;
+    font-weight: 600;
+    color: #1d1d1f;
+  }
+
+  .table th,
+  .table td {
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  .table tbody tr {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.01);
+  }
+
+  /* Payment Status Badges */
+  .badge {
+    padding: 8px 12px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .bg-success {
+    background-color: #34c759 !important;
+    color: white;
+  }
+
+  .bg-info {
+    background-color: #007aff !important;
+    color: white;
+  }
+
+  .bg-warning {
+    background-color: #ffcc00 !important;
+    color: black;
+  }
+
+  /* Buttons */
+  .update-btn {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    background: #007aff;
+    color: white;
+    transition: 0.3s ease-in-out;
+    border: none;
+  }
+
+  .update-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+  }
+
+  /* Responsive Table */
+  @media screen and (max-width: 768px) {
+    .table thead {
+      display: none;
+    }
+
+    .table, .table tbody, .table tr, .table td {
+      display: block;
+      width: 100%;
+    }
+
+    .table tr {
+      margin-bottom: 16px;
+      border-bottom: 2px solid #e5e5ea;
+    }
+
+    .table td {
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+    }
+
+    .table td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 16px;
+      font-weight: 600;
+      color: #8e8e93;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .info-grid,
+    .row-cols-1 {
+      grid-template-columns: 1fr !important;
+    }
+    .timeline {
+      padding-left: 20px;
+    }
+    .timeline::before {
+      left: 5px;
+    }
+    .timeline-point {
+      left: -25px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .summary-card .text-truncate {
+      max-width: 60% !important;
+    }
+  }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  document.getElementById('profileImageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('profilePreview').src = event.target.result;
+      }
+      reader.readAsDataURL(file);
+      
+      // Show file name
+      fileNameDisplay.textContent = file.name;
+      fileNameDisplay.classList.add('text-success');
+    } else {
+      fileNameDisplay.textContent = "No file selected";
+      fileNameDisplay.classList.remove('text-success');
+    }
+  });
+
+  // Form validation
+  (function () {
+    'use strict'
+    
+    const profileForm = document.getElementById('profileForm');
+    const passwordForm = document.getElementById('passwordForm');
+    
+    if (profileForm) {
+      profileForm.addEventListener('submit', function (event) {
+        if (!profileForm.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          // Show loading spinner
+          document.querySelector('.loading-spinner').style.display = 'flex';
+        }
+        
+        profileForm.classList.add('was-validated');
+      }, false);
+    }
+    
+    if (passwordForm) {
+      passwordForm.addEventListener('submit', function (event) {
+        if (!passwordForm.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        } else {
+          // Show loading spinner
+          document.querySelector('.loading-spinner').style.display = 'flex';
+        }
+        
+        passwordForm.classList.add('was-validated');
+      }, false);
+    }
+  })();
+  
+  // Mobile tab scrolling
+  const tabsContainer = document.querySelector('.nav-tabs');
+  if (tabsContainer) {
+    tabsContainer.addEventListener('wheel', function(e) {
+      if (window.innerWidth < 768) {
+        e.preventDefault();
+        this.scrollLeft += e.deltaY;
+      }
+    });
+  }
+  
+  // Tab switching animation
+  const triggerTabList = [].slice.call(document.querySelectorAll('#profileTabs button'));
+  triggerTabList.forEach(function (triggerEl) {
+    triggerEl.addEventListener('click', function () {
+      // Add animation to tab content
+      const tabContent = document.querySelector(this.getAttribute('data-bs-target'));
+      tabContent.style.opacity = 0;
+      setTimeout(() => {
+        tabContent.style.opacity = 1;
+      }, 10);
+    });
+  });
+
+
+  // // RECEIPT
+  $(document).ready(function(){
+    function formatCurrency(v) {
+      return '₦' + parseFloat(v || 0).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    $('#transactionDetailsModal').on('show.bs.modal', function(e) {
+      const id = $(e.relatedTarget).data('id');
+      
+      // Clear previous data
+      $('#td_estate, #td_plot_size, #td_date, #td_amount, #td_payment_type, #td_status').text('');
+      $('#payment_history_body').empty();
+      $('[id^="row_"]').hide();
+      
+      // Fetch transaction details
+      $.get(`/transaction/${id}/details/`)
+        .done(d => {
+          // Basic info
+          $('#td_estate').text(d.allocation.estate.name);
+          $('#td_plot_size').text(d.allocation.plot_size);
+          $('#td_date').text(d.transaction_date);
+          $('#td_amount').text(formatCurrency(d.total_amount));
+          
+          // Payment Type badge
+          const ptHtml = d.allocation.payment_type === 'part'
+            ? '<span class="badge bg-info text-dark">Part Payment</span>'
+            : '<span class="badge bg-primary">Full Payment</span>';
+          $('#td_payment_type').html(ptHtml);
+          
+          // Status badge
+          let statusHtml = '';
+          switch(d.status) {
+            case 'Paid Complete':
+            case 'Fully Paid':
+              statusHtml = '<span class="badge bg-success">' + d.status + '</span>';
+              break;
+            case 'Part Payment':
+              statusHtml = '<span class="badge bg-warning text-dark">' + d.status + '</span>';
+              break;
+            case 'Overdue':
+              statusHtml = '<span class="badge bg-danger">' + d.status + '</span>';
+              break;
+            default:
+              statusHtml = '<span class="badge bg-secondary">' + d.status + '</span>';
+          }
+          $('#td_status').html(statusHtml);
+          
+          // If part-payment, show duration & installments
+          if(d.allocation.payment_type === 'part') {
+            // Payment Duration
+            let durText = '';
+            if(d.payment_duration) {
+              durText = d.payment_duration + ' month' + (d.payment_duration > 1 ? 's' : '');
+            } else if(d.custom_duration) {
+              durText = d.custom_duration + ' month' + (d.custom_duration > 1 ? 's' : '');
+            }
+            if(durText) {
+              $('#td_duration').text(durText);
+              $('#row_duration').show();
+            }
+            
+            // Installment plan
+            const planText = d.installment_plan === 'custom'
+              ? `${d.first_percent}%, ${d.second_percent}%, ${d.third_percent}%`
+              : d.installment_plan.split('-').join('%, ') + '%';
+            $('#td_plan').text(planText);
+            $('#row_plan').show();
+            
+            // Installment amounts
+            $('#td_first').text(formatCurrency(d.first_installment));
+            $('#row_first').show();
+            $('#td_second').text(formatCurrency(d.second_installment));
+            $('#row_second').show();
+            $('#td_third').text(formatCurrency(d.third_installment));
+            $('#row_third').show();
+          }
+        })
+        .fail(() => alert('Error loading transaction details'));
+      
+      // Fetch payment history
+      $.get("{% url 'ajax_payment_history' %}", { transaction_id: id })
+        .done(d => {
+          let html = '';
+          
+          if(d.payments?.length) {
+            d.payments.forEach(p => {
+              html += `<tr>
+                <td>${p.date}</td>
+                <td>${formatCurrency(p.amount)}</td>
+                <td>${p.method}</td>
+                <td>${p.installment}</td>
+                <td>${p.reference || ''}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-success view-receipt-btn receipt-btn" 
+                          data-reference="${p.reference}">
+                    <i class="bi bi-download"></i> Download
+                  </button>
+                </td>
+              </tr>`;
+            });
+          } else {
+            html = '<tr><td colspan="6" class="text-center">No payment history</td></tr>';
+          }
+          
+          $('#payment_history_body').html(html);
+        })
+        .fail(() => {
+          $('#payment_history_body').html('<tr><td colspan="6" class="text-center">Error loading payment history</td></tr>');
+        });
+    });
+    
+    // Handle receipt download
+    $(document).on('click', '.view-receipt-btn', function() {
+      const reference = $(this).data('reference');
+      window.open(`/payment/receipt/${reference}/`, '_blank');
+    });
+  });
+
+</script>
+
+{% endblock %}

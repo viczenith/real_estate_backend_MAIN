@@ -1,0 +1,485 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Newsletter Management{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1>Newsletter Management</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Newsletter</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNewsletterModal">
+            <i class="fas fa-plus me-2"></i>Create Newsletter
+        </button>
+    </div>
+</div>
+
+<!-- Newsletter Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-newspaper"></i>
+            </div>
+            <h3 id="totalNewsletters">0</h3>
+            <p>Total Newsletters</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-success bg-opacity-10 text-success">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 id="totalSubscribers">0</h3>
+            <p>Active Subscribers</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-info bg-opacity-10 text-info">
+                <i class="fas fa-eye"></i>
+            </div>
+            <h3 id="openRate">0%</h3>
+            <p>Average Open Rate</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-mouse-pointer"></i>
+            </div>
+            <h3 id="clickRate">0%</h3>
+            <p>Average Click Rate</p>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Management -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Newsletter Campaigns</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadNewsletters()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="newslettersContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading newsletters...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter Templates & Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createNewsletterModal">
+                        <i class="fas fa-plus me-2"></i>Create Newsletter
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#manageSubscribersModal">
+                        <i class="fas fa-users me-2"></i>Manage Subscribers
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#newsletterTemplatesModal">
+                        <i class="fas fa-template me-2"></i>Templates
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="viewAnalytics()">
+                        <i class="fas fa-chart-line me-2"></i>View Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivityContainer">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Newsletter Modal -->
+<div class="modal fade" id="createNewsletterModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Newsletter Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createNewsletterForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Campaign Name</label>
+                                <input type="text" class="form-control" name="name" required placeholder="Enter campaign name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject Line</label>
+                                <input type="text" class="form-control" name="subject" required placeholder="Enter email subject">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audience</label>
+                                <select class="form-select" name="audience" required>
+                                    <option value="">Select Audience</option>
+                                    <option value="all">All Subscribers</option>
+                                    <option value="clients">Clients Only</option>
+                                    <option value="marketers">Marketers Only</option>
+                                    <option value="active">Active Users</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Send Date</label>
+                                <input type="datetime-local" class="form-control" name="send_date">
+                                <div class="form-text">Leave empty to send immediately</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Newsletter Content</label>
+                                <textarea class="form-control" name="content" rows="12" required placeholder="Enter newsletter content (HTML supported)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Preview</h6>
+                                <div id="newsletterPreview" style="min-height: 200px; background: white; padding: 15px; border: 1px solid #ddd;">
+                                    <p class="text-muted">Content preview will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="previewNewsletter()">
+                        <i class="fas fa-eye me-2"></i>Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Create & Send
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Subscribers Modal -->
+<div class="modal fade" id="manageSubscribersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Subscribers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="subscriberSearch" placeholder="Search subscribers...">
+                        <button class="btn btn-outline-secondary" onclick="searchSubscribers()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="subscribersContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading subscribers...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="exportSubscribers()">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Templates Modal -->
+<div class="modal fade" id="newsletterTemplatesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Newsletter Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="templatesContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading templates...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="createTemplate()">
+                    <i class="fas fa-plus me-2"></i>Create Template
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    loadNewsletterStats();
+    loadNewsletters();
+    loadRecentActivity();
+});
+
+function loadNewsletterStats() {
+    // Simulate loading stats - replace with actual API call
+    setTimeout(function() {
+        $('#totalNewsletters').text('12');
+        $('#totalSubscribers').text('1,234');
+        $('#openRate').text('24.5%');
+        $('#clickRate').text('3.8%');
+    }, 1000);
+}
+
+function loadNewsletters() {
+    $('#newslettersContainer').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading newsletters...</p>
+        </div>
+    `);
+    
+    // Simulate loading newsletters - replace with actual API call
+    setTimeout(function() {
+        const sampleNewsletters = [
+            {
+                id: 1,
+                name: "Weekly Property Updates",
+                subject: "New Properties Available This Week",
+                status: "sent",
+                sent_date: "2025-01-08",
+                recipients: 1200,
+                open_rate: 28.5,
+                click_rate: 4.2
+            },
+            {
+                id: 2,
+                name: "Market Trends Report",
+                subject: "Q1 Real Estate Market Analysis",
+                status: "draft",
+                created_date: "2025-01-07",
+                recipients: 0,
+                open_rate: 0,
+                click_rate: 0
+            },
+            {
+                id: 3,
+                name: "Holiday Special Offers",
+                subject: "Exclusive Holiday Property Deals",
+                status: "scheduled",
+                send_date: "2025-01-15",
+                recipients: 800,
+                open_rate: 0,
+                click_rate: 0
+            }
+        ];
+        
+        let html = '';
+        sampleNewsletters.forEach(function(newsletter) {
+            const statusBadge = newsletter.status === 'sent' ? 'bg-success' : newsletter.status === 'scheduled' ? 'bg-warning' : 'bg-secondary';
+            const statusIcon = newsletter.status === 'sent' ? 'check' : newsletter.status === 'scheduled' ? 'clock' : 'edit';
+            
+            html += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">${newsletter.name}</h6>
+                                <p class="text-muted mb-1">${newsletter.subject}</p>
+                                <span class="badge ${statusBadge}">
+                                    <i class="fas fa-${statusIcon} me-1"></i>${newsletter.status.charAt(0).toUpperCase() + newsletter.status.slice(1)}
+                                </span>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <small class="text-muted">Recipients</small>
+                                <div class="fw-bold">${newsletter.recipients.toLocaleString()}</div>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <small class="text-muted">Open Rate</small>
+                                <div class="fw-bold">${newsletter.open_rate}%</div>
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="viewNewsletter(${newsletter.id})"><i class="fas fa-eye me-2"></i>View</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="editNewsletter(${newsletter.id})"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="duplicateNewsletter(${newsletter.id})"><i class="fas fa-copy me-2"></i>Duplicate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteNewsletter(${newsletter.id})"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        $('#newslettersContainer').html(html);
+    }, 1500);
+}
+
+function loadRecentActivity() {
+    $('#recentActivityContainer').html(`
+        <div class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+    
+    // Simulate loading recent activity
+    setTimeout(function() {
+        const activities = [
+            { title: "Newsletter Sent", description: "Weekly Property Updates sent to 1,200 subscribers", time: "2 hours ago", icon: "paper-plane" },
+            { title: "New Subscriber", description: "John Doe subscribed to newsletter", time: "4 hours ago", icon: "user-plus" },
+            { title: "Template Created", description: "Market Analysis template created", time: "1 day ago", icon: "plus" },
+            { title: "Campaign Scheduled", description: "Holiday Special scheduled for next week", time: "2 days ago", icon: "clock" }
+        ];
+        
+        let html = '';
+        activities.forEach(function(activity) {
+            html += `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-${activity.icon} fa-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 small">${activity.title}</h6>
+                        <p class="mb-0 text-muted small">${activity.description}</p>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        $('#recentActivityContainer').html(html);
+    }, 1000);
+}
+
+function previewNewsletter() {
+    const content = $('textarea[name="content"]').val();
+    $('#newsletterPreview').html(content || '<p class="text-muted">Enter content to see preview...</p>');
+}
+
+function viewAnalytics() {
+    alert('Newsletter analytics feature coming soon!');
+}
+
+function viewNewsletter(id) {
+    alert(`View newsletter ${id}`);
+}
+
+function editNewsletter(id) {
+    alert(`Edit newsletter ${id}`);
+}
+
+function duplicateNewsletter(id) {
+    alert(`Duplicate newsletter ${id}`);
+}
+
+function deleteNewsletter(id) {
+    if (confirm('Are you sure you want to delete this newsletter?')) {
+        alert(`Delete newsletter ${id}`);
+    }
+}
+
+function searchSubscribers() {
+    const query = $('#subscriberSearch').val();
+    alert(`Search subscribers: ${query}`);
+}
+
+function exportSubscribers() {
+    alert('Export subscribers feature coming soon!');
+}
+
+function createTemplate() {
+    alert('Create template feature coming soon!');
+}
+
+// Content preview in real-time
+$('textarea[name="content"]').on('input', function() {
+    const content = $(this).val();
+    $('#newsletterPreview').html(content || '<p class="text-muted">Enter content to see preview...</p>');
+});
+
+// Form submission
+$('#createNewsletterForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    const submitBtn = $(this).find('button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Creating...').prop('disabled', true);
+    
+    // Simulate form submission
+    setTimeout(function() {
+        alert('Newsletter created and sent successfully!');
+        $('#createNewsletterModal').modal('hide');
+        loadNewsletters();
+        loadNewsletterStats();
+        
+        // Reset form and button
+        $('#createNewsletterForm')[0].reset();
+        $('#newsletterPreview').html('<p class="text-muted">Content preview will appear here...</p>');
+        submitBtn.html(originalText).prop('disabled', false);
+    }, 2000);
+});
+</script>
+{% endblock %}

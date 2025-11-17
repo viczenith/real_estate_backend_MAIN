@@ -1,0 +1,23 @@
+<div class="message-thread">
+    <h3>Conversation with Admin</h3>
+    <div class="main-message">
+        <p><strong>{{ message.sender.get_full_name }}:</strong> {{ message.content }}</p>
+        <small>Sent on {{ message.date_sent }}</small>
+    </div>
+    <hr>
+    {% for reply in message_thread %}
+        <div class="reply">
+            <p><strong>{{ reply.sender.get_full_name }}:</strong> {{ reply.content }}</p>
+            <small>Sent on {{ reply.date_sent }}</small>
+        </div>
+        <hr>
+    {% empty %}
+        <p>No replies yet. Start the conversation!</p>
+    {% endfor %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <textarea name="reply_content" rows="4" class="form-control" placeholder="Type your reply..." required></textarea>
+    <button type="submit" class="btn btn-primary mt-3">Send Reply</button>
+</form>

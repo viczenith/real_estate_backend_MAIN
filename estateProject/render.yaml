@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: real-estate-backend
+    env: python
+    buildCommand: ./render-build.sh
+    startCommand: cd estateProject && gunicorn estateProject.wsgi:application
+    plan: free
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: estateProject.settings
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: POSTGRES_DB
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        value: "5432"
+      - key: REDIS_URL
+        sync: false
+    autoDeploy: true
+
+    staticPublishPath: staticfiles

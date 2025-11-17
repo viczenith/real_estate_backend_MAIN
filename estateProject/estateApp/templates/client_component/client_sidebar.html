@@ -1,0 +1,110 @@
+  {% load static %}
+  <!-- ======= Sidebar ======= -->
+  <aside id="sidebar" class="sidebar">
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+
+      <li class="nav-item">
+        <a class="nav-link " href="{% url 'client-dashboard' %}">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+      </li><!-- End Dashboard Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'my-client-profile' %}">
+          <i class="bi bi-person"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'property-list' %}">
+          <i class="bi bi-question-circle"></i>
+          <span>My Properties</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'client-new-property-request' %}">
+          <i class="bi bi-envelope"></i>
+          <span> Request New Property</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'view-all-requests' %}">
+          <i class="bi bi-envelope"></i>
+          <span>View Requests</span>
+        </a>
+      </li> -->
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'notifications_all' %}">
+          <span class="position-relative d-inline-block">
+            <i class="bi bi-bell" style="font-size: 1.25rem;"></i>
+            {% if unread_notifications_count > 0 %}
+              <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+                {{ unread_notifications_count }}
+                <span class="visually-hidden">unread notifications</span>
+              </span>
+            {% endif %}
+          </span>
+          <span> Notifications</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'chat' %}">
+            <i class="bi bi-chat-dots"></i>
+            <span>Chat Admin</span>
+            <span id="sidebar-client-chat-badge" class="badge bg-success" 
+                  style="{% if unread_admin_count > 0 %}display: inline-block;{% else %}display: none;{% endif %}">
+                {{ unread_admin_count }}
+            </span>
+        </a>
+    </li>
+    
+    <script>
+        function updateBadge(elementId, count) {
+            const badge = document.getElementById(elementId);
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+                // Pulse animation handling
+                if (count > 0) {
+                    badge.classList.add('pulse');
+                } else {
+                    badge.classList.remove('pulse');
+                }
+            }
+        }
+    
+        function pollUnreadCounts() {
+            fetch("{% url 'chat_unread_count' %}", {credentials: 'same-origin'})
+                .then(response => response.json())
+                .then(data => {
+                    // For client side only
+                    if ("{{ user.role }}" !== "admin") {
+                        updateBadge('sidebar-client-chat-badge', data.global_message_count || 0);
+                        updateBadge('global-messages-badge', data.global_message_count || 0);
+                    }
+                })
+                .catch(console.error);
+            setTimeout(pollUnreadCounts, 2000);
+        }
+        document.addEventListener('DOMContentLoaded', pollUnreadCounts);
+    </script>
+    
+    <style>
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    </ul>
+
+  </aside>

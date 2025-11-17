@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+
+# Django
+staticfiles/
+media/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+secrets/
+
+# Firebase configurations
+real_estate_app/android/app/google-services.json
+real_estate_app/android/app/google-services.json.*
+real_estate_app/android/app/service-account-key.json
+real_estate_app/android/app/service-account-key.json.*
+!real_estate_app/android/app/google-services.json.template
+real_estate_app/android/firebase-app-distribution.json
+
+# Databases
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+
+# Node / Flutter
+node_modules/
+.real-estate/
+.build/
+build/
+flutter_assets/
+.dart_tool/
+.packages
+pubspec.lock
+.idea/
+*.iml
+
+# VSCode
+.vscode/
+
+# Misc
+.DS_Store
+Thumbs.db

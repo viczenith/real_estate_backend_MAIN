@@ -1,0 +1,1119 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Auto Birthday Templates{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1>Birthday Templates</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Admin Support</a></li>
+                <li class="breadcrumb-item active">Birthday Templates</li>
+            </ol>
+        </nav>
+    </div>
+    
+</div>
+
+<!-- Birthday Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-birthday-cake"></i>
+            </div>
+            <h3 id="todayBirthdays">0</h3>
+            <p>Today's Birthdays</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-info bg-opacity-10 text-info">
+                <i class="fas fa-calendar"></i>
+            </div>
+            <h3 id="upcomingBirthdays">0</h3>
+            <p>This Week (Sun–Sat)</p>
+            <small id="thisWeekRange" class="text-muted"></small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <h3 id="sentMessages">0</h3>
+            <p>Messages Sent</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-success bg-opacity-10 text-success">
+                <i class="fas fa-template"></i>
+            </div>
+            <h3 id="activeTemplates">0</h3>
+            <p>Active Templates</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Birthday Templates -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Birthday Templates</h5>
+                <div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal" onclick="initAudienceOptions()">
+                        <i class="fas fa-plus me-2"></i>Create Template
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadTemplates()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="templatesContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading templates...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Birthdays & Settings -->
+    <div class="col-lg-4 mb-4">
+        <!-- Auto Birthday Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Auto Birthday Settings</h5>
+            </div>
+            <div class="card-body">
+                <form id="autoBirthdaySettingsForm">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableAutoBirthday" name="enabled" checked>
+                            <label class="form-check-label" for="enableAutoBirthday">
+                                Enable Auto Birthday Messages
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Send Time</label>
+                        <input type="time" class="form-control" name="send_time" value="09:00">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Default Channel</label>
+                        <select class="form-select" name="default_channel">
+                            <option value="email">Email</option>
+                            <option value="sms">SMS</option>
+                            <option value="inapp">In-App</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Days in Advance</label>
+                        <select class="form-select" name="days_advance">
+                            <option value="0">On Birthday</option>
+                            <option value="1">1 Day Before</option>
+                            <option value="2">2 Days Before</option>
+                            <option value="7">1 Week Before</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-save me-2"></i>Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Birthdays Next Week -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; border-radius: 0.75rem 0.75rem 0 0;">
+                <h5 class="mb-0 d-flex align-items-center gap-2">
+                    <i class="fas fa-birthday-cake me-2"></i>
+                    Birthdays Next Week (Sun–Sat)
+                    <span id="nextWeekCount" class="badge bg-light text-dark ms-1">0</span>
+                    <small id="nextWeekRange" class="ms-2" style="opacity:0.85;"></small>
+                </h5>
+                <button class="btn btn-sm btn-light" onclick="loadWeeklyBirthdays()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div id="weeklyBirthdaysContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted small mb-0">Loading next week's birthdays...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Failed Birthday Messages Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); color: white; border-radius: 0.75rem 0.75rem 0 0;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Failed Birthday Messages
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light btn-sm" onclick="refreshFailedBirthdayMessages()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                        <button class="btn btn-light btn-sm" onclick="retryAllFailedBirthdays()">
+                            <i class="fas fa-redo me-2"></i>Retry All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="failedBirthdayMessagesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">
+                                    <i class="fas fa-clock me-2 text-danger"></i>Failed Date
+                                </th>
+                                <th>
+                                    <i class="fas fa-user me-2 text-primary"></i>Recipient
+                                </th>
+                                <th>
+                                    <i class="fas fa-user-tag me-2 text-info"></i>Role
+                                </th>
+                                <th>
+                                    <i class="fas fa-birthday-cake me-2 text-warning"></i>Birthday Date
+                                </th>
+                                <th>
+                                    <i class="fas fa-envelope me-2 text-purple"></i>Channel
+                                </th>
+                                <th>
+                                    <i class="fas fa-exclamation-circle me-2 text-danger"></i>Error
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-tools me-2 text-muted"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="failedBirthdayMessagesTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                                        <h6 class="text-muted mb-2">No Failed Birthday Messages</h6>
+                                        <p class="text-muted small mb-0">All birthday messages have been delivered successfully! 🎉</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Template Modal -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Birthday Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createTemplateForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Name</label>
+                                <input type="text" class="form-control" name="name" required placeholder="e.g., Standard Birthday Greeting">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Channel</label>
+                                <select class="form-select" name="channel" required>
+                                    <option value="">Select Channel</option>
+                                    <option value="email">Email</option>
+                                    <option value="sms">SMS</option>
+                                    <option value="inapp">In-App Notification</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audience</label>
+                                <select class="form-select" name="audience" id="createAudienceSelect" required>
+                                    <option value="">Loading options...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject (for Email/SMS)</label>
+                                <input type="text" class="form-control" name="subject" placeholder="e.g., Happy Birthday {name}!">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Body</label>
+                                <textarea class="form-control" name="body" rows="8" required placeholder="Dear {name},
+
+Happy Birthday! 🎉
+
+We hope you have a wonderful day...
+
+Best regards,
+The Team"></textarea>
+                                <div class="form-text">
+                                    Use variables: {name}, {email}, {phone}, {birthday}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Preview</h6>
+                                <div id="templatePreview" class="bg-white p-3 border rounded" style="min-height: 100px;">
+                                    <p class="text-muted">Template preview will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="previewTemplate()">
+                        <i class="fas fa-eye me-2"></i>Preview
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Template Modal -->
+<div class="modal fade" id="editTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Birthday Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTemplateForm">
+                {% csrf_token %}
+                <input type="hidden" name="template_id">
+                <div class="modal-body">
+                    <!-- Same structure as create modal -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Name</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Channel</label>
+                                <select class="form-select" name="channel" required>
+                                    <option value="email">Email</option>
+                                    <option value="sms">SMS</option>
+                                    <option value="inapp">In-App Notification</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audience</label>
+                                <select class="form-select" name="audience" id="editAudienceSelect" required>
+                                    <option value="">Loading options...</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input type="text" class="form-control" name="subject">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Template Body</label>
+                                <textarea class="form-control" name="body" rows="8" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Update Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Generic Modals: Confirm, Success, Error -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning-subtle">
+                <h5 class="modal-title"><i class="fas fa-question-circle me-2 text-warning"></i>Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmModalOk" class="btn btn-warning">Yes, Continue</button>
+            </div>
+        </div>
+    </div>
+ </div>
+
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success-subtle">
+                <h5 class="modal-title"><i class="fas fa-check-circle me-2 text-success"></i>Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="statusModalBody">Done</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+ </div>
+
+<div class="modal fade" id="errorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger-subtle">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="errorModalBody">An error occurred</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+ </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    loadBirthdayStats();
+    loadTemplates();
+    loadWeeklyBirthdays();
+    loadAutoSettings();
+    loadFailedBirthdayMessages();
+    updateThisWeekRangeLabel();
+    updateNextWeekRangeLabel();
+    loadThisWeekCountFromAPI();
+    // Emit current month birthday count on page load
+    emitAutoBirthdayMonthCount();
+    // Show saved confirmation when creating a template
+    $('#createTemplateForm').on('submit', onCreateBirthdayTemplate);
+    $('#autoBirthdaySettingsForm').on('submit', onSaveAutoBirthdaySettings);
+});
+
+function escapeHtml(value) {
+    return $('<div>').text(value ?? '').html();
+}
+
+function safeText(value, fallback = '--') {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+    if (typeof value === 'string' && value.trim() === '') {
+        return fallback;
+    }
+    return value;
+}
+
+function htmlSafe(value, fallback = '--') {
+    return escapeHtml(safeText(value, fallback));
+}
+
+function loadBirthdayStats() {
+    $.get('{% url "adminSupport:api_stats" %}', function(data) {
+        $('#todayBirthdays').text(data.today_birthdays || 0);
+        $('#upcomingBirthdays').text(data.upcoming_birthdays || 0);
+        $('#sentMessages').text(data.birthday_messages_sent || 0);
+
+        $('#activeTemplates').text(data.active_birthday_templates || 0);
+        // Next week count badge in section header
+        $('#nextWeekCount').text(data.next_week_birthdays || 0);
+        // Update this week range to ensure clarity
+        updateThisWeekRangeLabel();
+        updateNextWeekRangeLabel();
+        // Also refresh the sidebar badge for current month if we can compute it here
+        emitAutoBirthdayMonthCount();
+    }).fail(function() {
+        console.warn('Failed to load birthday stats');
+        $('#todayBirthdays').text('0');
+        $('#upcomingBirthdays').text('0');
+        $('#sentMessages').text('0');
+        $('#activeTemplates').text('0');
+        $('#nextWeekCount').text('0');
+    });
+}
+
+function loadTemplates() {
+    $('#templatesContainer').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading templates...</p>
+        </div>
+    `);
+
+    $.get('{% url "adminSupport:api_birthday_templates_list" %}', function(data) {
+        displayTemplates(data.results || []);
+    }).fail(function() {
+        $('#templatesContainer').html(`
+            <div class="text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                <h6 class="mb-1">Failed to load templates</h6>
+                <p class="text-muted small mb-0">Please try again or create a new template.</p>
+            </div>
+        `);
+    });
+}
+
+function displayTemplates(templates) {
+    let html = '';
+
+    if (templates.length === 0) {
+        html = `
+            <div class="text-center py-4">
+                <i class="fas fa-birthday-cake fa-3x text-muted mb-3"></i>
+                <h5>No Templates Found</h5>
+                <p class="text-muted">Create your first birthday template to get started.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+                    <i class="fas fa-plus me-2"></i>Create Template
+                </button>
+            </div>
+        `;
+    } else {
+        templates.forEach(function(template) {
+            const channelIcon = template.channel === 'email' ? 'envelope' : template.channel === 'sms' ? 'sms' : 'bell';
+            const statusBadge = template.enabled ? 'bg-success' : 'bg-secondary';
+
+            html += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 me-3">
+                                        <i class="fas fa-${channelIcon}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">${template.name}</h6>
+                                        <p class="text-muted mb-1 small">${template.subject || 'No subject'}</p>
+                                        <span class="badge ${statusBadge}">${template.enabled ? 'Active' : 'Inactive'}</span>
+                                        <span class="badge bg-light text-dark ms-2">${template.audience}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Channel: ${String(template.channel || '').toUpperCase()}</small><br>
+                                <small class="text-muted">Created: ${template.created_at ? new Date(template.created_at).toLocaleDateString() : '-'}</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="previewTemplateById('${template.id}')"><i class="fas fa-eye me-2"></i>Preview</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="editTemplate('${template.id}')"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="toggleTemplate('${template.id}', ${!template.enabled})"><i class="fas fa-${template.enabled ? 'pause' : 'play'} me-2"></i>${template.enabled ? 'Disable' : 'Enable'}</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="testTemplate('${template.id}')"><i class="fas fa-paper-plane me-2"></i>Test Send</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteTemplate('${template.id}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="bg-light p-2 rounded small">
+                                    <strong>Preview:</strong> ${template.body ? template.body.substring(0, 150) : ''}${template.body && template.body.length > 150 ? '...' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    $('#templatesContainer').html(html);
+}
+
+function loadWeeklyBirthdays() {
+    $('#weeklyBirthdaysContainer').html(`
+        <div class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+    // Compute next week Sunday–Saturday
+    const now = new Date();
+    const weekday = now.getDay(); // 0=Sun..6=Sat
+    const currentSunday = new Date(now);
+    currentSunday.setDate(now.getDate() - weekday);
+    const nextSunday = new Date(currentSunday);
+    nextSunday.setDate(currentSunday.getDate() + 7);
+    const nextSaturday = new Date(nextSunday);
+    nextSaturday.setDate(nextSunday.getDate() + 6);
+    fetchBirthdaysForRange(nextSunday, nextSaturday)
+        .then(list => {
+            displayWeeklyBirthdays(list);
+            $('#nextWeekCount').text((list || []).length || 0);
+        })
+        .catch(() => {
+            displayWeeklyBirthdays([]);
+            $('#nextWeekCount').text('0');
+        });
+}
+
+function displayWeeklyBirthdays(birthdays) {
+    let html = '';
+
+    if (birthdays.length === 0) {
+        html = `
+            <div class="text-center py-4">
+                <i class="fas fa-birthday-cake fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                <h6 class="text-muted mb-2">No Birthdays Next Week</h6>
+                <p class="text-muted small mb-0">No birthday celebrations scheduled for next week! 📅</p>
+            </div>
+        `;
+    } else {
+        // Separate today's birthdays for special highlighting
+        const todaysBirthdays = birthdays.filter(b => b.is_today || b.date === 'Today');
+        const otherBirthdays = birthdays.filter(b => !b.is_today && b.date !== 'Today');
+
+        // Display today's birthday celebrants first with special styling (unlikely for next week)
+        if (todaysBirthdays.length > 0) {
+            html += `
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        <h6 class="mb-0 text-warning fw-bold">🎉 Today's Birthday Celebrants!</h6>
+                    </div>
+            `;
+
+            todaysBirthdays.forEach(function(birthday) {
+                html += `
+                    <div class="birthday-celebration-card mb-3" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 12px; padding: 15px; color: white; border: 2px solid #fbbf24; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-white text-warning d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; font-size: 14px; font-weight: bold; border: 3px solid rgba(255,255,255,0.8);">
+                                    ${birthday.avatar || birthday.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1 fw-bold">${birthday.name}</h6>
+                                <p class="mb-0 small opacity-90">${birthday.role}</p>
+                                <span class="badge bg-white text-warning small fw-bold mt-1">🎂 Birthday Today!</span>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-birthday-cake fa-2x text-white" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+        }
+
+        // Display all birthdays next week
+        if (otherBirthdays.length > 0) {
+            if (todaysBirthdays.length > 0) {
+                html += `
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-calendar-week text-info me-2"></i>
+                        <h6 class="mb-0 text-muted">Birthdays Next Week</h6>
+                    </div>
+                `;
+            }
+
+            otherBirthdays.forEach(function(birthday) {
+                let prettyDate = birthday.date;
+                try {
+                    const d = new Date(birthday.date);
+                    if (!isNaN(d.getTime())) {
+                        prettyDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    }
+                } catch (e) { /* keep raw string */ }
+                html += `
+                    <div class="d-flex align-items-center mb-3 p-3 rounded-3" style="background: rgba(0,123,255,0.05); border-left: 4px solid #0d6efd;">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 13px; font-weight: bold;">
+                                ${birthday.avatar || birthday.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1 small fw-semibold">${birthday.name}</h6>
+                            <p class="mb-0 text-muted small">${birthday.role}</p>
+                            <span class="badge bg-light text-primary small mt-1">${prettyDate}</span>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-gift text-primary"></i>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    $('#weeklyBirthdaysContainer').html(html);
+}
+
+// Compute and display the current Sunday–Saturday range for the stats card subtitle
+function updateThisWeekRangeLabel() {
+    const now = new Date();
+    const weekday = now.getDay(); // 0=Sun..6=Sat
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - weekday);
+    const saturday = new Date(sunday);
+    saturday.setDate(sunday.getDate() + 6);
+    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    $('#thisWeekRange').text(`${fmt(sunday)} – ${fmt(saturday)}`);
+}
+
+// Derive This Week (Sun–Sat) count from same birthdays API to guarantee display consistency
+function loadThisWeekCountFromAPI() {
+    // Compute current week Sunday–Saturday
+    const now = new Date();
+    const weekday = now.getDay(); // 0=Sun..6=Sat
+    const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - weekday);
+    const saturday = new Date(sunday); saturday.setDate(sunday.getDate() + 6);
+    fetchBirthdaysForRange(sunday, saturday)
+        .then(list => {
+            $('#upcomingBirthdays').text((list || []).length || 0);
+        })
+        .catch(() => {
+            // keep prior value
+        });
+}
+
+// Compute birthdays for current month and dispatch to base layout
+function emitAutoBirthdayMonthCount(){
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth()+1;
+    fetchMonthlyBirthdaysCount(y, m).then((count)=>{
+        try { window.dispatchEvent(new CustomEvent('autoBirthdayMonthChanged', { detail: { year: y, month: m, count } })); } catch(e) {}
+    }).catch(()=>{ /* ignore */ });
+}
+
+function fetchMonthlyBirthdaysCount(year, month){
+    const y = year; const m = month; const mm = String(m).padStart(2,'0');
+    const url = `{% url "adminSupport:api_birthdays" %}`;
+    const normalize = (data)=>{
+        const list = Array.isArray(data) ? data : (data && Array.isArray(data.birthdays) ? data.birthdays : []);
+        return (list||[]).filter(it => {
+            const d = (it.date||'').slice(0,10);
+            return typeof d === 'string' && d.startsWith(`${y}-${mm}-`);
+        }).length;
+    };
+    // Try a few strategies in order
+    return new Promise((resolve, reject)=>{
+        $.get(`${url}?period=this_month`).done(d=>{ try{ resolve(normalize(d)); }catch{ reject(); } }).fail(()=>{
+            $.get(`${url}?period=month&year=${y}&month=${m}`).done(d=>{ try{ resolve(normalize(d)); }catch{ reject(); } }).fail(()=>{
+                $.get(`${url}?year=${y}&month=${m}`).done(d=>{ try{ resolve(normalize(d)); }catch{ reject(); } }).fail(()=>{
+                    $.get(url).done(d=>{ try{ resolve(normalize(d)); }catch{ reject(); } }).fail(()=>reject());
+                });
+            });
+        });
+    });
+}
+
+// Utilities for weekly range fetches
+function ymdLocal(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function normalizeBirthdayList(data){
+    const items = Array.isArray(data) ? data : (data && Array.isArray(data.birthdays) ? data.birthdays : []);
+    return (items||[]).map(it => {
+        const first = it.firstName || it.first_name || '';
+        const last = it.lastName || it.last_name || '';
+        const name = (first + ' ' + last).trim() || (it.name || '');
+        const roleRaw = it.role || '';
+        const role = roleRaw ? roleRaw.charAt(0).toUpperCase() + roleRaw.slice(1) : '';
+        return { name, role, date: (it.date||'').slice(0,10) };
+    });
+}
+function fetchBirthdaysForRange(startDate, endDate){
+    const url = `{% url "adminSupport:api_birthdays" %}`;
+    const start = ymdLocal(startDate);
+    const end = ymdLocal(endDate);
+    const startY = startDate.getFullYear();
+    const startM = startDate.getMonth()+1;
+    const endY = endDate.getFullYear();
+    const endM = endDate.getMonth()+1;
+    // Try server-side range first
+    return new Promise((resolve, reject) => {
+        $.get(`${url}?period=range&start=${start}&end=${end}`).done(d => {
+            try { resolve(normalizeBirthdayList(d).filter(it => it.date >= start && it.date <= end)); } catch { reject(); }
+        }).fail(() => {
+            // Fallback: month(s) covering the range
+            const calls = [];
+            const pushMonth = (y,m)=>calls.push($.get(`${url}?period=month&year=${y}&month=${m}`));
+            pushMonth(startY,startM);
+            if(startY!==endY || startM!==endM) pushMonth(endY,endM);
+            $.when.apply($, calls).done(function(){
+                try{
+                    const results = Array.from(arguments).map(a => normalizeBirthdayList(a[0]));
+                    const combined = ([]).concat.apply([], results);
+                    resolve(combined.filter(it => it.date >= start && it.date <= end));
+                }catch{ reject(); }
+            }).fail(() => {
+                // Last resort: fetch all (or API default) and filter
+                $.get(url).done(d => {
+                    try { resolve(normalizeBirthdayList(d).filter(it => it.date >= start && it.date <= end)); } catch { reject(); }
+                }).fail(() => reject());
+            });
+        });
+    });
+}
+
+// Create Template submit handler to show confirmation modal
+function onCreateBirthdayTemplate(e){
+    e.preventDefault();
+    const $f = $('#createTemplateForm');
+    const payload = {
+        name: $f.find('input[name="name"]').val() || '',
+        channel: $f.find('select[name="channel"]').val() || 'email',
+        audience: $f.find('select[name="audience"]').val() || '',
+        subject: $f.find('input[name="subject"]').val() || '',
+        body: $f.find('textarea[name="body"]').val() || ''
+    };
+    const url = `{% url "adminSupport:api_birthday_templates_list" %}`;
+    const csrf = $f.find('input[name="csrfmiddlewaretoken"]').val();
+    // Prefer JSON
+    $.ajax({ url: url, method: 'POST', contentType: 'application/json', headers: { 'X-CSRFToken': csrf }, data: JSON.stringify(payload) })
+        .done(function(){
+            try{ bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide(); }catch{}
+            loadTemplates();
+            loadBirthdayStats();
+            showSuccess('Birthday template created successfully');
+            $f[0].reset();
+        })
+        .fail(function(){
+            // Fallback to form-encoded
+            $.ajax({ url: url, method: 'POST', headers: { 'X-CSRFToken': csrf }, data: payload })
+                .done(function(){
+                    try{ bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide(); }catch{}
+                    loadTemplates();
+                    loadBirthdayStats();
+                    showSuccess('Birthday template created successfully');
+                    $f[0].reset();
+                })
+                .fail(function(){ showError('Failed to create birthday template'); });
+        });
+}
+
+// Audience options loader (pulls combined Clients/Marketers and rank filters)
+function initAudienceOptions() {
+    const $create = $('#createAudienceSelect');
+    const $edit = $('#editAudienceSelect');
+    const placeholder = '<option value="">Loading options...</option>';
+    if ($create.length) $create.html(placeholder);
+    if ($edit.length) $edit.html(placeholder);
+    return $.get('{% url "adminSupport:api_audience_options" %}', function(data) {
+        const opts = (data.options || []).map(o => `<option value="${o.value}">${o.label} (${o.count})</option>`).join('');
+        const html = `<option value="">Select Audience</option>` + opts;
+        if ($create.length) $create.html(html);
+        if ($edit.length) $edit.html(html);
+    }).fail(function() {
+        const fallback = `
+            <option value="">Select Audience</option>
+            <option value="all">All Users</option>
+            <option value="clients">All Clients</option>
+            <option value="marketers">All Marketers</option>
+            <option value="royal_elite">Royal Elite Clients</option>
+            <option value="estate_ambassador">Estate Ambassador Clients</option>
+        `;
+        if ($create.length) $create.html(fallback);
+        if ($edit.length) $edit.html(fallback);
+    });
+}
+
+// Modal helpers to replace window.alert/confirm
+function showConfirm(message, onOk) {
+    $('#confirmModalMessage').text(message || 'Are you sure?');
+    const okBtn = document.getElementById('confirmModalOk');
+    const cloned = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(cloned, okBtn);
+    cloned.addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+        modal.hide();
+        if (typeof onOk === 'function') onOk();
+    });
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+
+function showSuccess(message) {
+    $('#statusModal .modal-header').removeClass('bg-danger-subtle').addClass('bg-success-subtle');
+    $('#statusModal .modal-title').html('<i class="fas fa-check-circle me-2 text-success"></i>Status');
+    $('#statusModalBody').text(message || 'Operation completed successfully!');
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+
+function showError(message) {
+    $('#statusModal .modal-header').removeClass('bg-success-subtle').addClass('bg-danger-subtle');
+    $('#statusModal .modal-title').html('<i class="fas fa-exclamation-triangle me-2 text-danger"></i>Error');
+    $('#statusModalBody').text(message || 'Something went wrong.');
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+
+// Compute and display the next Sunday–Saturday range for the Next Week section
+function updateNextWeekRangeLabel() {
+    const now = new Date();
+    const weekday = now.getDay(); // 0=Sun..6=Sat
+    const currentSunday = new Date(now);
+    currentSunday.setDate(now.getDate() - weekday);
+    const nextSunday = new Date(currentSunday);
+    nextSunday.setDate(currentSunday.getDate() + 7);
+    const nextSaturday = new Date(nextSunday);
+    nextSaturday.setDate(nextSunday.getDate() + 6);
+    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const el = document.getElementById('nextWeekRange');
+    if (el) el.textContent = `${fmt(nextSunday)} – ${fmt(nextSaturday)}`;
+}
+
+function loadAutoSettings() {
+    $.get('{% url "adminSupport:api_auto_birthday" %}', function(data) {
+        const enabled = data && Object.prototype.hasOwnProperty.call(data, 'enabled') ? !!data.enabled : !!data.auto_birthday;
+        const sendTime = data && (data.send_time || data.time || null);
+        const channel = data && (data.default_channel || data.channel || 'email');
+        const daysAdvance = data && (String(data.days_advance ?? data.offset ?? '0'));
+
+        $('#enableAutoBirthday').prop('checked', enabled !== false);
+        $('input[name="send_time"]').val(sendTime || '09:00');
+        $('select[name="default_channel"]').val(channel || 'email');
+        $('select[name="days_advance"]').val(daysAdvance || '0');
+    }).fail(function() {
+        console.log('Failed to load auto birthday settings');
+    });
+}
+
+function onSaveAutoBirthdaySettings(e) {
+    e.preventDefault();
+    const $form = $('#autoBirthdaySettingsForm');
+    const sendTime = $form.find('input[name="send_time"]').val();
+    const channel = $form.find('select[name="default_channel"]').val() || 'email';
+    const daysAdvanceRaw = $form.find('select[name="days_advance"]').val();
+    const daysAdvanceVal = Number.parseInt(daysAdvanceRaw, 10);
+
+    const payload = {
+        enabled: $('#enableAutoBirthday').is(':checked'),
+        send_time: sendTime || null,
+        default_channel: channel,
+        days_advance: Number.isFinite(daysAdvanceVal) ? daysAdvanceVal : 0
+    };
+
+    $.ajax({
+        url: '{% url "adminSupport:api_auto_birthday" %}',
+        method: 'POST',
+        contentType: 'application/json',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        data: JSON.stringify(payload)
+    }).done(function(data) {
+        showSuccess('Auto birthday settings saved successfully!');
+        loadAutoSettings();
+    }).fail(function(xhr) {
+        let message = 'Failed to save auto birthday settings';
+        try {
+            const resp = xhr.responseJSON;
+            if (resp && resp.error) {
+                message = resp.error;
+            }
+        } catch (err) { /* ignore */ }
+        showError(message);
+    });
+}
+
+
+function previewTemplate() {
+    const name = $('input[name="name"]').val() || 'Template Name';
+    const subject = $('input[name="subject"]').val() || 'No Subject';
+    const body = $('textarea[name="body"]').val() || 'Template body...';
+    
+    // Replace variables with sample data
+    const sampleBody = body
+        .replace(/\{name\}/g, 'Victor Godwin')
+        .replace(/\{email\}/g, 'victorgodwin@example.com')
+        .replace(/\{phone\}/g, '+1-234-567-8900')
+        .replace(/\{birthday\}/g, 'January 10th');
+    
+    $('#templatePreview').html(`
+        <div><strong>Subject:</strong> ${subject.replace(/\{name\}/g, 'Victor Godwin')}</div>
+        <hr>
+        <div style="white-space: pre-wrap;">${sampleBody}</div>
+    `);
+}
+
+function previewTemplateById(id) {
+    showSuccess(`Preview template ${id} (preview will be enhanced soon).`);
+}
+
+function editTemplate(id) {
+    // Load template data and populate edit modal
+    const audienceReq = initAudienceOptions();
+    $.get(`{% url "adminSupport:api_birthday_templates_list" %}${id}/`, function(template) {
+        // Populate the edit form
+        $('#editTemplateForm input[name="template_id"]').val(template.id);
+        $('#editTemplateForm input[name="name"]').val(template.name);
+        $('#editTemplateForm select[name="channel"]').val(template.channel);
+        // ensure options are loaded before setting audience value
+        $.when(audienceReq).always(function(){
+            $('#editAudienceSelect').val(template.audience);
+        });
+        $('#editTemplateForm input[name="subject"]').val(template.subject || '');
+        $('#editTemplateForm textarea[name="body"]').val(template.body || template.message || '');
+        
+        // Show the modal
+        $('#editTemplateModal').modal('show');
+    }).fail(function() {
+        showNotification('Failed to load template data', 'error');
+    });
+}
+
+function toggleTemplate(id, enable) {
+    const url = `{% url "adminSupport:api_birthday_templates_list" %}${id}/`;
+    $.post(url, {
+        'csrfmiddlewaretoken': '{{ csrf_token }}',
+        'enabled': enable
+    }, function(data) {
+        showNotification(`Template ${enable ? 'enabled' : 'disabled'} successfully!`, 'success');
+        loadTemplates();
+    }).fail(function() {
+        showNotification(`Failed to ${enable ? 'enable' : 'disable'} template`, 'error');
+    });
+}
+
+function testTemplate(id) {
+    showConfirm('Send a test birthday message to yourself?', function() {
+        showSuccess(`Test send initiated for template ${id}`);
+    });
+}
+
+function deleteTemplate(id) {
+    showConfirm('Are you sure you want to delete this template?', function() {
+        const url = `{% url "adminSupport:api_birthday_templates_list" %}${id}/`;
+        $.ajax({
+            url: url,
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            success: function() {
+                showSuccess('Template deleted successfully!');
+                loadTemplates();
+                loadBirthdayStats();
+            },
+            error: function() { showError('Failed to delete template'); }
+        });
+    });
+}
+
+function retryBirthdayMessage(messageId) {
+    showConfirm('Retry sending this birthday message?', function() {
+        $.post('/adminSupport/api/birthdays/retry/', {
+            message_id: messageId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }).done(function(data) {
+            if (data.success) {
+                showSuccess('Birthday message retry initiated successfully!');
+                loadFailedBirthdayMessages();
+            } else {
+                showError('Failed to retry message: ' + (data.error || 'Unknown error'));
+            }
+        }).fail(function() { showError('Failed to retry birthday message'); });
+    });
+}
+
+function retryAllFailedBirthdays() {
+    showConfirm('Retry sending all failed birthday messages?', function() {
+        $.post('/adminSupport/api/birthdays/retry-all/', {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }).done(function(data) {
+            if (data.success) {
+                showSuccess(`Successfully initiated retry for ${data.count} failed birthday messages!`);
+                loadFailedBirthdayMessages();
+            } else {
+                showError('Failed to retry messages: ' + (data.error || 'Unknown error'));
+            }
+        }).fail(function() { showError('Failed to retry all birthday messages'); });
+    });
+}
+
+function deleteFailedBirthdayMessage(messageId) {
+    showConfirm('Delete this failed message record?', function() {
+        $.post('/adminSupport/api/birthdays/delete-failed/', {
+            message_id: messageId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }).done(function(data) {
+            if (data.success) {
+                showSuccess('Failed message record deleted successfully!');
+                loadFailedBirthdayMessages();
+            } else {
+                showError('Failed to delete record: ' + (data.error || 'Unknown error'));
+            }
+        }).fail(function() { showError('Failed to delete message record'); });
+    });
+}
+
+function viewMessageDetails(messageId) {
+    // This can be enhanced to show a detailed modal with full message content and error details
+    showNotification('Message details view - Feature coming soon!', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    const bgColor = {
+        'success': 'bg-success',
+        'error': 'bg-danger', 
+        'info': 'bg-info',
+        'warning': 'bg-warning'
+    }[type] || 'bg-info';
+    
+    const notification = $(`
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+            <div class="toast ${bgColor} text-white" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    const toast = new bootstrap.Toast(notification.find('.toast'));
+    toast.show();
+    
+    setTimeout(() => notification.remove(), 5000);
+}
+</script>
+{% endblock %}

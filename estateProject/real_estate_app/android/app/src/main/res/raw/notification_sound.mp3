@@ -1,0 +1,14 @@
+# This file serves as a placeholder for the notification sound.
+# In a real implementation, you would place an actual MP3 file here.
+# For now, this will use the system default notification sound.
+# 
+# To add a custom sound:
+# 1. Get a short (1-3 second) MP3 file for notifications
+# 2. Replace this file with the actual MP3
+# 3. Ensure the file size is under 1MB for best performance
+#
+# WhatsApp-style notification sound characteristics:
+# - Duration: 1-2 seconds
+# - Format: MP3 or OGG
+# - Frequency: Clear, attention-grabbing but not annoying
+# - Volume: Moderate (will be adjusted by system volume)

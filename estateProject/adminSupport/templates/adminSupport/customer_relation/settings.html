@@ -1,0 +1,2544 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1>Settings</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Admin Support</a></li>
+                <li class="breadcrumb-item active">Settings</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <button class="btn btn-success" onclick="saveAllSettings()">
+            <i class="fas fa-save me-2"></i>Save All Changes
+        </button>
+    </div>
+</div>
+
+<!-- Settings Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" role="tab">
+                            <i class="fas fa-cog me-2"></i>General
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="messaging-tab" data-bs-toggle="tab" data-bs-target="#messaging" role="tab">
+                            <i class="fas fa-envelope me-2"></i>Messaging
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" role="tab">
+                            <i class="fas fa-bell me-2"></i>Notifications
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="automation-tab" data-bs-toggle="tab" data-bs-target="#automation" role="tab">
+                            <i class="fas fa-robot me-2"></i>Automation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" role="tab">
+                            <i class="fas fa-shield-alt me-2"></i>Security
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="settingsTabContent">
+                    <!-- General Settings -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="mb-0"><i class="fas fa-cog me-2 text-primary"></i>System Configuration</h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportSettings()">
+                                    <i class="fas fa-download me-1"></i>Export
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="importSettings()">
+                                    <i class="fas fa-upload me-1"></i>Import
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="resetToDefaults('general')">
+                                    <i class="fas fa-undo me-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Hidden input for importing settings -->
+                        <input type="file" id="settingsImportInput" accept=".json" style="display:none" />
+                        
+                        <form id="generalSettingsForm">
+                            <!-- Organization Profile -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-gradient-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-building me-2"></i>Organization Profile</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Organization Name *</label>
+                                                        <input type="text" class="form-control" name="company_name" value="Prime Properties Group" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Business Type</label>
+                                                        <select class="form-select" name="business_type">
+                                                            <option value="real_estate" selected>Real Estate Agency</option>
+                                                            <option value="property_mgmt">Property Management</option>
+                                                            <option value="investment">Investment Firm</option>
+                                                            <option value="construction">Construction/Development</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Primary Email *</label>
+                                                        <input type="email" class="form-control" name="primary_email" value="admin@primeproperties.com" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Primary Phone</label>
+                                                        <input type="tel" class="form-control" name="primary_phone" value="+1-800-PRIME-RE">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Organization Logo</label>
+                                                <div class="border rounded p-3 text-center bg-light">
+                                                    <img src="/static/assets/logo-placeholder.png" alt="Logo" class="img-fluid mb-2" style="max-height: 60px;">
+                                                    <div>
+                                                        <button type="button" class="btn btn-outline-primary btn-sm">
+                                                            <i class="fas fa-upload me-1"></i>Upload Logo
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Localization & Regional -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-globe me-2"></i>Localization & Regional Settings</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Time Zone</label>
+                                                <select class="form-select" name="timezone">
+                                                    <option value="America/New_York" selected>🇺🇸 Eastern (EST)</option>
+                                                    <option value="America/Chicago">🇺🇸 Central (CST)</option>
+                                                    <option value="America/Denver">🇺🇸 Mountain (MST)</option>
+                                                    <option value="America/Los_Angeles">🇺🇸 Pacific (PST)</option>
+                                                    <option value="Europe/London">🇬🇧 London (GMT)</option>
+                                                    <option value="Europe/Paris">🇫🇷 Paris (CET)</option>
+                                                    <option value="Asia/Tokyo">🇯🇵 Tokyo (JST)</option>
+                                                    <option value="UTC">🌍 UTC</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Language</label>
+                                                <select class="form-select" name="default_language">
+                                                    <option value="en" selected>🇺🇸 English</option>
+                                                    <option value="es">🇪🇸 Español</option>
+                                                    <option value="fr">🇫🇷 Français</option>
+                                                    <option value="de">🇩🇪 Deutsch</option>
+                                                    <option value="pt">🇧🇷 Português</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Currency</label>
+                                                <select class="form-select" name="currency">
+                                                    <option value="USD" selected>💵 US Dollar</option>
+                                                    <option value="EUR">💶 Euro</option>
+                                                    <option value="GBP">💷 British Pound</option>
+                                                    <option value="CAD">🍁 Canadian Dollar</option>
+                                                    <option value="AUD">🦘 Australian Dollar</option>
+                                                    <option value="JPY">💴 Japanese Yen</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Date Format</label>
+                                                <select class="form-select" name="date_format">
+                                                    <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                                    <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Behavior -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>System Behavior & Performance</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Records Per Page</label>
+                                                <div class="input-group">
+                                                    <select class="form-select" name="records_per_page">
+                                                        <option value="10">10</option>
+                                                        <option value="25" selected>25</option>
+                                                        <option value="50">50</option>
+                                                        <option value="100">100</option>
+                                                    </select>
+                                                    <span class="input-group-text">records</span>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Auto-Save Interval</label>
+                                                <select class="form-select" name="autosave_interval">
+                                                    <option value="30">30 seconds</option>
+                                                    <option value="60" selected>1 minute</option>
+                                                    <option value="300">5 minutes</option>
+                                                    <option value="0">Disabled</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="enable_cache" id="enableCache" checked>
+                                                    <label class="form-check-label fw-semibold" for="enableCache">High-Performance Caching</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">System Status</label>
+                                                <div class="d-flex gap-3">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" name="maintenance_mode" id="maintenanceMode">
+                                                        <label class="form-check-label fw-semibold" for="maintenanceMode">
+                                                            🔧 Maintenance Mode
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="form-text">Temporarily disable public access for updates</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="debug_mode" id="debugMode">
+                                                    <label class="form-check-label fw-semibold" for="debugMode">
+                                                        🐛 Debug Mode
+                                                    </label>
+                                                </div>
+                                                <div class="form-text">Show detailed system diagnostics</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="analytics_enabled" id="analyticsEnabled" checked>
+                                                    <label class="form-check-label fw-semibold" for="analyticsEnabled">
+                                                        📊 Analytics Tracking
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Messaging Settings -->
+                    <div class="tab-pane fade" id="messaging" role="tabpanel">
+                        <h5 class="mb-4"><i class="fas fa-envelope me-2 text-primary"></i>Messaging & Communication Configuration</h5>
+                        <form id="messagingSettingsForm">
+                            
+                            <!-- Email Configuration Section -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-at me-2"></i>Email (SMTP) Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMTP Host *</label>
+                                                <input type="text" class="form-control" name="smtp_host" value="smtp.gmail.com" required>
+                                                <div class="form-text">Common: smtp.gmail.com, smtp.outlook.com, smtp.yahoo.com</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMTP Port *</label>
+                                                <select class="form-select" name="smtp_port">
+                                                    <option value="587" selected>587 (TLS/STARTTLS)</option>
+                                                    <option value="465">465 (SSL)</option>
+                                                    <option value="25">25 (Non-encrypted)</option>
+                                                    <option value="2525">2525 (Alternative)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMTP Security</label>
+                                                <select class="form-select" name="smtp_security">
+                                                    <option value="tls" selected>TLS/STARTTLS</option>
+                                                    <option value="ssl">SSL</option>
+                                                    <option value="none">None</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMTP Username</label>
+                                                <input type="text" class="form-control" name="smtp_username" value="admin@realestate.com">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMTP Password</label>
+                                                <input type="password" class="form-control" name="smtp_password" value="••••••••••••">
+                                                <div class="form-text">Use App Password for Gmail, not regular password</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">From Email Address *</label>
+                                                <input type="email" class="form-control" name="from_email" value="noreply@realestate.com" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">From Name *</label>
+                                                <input type="text" class="form-control" name="from_name" value="Real Estate Management System" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Reply-To Email</label>
+                                                <input type="email" class="form-control" name="reply_to_email" value="support@realestate.com">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Email Rate Limit (per hour)</label>
+                                                <input type="number" class="form-control" name="email_rate_limit" value="100" min="1" max="1000">
+                                                <div class="form-text">Maximum emails to send per hour</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="email_enabled" id="emailEnabled" checked>
+                                                    <label class="form-check-label fw-semibold" for="emailEnabled">
+                                                        Enable Email Messaging
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="testEmailConnection()">
+                                                    <i class="fas fa-paper-plane me-2"></i>Test Connection
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success btn-sm" onclick="sendTestEmail()">
+                                                    <i class="fas fa-envelope me-2"></i>Send Test Email
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SMS Configuration Section -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-sms me-2"></i>SMS Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMS Provider</label>
+                                                <select class="form-select" name="sms_provider" id="smsProvider" onchange="updateSMSFields()">
+                                                    <option value="twilio" selected>Twilio</option>
+                                                    <option value="nexmo">Vonage (Nexmo)</option>
+                                                    <option value="messagebird">MessageBird</option>
+                                                    <option value="textmagic">TextMagic</option>
+                                                    <option value="plivo">Plivo</option>
+                                                    <option value="clicksend">ClickSend</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <!-- Twilio Specific Fields -->
+                                            <div id="twilioFields">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Account SID</label>
+                                                    <input type="text" class="form-control" name="twilio_account_sid" value="AC••••••••••••••••••••••••••••••••">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Auth Token</label>
+                                                    <input type="password" class="form-control" name="twilio_auth_token" value="••••••••••••••••••••••••••••••••">
+                                                </div>
+                                            </div>
+
+                                            <!-- Generic API Fields (for other providers) -->
+                                            <div id="genericSMSFields" style="display: none;">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">API Key</label>
+                                                    <input type="password" class="form-control" name="sms_api_key" value="••••••••••••••••••••••••••••••••">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">API Secret</label>
+                                                    <input type="password" class="form-control" name="sms_api_secret" value="••••••••••••••••••••••••••••••••">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">From Number/Sender ID</label>
+                                                <input type="text" class="form-control" name="sms_from_number" value="+1234567890">
+                                                <div class="form-text">Use format: +1234567890 or alphanumeric sender ID</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">SMS Rate Limit (per hour)</label>
+                                                <input type="number" class="form-control" name="sms_rate_limit" value="50" min="1" max="500">
+                                                <div class="form-text">Maximum SMS to send per hour</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Default Country Code</label>
+                                                <select class="form-select" name="default_country_code">
+                                                    <option value="+1" selected>United States (+1)</option>
+                                                    <option value="+44">United Kingdom (+44)</option>
+                                                    <option value="+234">Nigeria (+234)</option>
+                                                    <option value="+91">India (+91)</option>
+                                                    <option value="+86">China (+86)</option>
+                                                    <option value="+49">Germany (+49)</option>
+                                                    <option value="+33">France (+33)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="sms_enabled" id="smsEnabled" checked>
+                                                    <label class="form-check-label fw-semibold" for="smsEnabled">
+                                                        Enable SMS Messaging
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="sms_delivery_reports" id="smsDeliveryReports" checked>
+                                                    <label class="form-check-label fw-semibold" for="smsDeliveryReports">
+                                                        Enable Delivery Reports
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm me-2" onclick="testSMSConnection()">
+                                                    <i class="fas fa-paper-plane me-2"></i>Test Connection
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="sendTestSMS()">
+                                                    <i class="fas fa-sms me-2"></i>Send Test SMS
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- WhatsApp Configuration Section -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fab fa-whatsapp me-2"></i>WhatsApp Business API Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">WhatsApp Provider</label>
+                                                <select class="form-select" name="whatsapp_provider">
+                                                    <option value="twilio" selected>Twilio WhatsApp</option>
+                                                    <option value="360dialog">360Dialog</option>
+                                                    <option value="messagebird">MessageBird WhatsApp</option>
+                                                    <option value="meta">Meta WhatsApp Business API</option>
+                                                    <option value="whatsapp_cloud">WhatsApp Cloud API</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">WhatsApp Number</label>
+                                                <input type="text" class="form-control" name="whatsapp_number" value="+1234567890">
+                                                <div class="form-text">Your verified WhatsApp Business number</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">API Token/Access Token</label>
+                                                <input type="password" class="form-control" name="whatsapp_token" value="••••••••••••••••••••••••••••••••">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Phone Number ID</label>
+                                                <input type="text" class="form-control" name="whatsapp_phone_id" value="12345678901234567890">
+                                                <div class="form-text">Meta/Cloud API Phone Number ID</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Business Account ID</label>
+                                                <input type="text" class="form-control" name="whatsapp_business_id" value="12345678901234567890">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Webhook URL</label>
+                                                <input type="url" class="form-control" name="whatsapp_webhook_url" value="https://yoursite.com/whatsapp/webhook">
+                                                <div class="form-text">URL to receive message status updates</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Webhook Verify Token</label>
+                                                <input type="password" class="form-control" name="whatsapp_verify_token" value="••••••••••••••••••••••••••••••••">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="whatsapp_enabled" id="whatsappEnabled" checked>
+                                                    <label class="form-check-label fw-semibold" for="whatsappEnabled">
+                                                        Enable WhatsApp Messaging
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm me-2" onclick="testWhatsAppConnection()">
+                                                    <i class="fas fa-paper-plane me-2"></i>Test Connection
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success btn-sm" onclick="sendTestWhatsApp()">
+                                                    <i class="fab fa-whatsapp me-2"></i>Send Test Message
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message Queue & Delivery Settings -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-clock me-2"></i>Message Queue & Delivery Settings</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Queue Processing Interval</label>
+                                                <select class="form-select" name="queue_interval">
+                                                    <option value="1" selected>Every 1 minute</option>
+                                                    <option value="5">Every 5 minutes</option>
+                                                    <option value="10">Every 10 minutes</option>
+                                                    <option value="30">Every 30 minutes</option>
+                                                    <option value="60">Every hour</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Batch Size</label>
+                                                <input type="number" class="form-control" name="batch_size" value="10" min="1" max="100">
+                                                <div class="form-text">Messages to process per batch</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Retry Attempts</label>
+                                                <input type="number" class="form-control" name="retry_attempts" value="3" min="0" max="10">
+                                                <div class="form-text">Number of retry attempts for failed messages</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Retry Delay (minutes)</label>
+                                                <input type="number" class="form-control" name="retry_delay" value="15" min="1" max="1440">
+                                                <div class="form-text">Delay between retry attempts</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Message Timeout (seconds)</label>
+                                                <input type="number" class="form-control" name="message_timeout" value="30" min="5" max="300">
+                                                <div class="form-text">Timeout for API requests</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="enable_queue" id="enableQueue" checked>
+                                                    <label class="form-check-label fw-semibold" for="enableQueue">
+                                                        Enable Message Queue
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Channel Priority & Fallback -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-sort me-2"></i>Channel Priority & Fallback</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p class="text-muted">Drag to reorder message delivery priority. System will try channels in order until successful.</p>
+                                            <div id="channelPriority" class="sortable-list">
+                                                <div class="sortable-item bg-light p-3 mb-2 rounded border" data-channel="email">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <i class="fas fa-envelope text-primary me-2"></i>
+                                                            <strong>Email (SMTP)</strong>
+                                                            <span class="badge bg-success ms-2">Primary</span>
+                                                        </div>
+                                                        <div>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="moveChannelUp('email')">
+                                                                <i class="fas fa-arrow-up"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveChannelDown('email')">
+                                                                <i class="fas fa-arrow-down"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="sortable-item bg-light p-3 mb-2 rounded border" data-channel="sms">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <i class="fas fa-sms text-success me-2"></i>
+                                                            <strong>SMS</strong>
+                                                            <span class="badge bg-info ms-2">Secondary</span>
+                                                        </div>
+                                                        <div>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="moveChannelUp('sms')">
+                                                                <i class="fas fa-arrow-up"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveChannelDown('sms')">
+                                                                <i class="fas fa-arrow-down"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="sortable-item bg-light p-3 mb-2 rounded border" data-channel="whatsapp">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div>
+                                                            <i class="fab fa-whatsapp text-success me-2"></i>
+                                                            <strong>WhatsApp</strong>
+                                                            <span class="badge bg-warning text-dark ms-2">Fallback</span>
+                                                        </div>
+                                                        <div>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="moveChannelUp('whatsapp')">
+                                                                <i class="fas fa-arrow-up"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveChannelDown('whatsapp')">
+                                                                <i class="fas fa-arrow-down"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6>Fallback Settings</h6>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="enable_fallback" id="enableFallback" checked>
+                                                    <label class="form-check-label fw-semibold" for="enableFallback">
+                                                        Enable Channel Fallback
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Fallback Delay (minutes)</label>
+                                                <input type="number" class="form-control" name="fallback_delay" value="5" min="1" max="60">
+                                                <div class="form-text">Wait time before trying next channel</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="notify_admin_failures" id="notifyAdminFailures" checked>
+                                                    <label class="form-check-label fw-semibold" for="notifyAdminFailures">
+                                                        Notify Admin of Failures
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-end">
+                                <button type="button" class="btn btn-success btn-lg" onclick="saveMessagingSettings()">
+                                    <i class="fas fa-save me-2"></i>Save Messaging Configuration
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="tab-pane fade" id="notifications" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="fas fa-bell me-2 text-warning"></i>Notification Preferences</h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetToDefaults('notifications')">
+                                    <i class="fas fa-undo me-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>Channels are configured under Messaging. If a channel is disabled there, it will be unavailable here.</div>
+                        </div>
+                        <form id="notificationSettingsForm">
+                            <!-- Delivery Preferences -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-paper-plane me-2"></i>Delivery Preferences</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Default Delivery for Non-critical</label>
+                                                <select class="form-select" name="default_delivery">
+                                                    <option value="immediate" selected>Immediate</option>
+                                                    <option value="digest_daily">Digest (Daily)</option>
+                                                    <option value="digest_weekly">Digest (Weekly)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="dndEnabled" name="dnd_enabled">
+                                                    <label class="form-check-label fw-semibold" for="dndEnabled">Enable Do Not Disturb</label>
+                                                </div>
+                                                <div class="row mt-2">
+                                                    <div class="col-6">
+                                                        <label class="form-label">Quiet Hours From</label>
+                                                        <input type="time" class="form-control" name="dnd_from" value="22:00">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label">Quiet Hours To</label>
+                                                        <input type="time" class="form-control" name="dnd_to" value="07:00">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="escalationEnabled" name="escalation_enabled" checked>
+                                                    <label class="form-check-label fw-semibold" for="escalationEnabled">Enable Escalation for Critical Alerts</label>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="form-label">Escalate After (mins)</label>
+                                                    <input type="number" class="form-control" name="escalate_after" value="15" min="1">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label">Max Escalation Levels</label>
+                                                    <select class="form-select" name="escalation_levels">
+                                                        <option value="1">1</option>
+                                                        <option value="2" selected>2</option>
+                                                        <option value="3">3</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Events Matrix -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-stream me-2"></i>Events and Channels</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Event</th>
+                                                    <th class="text-center">Email</th>
+                                                    <th class="text-center">SMS</th>
+                                                    <th class="text-center">WhatsApp</th>
+                                                    <th class="text-center">In-app</th>
+                                                    <th>Severity</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>New User Registration</td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_new_user_email" data-event="new_user" data-channel="email" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_new_user_sms" data-event="new_user" data-channel="sms"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_new_user_whatsapp" data-event="new_user" data-channel="whatsapp"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_new_user_inapp" data-event="new_user" data-channel="inapp" checked></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm" name="severity_new_user">
+                                                            <option value="low" selected>Low</option>
+                                                            <option value="medium">Medium</option>
+                                                            <option value="high">High</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>New Property Listing</td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_property_email" data-event="property" data-channel="email" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_property_sms" data-event="property" data-channel="sms"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_property_whatsapp" data-event="property" data-channel="whatsapp"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_property_inapp" data-event="property" data-channel="inapp" checked></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm" name="severity_property">
+                                                            <option value="low">Low</option>
+                                                            <option value="medium" selected>Medium</option>
+                                                            <option value="high">High</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>New Property Inquiry</td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_inquiry_email" data-event="inquiry" data-channel="email" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_inquiry_sms" data-event="inquiry" data-channel="sms" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_inquiry_whatsapp" data-event="inquiry" data-channel="whatsapp"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_inquiry_inapp" data-event="inquiry" data-channel="inapp" checked></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm" name="severity_inquiry">
+                                                            <option value="low">Low</option>
+                                                            <option value="medium" selected>Medium</option>
+                                                            <option value="high">High</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>System Error</td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_error_email" data-event="error" data-channel="email" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_error_sms" data-event="error" data-channel="sms" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_error_whatsapp" data-event="error" data-channel="whatsapp"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_error_inapp" data-event="error" data-channel="inapp" checked></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm" name="severity_error">
+                                                            <option value="low">Low</option>
+                                                            <option value="medium">Medium</option>
+                                                            <option value="high" selected>High</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Birthday Reminder</td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_birthday_email" data-event="birthday" data-channel="email" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_birthday_sms" data-event="birthday" data-channel="sms"></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_birthday_whatsapp" data-event="birthday" data-channel="whatsapp" checked></td>
+                                                    <td class="text-center"><input type="checkbox" class="form-check-input" name="notify_birthday_inapp" data-event="birthday" data-channel="inapp"></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm" name="severity_birthday">
+                                                            <option value="low" selected>Low</option>
+                                                            <option value="medium">Medium</option>
+                                                            <option value="high">High</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Digest Settings -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-list-ul me-2"></i>Digest Summaries</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="dailyDigest" name="daily_digest" checked>
+                                                <label class="form-check-label" for="dailyDigest">Enable Daily Digest</label>
+                                            </div>
+                                            <label class="form-label">Send Time</label>
+                                            <input type="time" class="form-control" name="daily_digest_time" value="08:00">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch mb-2">
+                                                <input class="form-check-input" type="checkbox" id="weeklyDigest" name="weekly_digest">
+                                                <label class="form-check-label" for="weeklyDigest">Enable Weekly Digest</label>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-7">
+                                                    <label class="form-label">Day of Week</label>
+                                                    <select class="form-select" name="weekly_digest_day">
+                                                        <option value="mon">Monday</option>
+                                                        <option value="tue">Tuesday</option>
+                                                        <option value="wed">Wednesday</option>
+                                                        <option value="thu">Thursday</option>
+                                                        <option value="fri" selected>Friday</option>
+                                                        <option value="sat">Saturday</option>
+                                                        <option value="sun">Sunday</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-5">
+                                                    <label class="form-label">Time</label>
+                                                    <input type="time" class="form-control" name="weekly_digest_time" value="09:00">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" name="digest_include_metrics" id="digestIncludeMetrics" checked>
+                                        <label class="form-check-label" for="digestIncludeMetrics">Include campaign metrics and KPIs in digests</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recipients & Routing -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-user-tag me-2"></i>Recipients & Routing</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Notify Roles</label>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="notify_role_admin" id="notifyRoleAdmin" checked>
+                                                        <label class="form-check-label" for="notifyRoleAdmin">Admins</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="notify_role_sales" id="notifyRoleSales" checked>
+                                                        <label class="form-check-label" for="notifyRoleSales">Sales Team</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="notify_role_support" id="notifyRoleSupport" checked>
+                                                        <label class="form-check-label" for="notifyRoleSupport">Support</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="notify_role_marketing" id="notifyRoleMarketing">
+                                                        <label class="form-check-label" for="notifyRoleMarketing">Marketing</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Additional Recipients (comma-separated emails)</label>
+                                                <input type="text" class="form-control" name="additional_recipients" placeholder="ops@company.com, alerts@company.com">
+                                            </div>
+                                            <div>
+                                                <label class="form-label fw-semibold">Webhook URL (optional)</label>
+                                                <input type="url" class="form-control" name="webhook_url" placeholder="https://example.com/webhooks/notifications">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-end">
+                                <button type="button" class="btn btn-warning btn-lg" onclick="saveNotificationSettings()">
+                                    <i class="fas fa-save me-2"></i>Save Notification Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Automation Settings -->
+                    <div class="tab-pane fade" id="automation" role="tabpanel">
+                        <h5 class="mb-4"><i class="fas fa-robot me-2 text-success"></i>Marketing Automation & Workflows</h5>
+                        <form id="automationSettingsForm">
+                            
+                            <!-- Client Onboarding Automation -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>Client Onboarding Automation</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_welcome_clients" id="autoWelcomeClients" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoWelcomeClients">
+                                                        Send Welcome Message to New Clients
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Welcome Message Delay</label>
+                                                <select class="form-select" name="welcome_delay">
+                                                    <option value="0">Immediate</option>
+                                                    <option value="1" selected>1 Hour</option>
+                                                    <option value="3">3 Hours</option>
+                                                    <option value="24">24 Hours</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_property_matching" id="autoPropertyMatching" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoPropertyMatching">
+                                                        Auto-Send Property Recommendations
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_document_requests" id="autoDocumentRequests">
+                                                    <label class="form-check-label fw-semibold" for="autoDocumentRequests">
+                                                        Auto-Request Required Documents
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Onboarding Sequence Duration</label>
+                                                <select class="form-select" name="onboarding_duration">
+                                                    <option value="7">7 Days</option>
+                                                    <option value="14" selected>14 Days</option>
+                                                    <option value="30">30 Days</option>
+                                                    <option value="60">60 Days</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Welcome Message Template</label>
+                                                <select class="form-select" name="welcome_template">
+                                                    <option value="standard" selected>Standard Welcome</option>
+                                                    <option value="luxury">Luxury Client Welcome</option>
+                                                    <option value="investor">Investor Welcome</option>
+                                                    <option value="first_time">First-Time Buyer</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_assign_agent" id="autoAssignAgent" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoAssignAgent">
+                                                        Auto-Assign Agent Based on Location
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lead Nurturing & Follow-ups -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-seedling me-2"></i>Lead Nurturing & Follow-up Automation</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_lead_followup" id="autoLeadFollowup" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoLeadFollowup">
+                                                        Enable Lead Follow-up Automation
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">First Follow-up Delay</label>
+                                                <select class="form-select" name="first_followup_delay">
+                                                    <option value="1">1 Hour</option>
+                                                    <option value="24" selected>24 Hours</option>
+                                                    <option value="72">3 Days</option>
+                                                    <option value="168">1 Week</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Follow-up Frequency</label>
+                                                <select class="form-select" name="followup_frequency">
+                                                    <option value="3" selected>Every 3 Days</option>
+                                                    <option value="7">Weekly</option>
+                                                    <option value="14">Bi-weekly</option>
+                                                    <option value="30">Monthly</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Max Follow-up Attempts</label>
+                                                <input type="number" class="form-control" name="max_followups" value="5" min="1" max="20">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_property_alerts" id="autoPropertyAlerts" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoPropertyAlerts">
+                                                        Send New Property Alerts
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_price_drop_alerts" id="autoPriceDropAlerts" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoPriceDropAlerts">
+                                                        Send Price Drop Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_market_updates" id="autoMarketUpdates">
+                                                    <label class="form-check-label fw-semibold" for="autoMarketUpdates">
+                                                        Send Market Update Reports
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Lead Scoring Threshold</label>
+                                                <input type="number" class="form-control" name="lead_scoring_threshold" value="75" min="0" max="100">
+                                                <div class="form-text">Auto-assign hot leads above this score</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Event-Based Automation -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Event-Based Automation</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_birthday_messages" id="autoBirthdayMessages" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoBirthdayMessages">
+                                                        Send Birthday Messages
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Birthday Message Time</label>
+                                                <input type="time" class="form-control" name="birthday_send_time" value="09:00">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_anniversary_messages" id="autoAnniversaryMessages" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoAnniversaryMessages">
+                                                        Send Purchase Anniversary Messages
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_holiday_messages" id="autoHolidayMessages" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoHolidayMessages">
+                                                        Send Holiday Greetings
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_contract_reminders" id="autoContractReminders" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoContractReminders">
+                                                        Send Contract Deadline Reminders
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Reminder Days Before Deadline</label>
+                                                <select class="form-select" name="contract_reminder_days">
+                                                    <option value="1">1 Day</option>
+                                                    <option value="3" selected>3 Days</option>
+                                                    <option value="7">1 Week</option>
+                                                    <option value="14">2 Weeks</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_listing_expiry" id="autoListingExpiry" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoListingExpiry">
+                                                        Send Listing Expiry Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Marketing Campaign Automation -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-purple text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <h6 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Marketing Campaign Automation</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_drip_campaigns" id="autoDripCampaigns" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoDripCampaigns">
+                                                        Enable Drip Email Campaigns
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Campaign Trigger</label>
+                                                <select class="form-select" name="campaign_trigger">
+                                                    <option value="signup" selected>New Client Signup</option>
+                                                    <option value="viewing">Property Viewing Booked</option>
+                                                    <option value="inquiry">Property Inquiry</option>
+                                                    <option value="inactive">Client Inactive 30+ Days</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_social_media" id="autoSocialMedia">
+                                                    <label class="form-check-label fw-semibold" for="autoSocialMedia">
+                                                        Auto-Post to Social Media
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Newsletter Frequency</label>
+                                                <select class="form-select" name="newsletter_frequency">
+                                                    <option value="weekly" selected>Weekly</option>
+                                                    <option value="biweekly">Bi-weekly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                    <option value="quarterly">Quarterly</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_referral_requests" id="autoReferralRequests">
+                                                    <label class="form-check-label fw-semibold" for="autoReferralRequests">
+                                                        Auto-Request Referrals (Post-Sale)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Referral Request Delay (days)</label>
+                                                <input type="number" class="form-control" name="referral_delay" value="30" min="1" max="365">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-end">
+                                <button type="button" class="btn btn-success btn-lg" onclick="saveAutomationSettings()">
+                                    <i class="fas fa-save me-2"></i>Save Automation Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="tab-pane fade" id="security" role="tabpanel">
+                        <h5 class="mb-4"><i class="fas fa-shield-alt me-2 text-danger"></i>Security & Compliance Settings</h5>
+                        <form id="securitySettingsForm">
+                            
+                            <!-- Authentication & Access Control -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0"><i class="fas fa-key me-2"></i>Authentication & Access Control</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="require_2fa" id="require2FA" checked>
+                                                    <label class="form-check-label fw-semibold" for="require2FA">
+                                                        Require Two-Factor Authentication (2FA)
+                                                    </label>
+                                                </div>
+                                                <div class="form-text">Mandatory for admin users, optional for clients</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">2FA Method</label>
+                                                <select class="form-select" name="tfa_method">
+                                                    <option value="app" selected>Authenticator App (Google/Microsoft)</option>
+                                                    <option value="sms">SMS Code</option>
+                                                    <option value="email">Email Code</option>
+                                                    <option value="backup">Backup Codes</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Session Timeout (minutes)</label>
+                                                <select class="form-select" name="session_timeout">
+                                                    <option value="15">15 minutes</option>
+                                                    <option value="30" selected>30 minutes</option>
+                                                    <option value="60">1 hour</option>
+                                                    <option value="120">2 hours</option>
+                                                    <option value="480">8 hours</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_logout_inactive" id="autoLogoutInactive" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoLogoutInactive">
+                                                        Auto-logout on Inactivity
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Max Failed Login Attempts</label>
+                                                <input type="number" class="form-control" name="max_login_attempts" value="5" min="3" max="10">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Account Lockout Duration</label>
+                                                <select class="form-select" name="lockout_duration">
+                                                    <option value="5">5 minutes</option>
+                                                    <option value="15" selected>15 minutes</option>
+                                                    <option value="30">30 minutes</option>
+                                                    <option value="60">1 hour</option>
+                                                    <option value="1440">24 hours</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="concurrent_session_limit" id="concurrentSessionLimit" checked>
+                                                    <label class="form-check-label fw-semibold" for="concurrentSessionLimit">
+                                                        Limit Concurrent Sessions
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Max Sessions per User</label>
+                                                <input type="number" class="form-control" name="max_sessions" value="3" min="1" max="10">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password Security Policy -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-lock me-2"></i>Password Security Policy</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Minimum Password Length</label>
+                                                <input type="number" class="form-control" name="min_password_length" value="12" min="8" max="32">
+                                                <div class="form-text">Recommended: 12+ characters for strong security</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="require_uppercase" id="requireUppercase" checked>
+                                                    <label class="form-check-label fw-semibold" for="requireUppercase">
+                                                        Require Uppercase Letters (A-Z)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="require_lowercase" id="requireLowercase" checked>
+                                                    <label class="form-check-label fw-semibold" for="requireLowercase">
+                                                        Require Lowercase Letters (a-z)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="require_numbers" id="requireNumbers" checked>
+                                                    <label class="form-check-label fw-semibold" for="requireNumbers">
+                                                        Require Numbers (0-9)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="require_special_chars" id="requireSpecialChars" checked>
+                                                    <label class="form-check-label fw-semibold" for="requireSpecialChars">
+                                                        Require Special Characters (!@#$%^&*)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Password Expiry (days)</label>
+                                                <select class="form-select" name="password_expiry">
+                                                    <option value="0">Never</option>
+                                                    <option value="30">30 days</option>
+                                                    <option value="60">60 days</option>
+                                                    <option value="90" selected>90 days</option>
+                                                    <option value="180">180 days</option>
+                                                    <option value="365">365 days</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Password History</label>
+                                                <input type="number" class="form-control" name="password_history" value="5" min="0" max="24">
+                                                <div class="form-text">Prevent reusing last N passwords</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="check_compromised_passwords" id="checkCompromisedPasswords" checked>
+                                                    <label class="form-check-label fw-semibold" for="checkCompromisedPasswords">
+                                                        Check Against Compromised Password Database
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data Protection & Privacy -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-user-shield me-2"></i>Data Protection & Privacy Compliance</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="gdpr_compliance" id="gdprCompliance" checked>
+                                                    <label class="form-check-label fw-semibold" for="gdprCompliance">
+                                                        GDPR Compliance Mode
+                                                    </label>
+                                                </div>
+                                                <div class="form-text">Enable data portability and right to be forgotten</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="data_encryption" id="dataEncryption" checked>
+                                                    <label class="form-check-label fw-semibold" for="dataEncryption">
+                                                        Encrypt Sensitive Data at Rest
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Data Retention Period (years)</label>
+                                                <select class="form-select" name="data_retention_period">
+                                                    <option value="1">1 year</option>
+                                                    <option value="2">2 years</option>
+                                                    <option value="5" selected>5 years</option>
+                                                    <option value="7">7 years</option>
+                                                    <option value="10">10 years</option>
+                                                    <option value="0">Indefinite</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="anonymize_old_data" id="anonymizeOldData" checked>
+                                                    <label class="form-check-label fw-semibold" for="anonymizeOldData">
+                                                        Auto-Anonymize Expired Data
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="audit_trail" id="auditTrail" checked>
+                                                    <label class="form-check-label fw-semibold" for="auditTrail">
+                                                        Enable Comprehensive Audit Trail
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="pii_masking" id="piiMasking" checked>
+                                                    <label class="form-check-label fw-semibold" for="piiMasking">
+                                                        Mask PII in System Logs
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">File Upload Restrictions</label>
+                                                <select class="form-select" name="file_upload_restrictions">
+                                                    <option value="images_docs" selected>Images & Documents Only</option>
+                                                    <option value="images_only">Images Only</option>
+                                                    <option value="docs_only">Documents Only</option>
+                                                    <option value="all_files">All File Types</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Max File Size (MB)</label>
+                                                <input type="number" class="form-control" name="max_file_size" value="10" min="1" max="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Security & Monitoring -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>System Security & Monitoring</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="intrusion_detection" id="intrusionDetection" checked>
+                                                    <label class="form-check-label fw-semibold" for="intrusionDetection">
+                                                        Enable Intrusion Detection
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="suspicious_activity_alerts" id="suspiciousActivityAlerts" checked>
+                                                    <label class="form-check-label fw-semibold" for="suspiciousActivityAlerts">
+                                                        Alert on Suspicious Activity
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="ip_whitelisting" id="ipWhitelisting">
+                                                    <label class="form-check-label fw-semibold" for="ipWhitelisting">
+                                                        Enable IP Address Whitelisting
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Rate Limiting (requests/minute)</label>
+                                                <input type="number" class="form-control" name="rate_limit" value="100" min="10" max="1000">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="security_headers" id="securityHeaders" checked>
+                                                    <label class="form-check-label fw-semibold" for="securityHeaders">
+                                                        Enable Security Headers (HSTS, CSP, etc.)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="sql_injection_protection" id="sqlInjectionProtection" checked>
+                                                    <label class="form-check-label fw-semibold" for="sqlInjectionProtection">
+                                                        SQL Injection Protection
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="xss_protection" id="xssProtection" checked>
+                                                    <label class="form-check-label fw-semibold" for="xssProtection">
+                                                        Cross-Site Scripting (XSS) Protection
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Security Alert Email</label>
+                                                <input type="email" class="form-control" name="security_alert_email" value="security@realestate.com">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Backup & Recovery -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-database me-2"></i>Backup & Disaster Recovery</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="auto_backup" id="autoBackup" checked>
+                                                    <label class="form-check-label fw-semibold" for="autoBackup">
+                                                        Enable Automatic Backups
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Backup Frequency</label>
+                                                <select class="form-select" name="backup_frequency">
+                                                    <option value="realtime">Real-time (Continuous)</option>
+                                                    <option value="hourly">Every Hour</option>
+                                                    <option value="daily" selected>Daily</option>
+                                                    <option value="weekly">Weekly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Backup Retention (days)</label>
+                                                <input type="number" class="form-control" name="backup_retention" value="90" min="7" max="365">
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="backup_encryption" id="backupEncryption" checked>
+                                                    <label class="form-check-label fw-semibold" for="backupEncryption">
+                                                        Encrypt Backup Files
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Backup Storage Location</label>
+                                                <select class="form-select" name="backup_location">
+                                                    <option value="local">Local Server</option>
+                                                    <option value="aws" selected>Amazon S3</option>
+                                                    <option value="azure">Microsoft Azure</option>
+                                                    <option value="gcp">Google Cloud</option>
+                                                    <option value="dropbox">Dropbox Business</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="backup_verification" id="backupVerification" checked>
+                                                    <label class="form-check-label fw-semibold" for="backupVerification">
+                                                        Verify Backup Integrity
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-outline-primary me-2" onclick="createManualBackup()">
+                                                    <i class="fas fa-download me-2"></i>Create Manual Backup
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success" onclick="testBackupRestore()">
+                                                    <i class="fas fa-history me-2"></i>Test Restore
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Compliance & Reporting -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-dark text-white">
+                                    <h6 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Compliance & Security Reporting</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="compliance_monitoring" id="complianceMonitoring" checked>
+                                                    <label class="form-check-label fw-semibold" for="complianceMonitoring">
+                                                        Enable Compliance Monitoring
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Compliance Standards</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="compliance_gdpr" id="complianceGDPR" checked>
+                                                    <label class="form-check-label" for="complianceGDPR">GDPR (General Data Protection Regulation)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="compliance_ccpa" id="complianceCCPA">
+                                                    <label class="form-check-label" for="complianceCCPA">CCPA (California Consumer Privacy Act)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="compliance_hipaa" id="complianceHIPAA">
+                                                    <label class="form-check-label" for="complianceHIPAA">HIPAA (Health Insurance Portability)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">Security Report Frequency</label>
+                                                <select class="form-select" name="security_report_frequency">
+                                                    <option value="daily">Daily</option>
+                                                    <option value="weekly" selected>Weekly</option>
+                                                    <option value="monthly">Monthly</option>
+                                                    <option value="quarterly">Quarterly</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="vulnerability_scanning" id="vulnerabilityScanning" checked>
+                                                    <label class="form-check-label fw-semibold" for="vulnerabilityScanning">
+                                                        Enable Automated Vulnerability Scanning
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button type="button" class="btn btn-outline-info me-2" onclick="generateSecurityReport()">
+                                                    <i class="fas fa-file-alt me-2"></i>Generate Security Report
+                                                </button>
+                                                <button type="button" class="btn btn-outline-warning" onclick="runSecurityScan()">
+                                                    <i class="fas fa-search me-2"></i>Run Security Scan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="text-end">
+                                <button type="button" class="btn btn-danger btn-lg" onclick="saveSecuritySettings()">
+                                    <i class="fas fa-save me-2"></i>Save Security Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    loadSettings();
+    initializeEventHandlers();
+    updateSMSFields(); // Initialize SMS fields based on default provider
+    syncNotificationChannelAvailability(); // Sync notification channels with Messaging
+});
+
+function loadSettings() {
+    // Load settings from backend
+    console.log('Loading settings...');
+    
+    // Simulate loading settings
+    setTimeout(function() {
+        showToast('info', 'Settings loaded successfully');
+    }, 1000);
+}
+
+function initializeEventHandlers() {
+    // Form validation on input
+    $('input[required]').on('blur', function() {
+        const value = $(this).val();
+        if (!value || value.trim() === '') {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    // Email validation
+    $('input[type="email"]').on('blur', function() {
+        const email = $(this).val();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email && !emailRegex.test(email)) {
+            $(this).addClass('is-invalid');
+            showToast('warning', 'Please enter a valid email address');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    // Phone number validation
+    $('input[type="tel"]').on('blur', function() {
+        const phone = $(this).val();
+        const phoneRegex = /^\+?[\d\s\-\(\)]+$/;
+        
+        if (phone && !phoneRegex.test(phone)) {
+            $(this).addClass('is-invalid');
+            showToast('warning', 'Please enter a valid phone number');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+    
+    // Provider change handlers
+    $('#smsProvider').on('change', updateSMSFields);
+    
+    // Enable/disable related fields based on checkboxes
+    $('input[name="email_enabled"]').on('change', function() {
+        const isEnabled = $(this).is(':checked');
+        $('#messagingSettingsForm input[name^="smtp_"], #messagingSettingsForm input[name^="from_"], #messagingSettingsForm input[name="reply_to_email"]').prop('disabled', !isEnabled);
+        
+        if (isEnabled) {
+            showToast('success', 'Email messaging enabled');
+        } else {
+            showToast('warning', 'Email messaging disabled');
+        }
+    });
+    
+    $('input[name="sms_enabled"]').on('change', function() {
+        const isEnabled = $(this).is(':checked');
+        $('#messagingSettingsForm select[name="sms_provider"], #messagingSettingsForm input[name^="twilio_"], #messagingSettingsForm input[name^="sms_"]').prop('disabled', !isEnabled);
+        
+        if (isEnabled) {
+            showToast('success', 'SMS messaging enabled');
+        } else {
+            showToast('warning', 'SMS messaging disabled');
+        }
+    });
+    
+    $('input[name="whatsapp_enabled"]').on('change', function() {
+        const isEnabled = $(this).is(':checked');
+        $('#messagingSettingsForm select[name="whatsapp_provider"], #messagingSettingsForm input[name^="whatsapp_"]').prop('disabled', !isEnabled);
+        
+        if (isEnabled) {
+            showToast('success', 'WhatsApp messaging enabled');
+        } else {
+            showToast('warning', 'WhatsApp messaging disabled');
+        }
+    });
+
+    // Re-sync notification matrix when channel toggles change
+    $('input[name="email_enabled"], input[name="sms_enabled"], input[name="whatsapp_enabled"]').on('change', syncNotificationChannelAvailability);
+
+    // Import file input handler
+    $('#settingsImportInput').on('change', handleSettingsImportFile);
+}
+
+function saveAllSettings() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    btn.disabled = true;
+    
+    // Validate required fields
+    const requiredFields = [
+        { name: 'smtp_host', label: 'SMTP Host' },
+        { name: 'from_email', label: 'From Email' },
+        { name: 'from_name', label: 'From Name' }
+    ];
+    
+    let isValid = true;
+    let missingFields = [];
+    
+    requiredFields.forEach(field => {
+        const value = $(`input[name="${field.name}"]`).val();
+        if (!value || value.trim() === '') {
+            isValid = false;
+            missingFields.push(field.label);
+            $(`input[name="${field.name}"]`).addClass('is-invalid');
+        } else {
+            $(`input[name="${field.name}"]`).removeClass('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        showToast('error', `Please fill in required fields: ${missingFields.join(', ')}`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+    
+    // Collect all form data
+    const generalData = $('#generalSettingsForm').serialize();
+    const messagingData = $('#messagingSettingsForm').serialize();
+    const notificationData = $('#notificationSettingsForm').serialize();
+    const automationData = $('#automationSettingsForm').serialize();
+    const securityData = $('#securitySettingsForm').serialize();
+    
+    // Get channel priority order
+    const channelOrder = [];
+    $('#channelPriority [data-channel]').each(function() {
+        channelOrder.push($(this).data('channel'));
+    });
+    
+    const allSettings = {
+        general: generalData,
+        messaging: messagingData,
+        notifications: notificationData,
+        automation: automationData,
+        security: securityData,
+        channelPriority: channelOrder
+    };
+    
+    // Simulate API call
+    setTimeout(function() {
+        // Remove form-changed class from all forms
+        $('.form-changed').removeClass('form-changed');
+        
+        showToast('success', 'All settings saved successfully! Your messaging configuration is now active.');
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Log configuration summary
+        console.log('Settings saved:', allSettings);
+        
+        // Show configuration summary
+        showConfigurationSummary();
+    }, 2000);
+}
+
+function showConfigurationSummary() {
+    const emailEnabled = $('input[name="email_enabled"]').is(':checked');
+    const smsEnabled = $('input[name="sms_enabled"]').is(':checked');
+    const whatsappEnabled = $('input[name="whatsapp_enabled"]').is(':checked');
+    const smtpHost = $('input[name="smtp_host"]').val();
+    const smsProvider = $('select[name="sms_provider"]').val();
+    const whatsappProvider = $('select[name="whatsapp_provider"]').val();
+    
+    let summary = '<div class="alert alert-info mt-3"><h6><i class="fas fa-info-circle me-2"></i>Configuration Summary:</h6><ul class="mb-0">';
+    
+    if (emailEnabled) {
+        summary += `<li><i class="fas fa-envelope text-primary me-2"></i>Email: Enabled via ${smtpHost}</li>`;
+    }
+    
+    if (smsEnabled) {
+        summary += `<li><i class="fas fa-sms text-success me-2"></i>SMS: Enabled via ${smsProvider.toUpperCase()}</li>`;
+    }
+    
+    if (whatsappEnabled) {
+        summary += `<li><i class="fab fa-whatsapp text-success me-2"></i>WhatsApp: Enabled via ${whatsappProvider.toUpperCase()}</li>`;
+    }
+    
+    summary += '</ul></div>';
+    
+    // Show summary for 10 seconds
+    const summaryDiv = $(summary);
+    $('#messaging .card:first').after(summaryDiv);
+    
+    setTimeout(function() {
+        summaryDiv.fadeOut(function() {
+            $(this).remove();
+        });
+    }, 10000);
+}
+
+// Sync notification matrix channel checkboxes with channel availability
+function syncNotificationChannelAvailability() {
+    const emailOn = $('input[name="email_enabled"]').is(':checked');
+    const smsOn = $('input[name="sms_enabled"]').is(':checked');
+    const waOn = $('input[name="whatsapp_enabled"]').is(':checked');
+
+    $('#notifications input[data-channel="email"]').prop('disabled', !emailOn).closest('td').toggleClass('opacity-50', !emailOn);
+    $('#notifications input[data-channel="sms"]').prop('disabled', !smsOn).closest('td').toggleClass('opacity-50', !smsOn);
+    $('#notifications input[data-channel="whatsapp"]').prop('disabled', !waOn).closest('td').toggleClass('opacity-50', !waOn);
+}
+
+// Dedicated messaging settings function
+function saveMessagingSettings() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving Configuration...';
+    btn.disabled = true;
+    
+    // Validate messaging-specific required fields
+    const messagingRequiredFields = [
+        { name: 'smtp_host', label: 'SMTP Host' },
+        { name: 'from_email', label: 'From Email' },
+        { name: 'from_name', label: 'From Name' }
+    ];
+    
+    let isValid = true;
+    let missingFields = [];
+    
+    messagingRequiredFields.forEach(field => {
+        const value = $(`input[name="${field.name}"]`).val();
+        if (!value || value.trim() === '') {
+            isValid = false;
+            missingFields.push(field.label);
+            $(`input[name="${field.name}"]`).addClass('is-invalid');
+        } else {
+            $(`input[name="${field.name}"]`).removeClass('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        showToast('error', `Please fill in required messaging fields: ${missingFields.join(', ')}`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+    
+    // Collect messaging form data
+    const messagingData = $('#messagingSettingsForm').serialize();
+    
+    // Get channel priority order
+    const channelOrder = [];
+    $('#channelPriority [data-channel]').each(function() {
+        channelOrder.push($(this).data('channel'));
+    });
+    
+    const messagingSettings = {
+        messaging: messagingData,
+        channelPriority: channelOrder
+    };
+    
+    // Simulate API call for messaging settings
+    setTimeout(function() {
+        $('#messagingSettingsForm').removeClass('form-changed');
+        
+        showToast('success', 'Messaging configuration saved successfully! All channels are now configured.');
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Log messaging configuration
+        console.log('Messaging settings saved:', messagingSettings);
+        
+        // Show detailed messaging configuration summary
+        showMessagingConfigurationSummary();
+    }, 2500);
+}
+
+function showMessagingConfigurationSummary() {
+    const emailEnabled = $('input[name="email_enabled"]').is(':checked');
+    const smsEnabled = $('input[name="sms_enabled"]').is(':checked');
+    const whatsappEnabled = $('input[name="whatsapp_enabled"]').is(':checked');
+    const queueEnabled = $('input[name="enable_queue"]').is(':checked');
+    const fallbackEnabled = $('input[name="enable_fallback"]').is(':checked');
+    
+    const smtpHost = $('input[name="smtp_host"]').val();
+    const smsProvider = $('select[name="sms_provider"]').val();
+    const whatsappProvider = $('select[name="whatsapp_provider"]').val();
+    
+    let summary = '<div class="alert alert-success mt-3"><h6><i class="fas fa-check-circle me-2"></i>Messaging Configuration Summary:</h6>';
+    summary += '<div class="row"><div class="col-md-6"><ul class="mb-0">';
+    
+    if (emailEnabled) {
+        summary += `<li><i class="fas fa-envelope text-primary me-2"></i><strong>Email:</strong> Active via ${smtpHost}</li>`;
+    }
+    
+    if (smsEnabled) {
+        summary += `<li><i class="fas fa-sms text-success me-2"></i><strong>SMS:</strong> Active via ${smsProvider.toUpperCase()}</li>`;
+    }
+    
+    if (whatsappEnabled) {
+        summary += `<li><i class="fab fa-whatsapp text-success me-2"></i><strong>WhatsApp:</strong> Active via ${whatsappProvider.toUpperCase()}</li>`;
+    }
+    
+    summary += '</ul></div><div class="col-md-6"><ul class="mb-0">';
+    
+    if (queueEnabled) {
+        summary += '<li><i class="fas fa-clock text-info me-2"></i><strong>Message Queue:</strong> Enabled</li>';
+    }
+    
+    if (fallbackEnabled) {
+        summary += '<li><i class="fas fa-shield-alt text-warning me-2"></i><strong>Channel Fallback:</strong> Enabled</li>';
+    }
+    
+    const enabledChannels = [];
+    if (emailEnabled) enabledChannels.push('Email');
+    if (smsEnabled) enabledChannels.push('SMS');
+    if (whatsappEnabled) enabledChannels.push('WhatsApp');
+    
+    summary += `<li><i class="fas fa-broadcast-tower text-primary me-2"></i><strong>Active Channels:</strong> ${enabledChannels.length}</li>`;
+    
+    summary += '</ul></div></div></div>';
+    
+    // Show summary for 15 seconds
+    const summaryDiv = $(summary);
+    $('#messaging .card:last').after(summaryDiv);
+    
+    setTimeout(function() {
+        summaryDiv.fadeOut(function() {
+            $(this).remove();
+        });
+    }, 15000);
+}
+
+// Enhanced messaging test functions
+function testEmailConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    btn.disabled = true;
+    
+    // Get SMTP settings
+    const smtpHost = $('input[name="smtp_host"]').val();
+    const smtpPort = $('select[name="smtp_port"]').val();
+    const smtpUsername = $('input[name="smtp_username"]').val();
+    
+    setTimeout(function() {
+        // Simulate connection test
+        const success = Math.random() > 0.2; // 80% success rate
+        
+        if (success) {
+            showToast('success', `Email connection successful! Connected to ${smtpHost}:${smtpPort}`);
+        } else {
+            showToast('error', 'Email connection failed. Please check your SMTP settings.');
+        }
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+}
+
+function sendTestEmail() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    btn.disabled = true;
+    
+    const testEmail = prompt('Enter email address to send test email to:');
+    if (!testEmail) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+    
+    setTimeout(function() {
+        showToast('success', `Test email sent successfully to ${testEmail}!`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 3000);
+}
+
+function testSMSConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    btn.disabled = true;
+    
+    const provider = $('select[name="sms_provider"]').val();
+    const fromNumber = $('input[name="sms_from_number"]').val();
+    
+    setTimeout(function() {
+        // Simulate connection test
+        const success = Math.random() > 0.3; // 70% success rate
+        
+        if (success) {
+            showToast('success', `SMS connection successful! Connected to ${provider.toUpperCase()} with number ${fromNumber}`);
+        } else {
+            showToast('error', `SMS connection failed. Please check your ${provider.toUpperCase()} credentials.`);
+        }
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+}
+
+function sendTestSMS() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    btn.disabled = true;
+    
+    const testNumber = prompt('Enter phone number to send test SMS to (include country code):');
+    if (!testNumber) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+    
+    setTimeout(function() {
+        showToast('success', `Test SMS sent successfully to ${testNumber}!`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 3000);
+}
+
+function testWhatsAppConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    btn.disabled = true;
+    
+    const provider = $('select[name="whatsapp_provider"]').val();
+    const businessNumber = $('input[name="whatsapp_number"]').val();
+    
+    setTimeout(function() {
+        // Simulate connection test
+        const success = Math.random() > 0.4; // 60% success rate
+        
+        if (success) {
+            showToast('success', `WhatsApp connection successful! Connected to ${provider.toUpperCase()} with number ${businessNumber}`);
+        } else {
+            showToast('error', `WhatsApp connection failed. Please check your ${provider.toUpperCase()} configuration.`);
+        }
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2500);
+}
+
+function sendTestWhatsApp() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+    btn.disabled = true;
+    
+    const testNumber = prompt('Enter WhatsApp number to send test message to (include country code):');
+    if (!testNumber) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+    
+    setTimeout(function() {
+        showToast('success', `Test WhatsApp message sent successfully to ${testNumber}!`);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 3000);
+}
+
+// SMS Provider field management
+function updateSMSFields() {
+    const provider = document.getElementById('smsProvider').value;
+    const twilioFields = document.getElementById('twilioFields');
+    const genericFields = document.getElementById('genericSMSFields');
+    
+    if (provider === 'twilio') {
+        twilioFields.style.display = 'block';
+        genericFields.style.display = 'none';
+    } else {
+        twilioFields.style.display = 'none';
+        genericFields.style.display = 'block';
+    }
+}
+
+// Channel priority management
+function moveChannelUp(channel) {
+    const channelDiv = $(`[data-channel="${channel}"]`);
+    const prevDiv = channelDiv.prev();
+    
+    if (prevDiv.length) {
+        channelDiv.insertBefore(prevDiv);
+        showToast('info', `${channel.toUpperCase()} moved up in priority`);
+    }
+}
+
+function moveChannelDown(channel) {
+    const channelDiv = $(`[data-channel="${channel}"]`);
+    const nextDiv = channelDiv.next();
+    
+    if (nextDiv.length) {
+        channelDiv.insertAfter(nextDiv);
+        showToast('info', `${channel.toUpperCase()} moved down in priority`);
+    }
+}
+
+// Toast notification system
+function showToast(type, message) {
+    const toastColor = {
+        'success': 'bg-success',
+        'error': 'bg-danger',
+        'info': 'bg-info',
+        'warning': 'bg-warning'
+    };
+    
+    const toastIcon = {
+        'success': 'fas fa-check-circle',
+        'error': 'fas fa-exclamation-circle',
+        'info': 'fas fa-info-circle',
+        'warning': 'fas fa-exclamation-triangle'
+    };
+    
+    const toast = $(`
+        <div class="toast align-items-center text-white ${toastColor[type]} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="${toastIcon[type]} me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `);
+    
+    // Create toast container if it doesn't exist
+    if ($('#toastContainer').length === 0) {
+        $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>');
+    }
+    
+    $('#toastContainer').append(toast);
+    
+    // Initialize and show toast
+    const bsToast = new bootstrap.Toast(toast[0], { delay: 5000 });
+    bsToast.show();
+    
+    // Remove toast element after it's hidden
+    toast[0].addEventListener('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+
+// Individual tab helpers and advanced actions
+function exportSettings() {
+    try {
+        const payload = {
+            general: $('#generalSettingsForm').serializeArray(),
+            messaging: $('#messagingSettingsForm').serializeArray(),
+            notifications: $('#notificationSettingsForm').serializeArray(),
+            automation: $('#automationSettingsForm').serializeArray(),
+            security: $('#securitySettingsForm').serializeArray(),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'settings-export.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('success', 'Settings exported as settings-export.json');
+    } catch (e) {
+        console.error(e);
+        showToast('error', 'Failed to export settings');
+    }
+}
+
+function importSettings() {
+    const input = document.getElementById('settingsImportInput');
+    if (input) input.click();
+}
+
+function handleSettingsImportFile(evt) {
+    const file = evt.target.files && evt.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            // Minimal patcher: apply key=value for known forms
+            const apply = (formSelector, arr) => {
+                if (!arr) return;
+                arr.forEach(({ name, value }) => {
+                    const $el = $(`${formSelector} [name="${name}"]`);
+                    if ($el.attr('type') === 'checkbox') {
+                        $el.prop('checked', value === true || value === 'on' || value === 'true' || value === '1');
+                    } else {
+                        $el.val(value);
+                    }
+                    $el.trigger('change');
+                });
+            };
+            apply('#generalSettingsForm', data.general);
+            apply('#messagingSettingsForm', data.messaging);
+            apply('#notificationSettingsForm', data.notifications);
+            apply('#automationSettingsForm', data.automation);
+            apply('#securitySettingsForm', data.security);
+            showToast('success', 'Settings imported');
+        } catch (err) {
+            console.error(err);
+            showToast('error', 'Invalid settings file');
+        } finally {
+            // reset input to allow re-importing same file again
+            evt.target.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+function resetToDefaults(scope) {
+    const scopes = ['general','messaging','notifications','automation','security'];
+    if (scope && !scopes.includes(scope)) scope = 'general';
+    const applyReset = (selector) => {
+        const $form = $(selector);
+        if ($form.length === 0) return;
+        $form[0].reset();
+        $form.find('input,select,textarea').trigger('change');
+    };
+    if (!scope || scope === 'general') applyReset('#generalSettingsForm');
+    if (!scope || scope === 'messaging') applyReset('#messagingSettingsForm');
+    if (!scope || scope === 'notifications') applyReset('#notificationSettingsForm');
+    if (!scope || scope === 'automation') applyReset('#automationSettingsForm');
+    if (!scope || scope === 'security') applyReset('#securitySettingsForm');
+    showToast('info', `${(scope||'all')} settings reset to defaults`);
+}
+
+function saveNotificationSettings() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    btn.disabled = true;
+
+    // Validate: at least one channel enabled globally for critical events
+    const hasAnyChannel = $('input[name="email_enabled"]').is(':checked') || $('input[name="sms_enabled"]').is(':checked') || $('input[name="whatsapp_enabled"]').is(':checked');
+    if (!hasAnyChannel) {
+        showToast('error', 'Enable at least one messaging channel in the Messaging tab before saving notifications');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    // Simulate save
+    const data = $('#notificationSettingsForm').serialize();
+    console.log('Saving notification settings:', data);
+    setTimeout(function() {
+        $('#notificationSettingsForm').removeClass('form-changed');
+        showToast('success', 'Notification settings saved');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showNotificationSummary();
+    }, 1200);
+}
+
+function showNotificationSummary() {
+    const defaultDelivery = $('select[name="default_delivery"]').val();
+    const dnd = $('input[name="dnd_enabled"]').is(':checked');
+    const escalate = $('input[name="escalation_enabled"]').is(':checked');
+    let summary = `<div class="alert alert-warning mt-3"><strong>Notifications:</strong> ${defaultDelivery.replace('_',' ')} delivery`;
+    if (dnd) summary += ' • DND active';
+    if (escalate) summary += ' • Escalation on';
+    summary += '</div>';
+    const div = $(summary);
+    $('#notifications .card:last').after(div);
+    setTimeout(() => div.fadeOut(() => div.remove()), 10000);
+}
+
+function saveAutomationSettings() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    btn.disabled = true;
+
+    const data = $('#automationSettingsForm').serialize();
+    console.log('Saving automation settings:', data);
+
+    setTimeout(function() {
+        $('#automationSettingsForm').removeClass('form-changed');
+        showToast('success', 'Automation settings saved');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 1200);
+}
+
+function saveSecuritySettings() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving Security Configuration...';
+    btn.disabled = true;
+    
+    const formData = $('#securitySettingsForm').serialize();
+    console.log('Saving security settings:', formData);
+    
+    // Simulate API call for security settings
+    setTimeout(function() {
+        $('#securitySettingsForm').removeClass('form-changed');
+        
+        showToast('success', 'Security settings saved successfully! Your system is now more secure.');
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Show security configuration summary
+        showSecurityConfigurationSummary();
+    }, 2500);
+}
+
+function showSecurityConfigurationSummary() {
+    const twoFAEnabled = $('input[name="require_2fa"]').is(':checked');
+    const auditTrailEnabled = $('input[name="audit_trail"]').is(':checked');
+    const backupEnabled = $('input[name="auto_backup"]').is(':checked');
+    const encryptionEnabled = $('input[name="data_encryption"]').is(':checked');
+    const gdprEnabled = $('input[name="gdpr_compliance"]').is(':checked');
+    
+    const sessionTimeout = $('select[name="session_timeout"]').val();
+    const backupFrequency = $('select[name="backup_frequency"]').val();
+    
+    let summary = '<div class="alert alert-success mt-3"><h6><i class="fas fa-shield-check me-2"></i>Security Configuration Summary:</h6>';
+    summary += '<div class="row"><div class="col-md-6"><ul class="mb-0">';
+    
+    if (twoFAEnabled) {
+        summary += '<li><i class="fas fa-key text-success me-2"></i><strong>2FA:</strong> Enabled</li>';
+    }
+    
+    if (encryptionEnabled) {
+        summary += '<li><i class="fas fa-lock text-primary me-2"></i><strong>Encryption:</strong> Active</li>';
+    }
+    
+    if (auditTrailEnabled) {
+        summary += '<li><i class="fas fa-clipboard-list text-info me-2"></i><strong>Audit Trail:</strong> Recording</li>';
+    }
+    
+    summary += '</ul></div><div class="col-md-6"><ul class="mb-0">';
+    
+    if (backupEnabled) {
+        summary += `<li><i class="fas fa-database text-warning me-2"></i><strong>Backups:</strong> ${backupFrequency.charAt(0).toUpperCase() + backupFrequency.slice(1)}</li>`;
+    }
+    
+    if (gdprEnabled) {
+        summary += '<li><i class="fas fa-user-shield text-info me-2"></i><strong>GDPR:</strong> Compliant</li>';
+    }
+    
+    summary += `<li><i class="fas fa-clock text-secondary me-2"></i><strong>Session Timeout:</strong> ${sessionTimeout} mins</li>`;
+    
+    summary += '</ul></div></div></div>';
+    
+    // Show summary for 12 seconds
+    const summaryDiv = $(summary);
+    $('#security .card:last').after(summaryDiv);
+    
+    setTimeout(function() {
+        summaryDiv.fadeOut(function() {
+            $(this).remove();
+        });
+    }, 12000);
+}
+
+// Security utility functions
+function createManualBackup() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Backup...';
+    btn.disabled = true;
+    
+    setTimeout(function() {
+        showToast('success', 'Manual backup created successfully! Backup stored securely in cloud storage.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 4000);
+}
+
+function testBackupRestore() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing Restore...';
+    btn.disabled = true;
+    
+    setTimeout(function() {
+        showToast('success', 'Backup restore test completed successfully! Recovery procedures verified.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 3000);
+}
+
+function generateSecurityReport() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating Report...';
+    btn.disabled = true;
+    
+    setTimeout(function() {
+        showToast('success', 'Security report generated! Check your email for the comprehensive security analysis.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 3500);
+}
+
+function runSecurityScan() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Scanning...';
+    btn.disabled = true;
+    
+    setTimeout(function() {
+        const vulnerabilities = Math.floor(Math.random() * 3); // Simulate 0-2 vulnerabilities
+        
+        if (vulnerabilities === 0) {
+            showToast('success', 'Security scan completed! No vulnerabilities detected. System is secure.');
+        } else if (vulnerabilities === 1) {
+            showToast('warning', 'Security scan completed! 1 low-risk vulnerability detected. Review recommended.');
+        } else {
+            showToast('error', `Security scan completed! ${vulnerabilities} vulnerabilities detected. Immediate action required.`);
+        }
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 5000);
+}
+
+// Form change tracking
+$('form input, form select, form textarea').on('change', function() {
+    // Mark form as changed
+    $(this).closest('form').addClass('form-changed');
+});
+
+// Warn about unsaved changes
+window.addEventListener('beforeunload', function(e) {
+    if ($('.form-changed').length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+{% endblock %}

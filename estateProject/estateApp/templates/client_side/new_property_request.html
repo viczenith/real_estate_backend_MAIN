@@ -1,0 +1,218 @@
+{% extends 'client_base.html' %}
+{% load static %}
+{% block content %}
+
+  <style>
+    .form-container {
+      background: #fff;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .form-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-header h2 {
+      font-weight: 600;
+      color: #333;
+    }
+    .form-control,
+    .form-select {
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      padding: 12px;
+    }
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #6a11cb;
+      box-shadow: 0 0 5px rgba(106, 17, 203, 0.5);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2575fc, #6a11cb);
+    }
+    .custom-checkbox label {
+      font-size: 14px;
+      color: #555;
+    }
+    .custom-checkbox input:checked+label {
+      color: #6a11cb;
+    }
+    .info-text {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    @media (max-width: 768px) {
+      .form-container {
+        padding: 20px;
+      }
+      .btn-primary {
+        width: 100%;
+      }
+    }
+  </style>
+
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>Request New Property</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+          <li class="breadcrumb-item active">Request New Property</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section contact">
+      <div class="row gy-4">
+        <div class="col-xl-12">
+          <div class="form-container">
+            <div class="form-header">
+              <h2>Request New Property</h2>
+            </div>
+            <form id="allocationForm">
+              {% if messages %}
+                <div class="alert-container">
+                  {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
+                      {{ message|safe }}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% csrf_token %}
+
+              <!-- Registered Client Name -->
+              <div class="mb-4">
+                <!-- <label for="clientName" class="form-label">Your Registered Name</label><br> -->
+                <input hidden type="text" name="clientName" id="clientName" value="Victor Akor Godwin" disabled>
+              </div>
+
+              <!-- Estate Name -->
+              <div class="mb-4">
+                <label for="estateName" class="form-label">Estate Name</label>
+                <select id="estateName" name="estateName" class="form-select" required>
+                  <option value="" disabled selected>Select an estate</option>
+                  {% for estate in estates %}
+                    <option value="{{ estate.id }}">{{ estate.name }}</option>
+                  {% endfor %}
+                </select>
+                <small class="info-text">Choose an estate to display its available plot sizes.</small>
+              </div>
+
+              <!-- Estate Plot Sizes -->
+              <div class="mb-4">
+                <label for="plotSize" class="form-label">Estate Plot Sizes</label>
+                <select id="plotSize" name="plotSize" class="form-select" required>
+                  <option value="" disabled selected>Select a plot size</option>
+                </select>
+              </div>
+
+              <!-- Payment Type -->
+              <div class="mb-4">
+                <label class="form-label d-block">Payment Type</label>
+                <div class="custom-checkbox">
+                  <input type="radio" name="paymentType" id="fullPayment" value="Full Payment" required>
+                  <label for="fullPayment">Full Payment</label>
+                </div>
+                <div class="custom-checkbox mt-2">
+                  <input type="radio" name="paymentType" id="partPayment" value="Part Payment" required>
+                  <label for="partPayment">Part Payment</label>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary">Send Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const estateName = document.getElementById('estateName');
+      const plotSizeSelect = document.getElementById('plotSize');
+
+      if (!estateName) {
+        console.error("Estate dropdown not found");
+        return;
+      }
+      if (!plotSizeSelect) {
+        console.error("Plot size dropdown not found");
+        return;
+      }
+
+      estateName.addEventListener('change', function() {
+        const estateId = this.value;
+        console.log("Selected Estate ID:", estateId);
+        // Set loading state
+        plotSizeSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+        if (estateId) {
+          fetch("{% url 'load_plots' %}?estate_id=" + estateId)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Data returned from load_plots:", data);
+              // Clear and reset the select dropdown
+              plotSizeSelect.innerHTML = '<option value="" disabled selected>Select a plot size</option>';
+              if (data.plot_size_units.length === 0) {
+                // In case no plot sizes are returned, add a default sold out message.
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No plot sizes available (SOLD OUT)";
+                option.disabled = true;
+                plotSizeSelect.appendChild(option);
+              } else {
+                data.plot_size_units.forEach(unit => {
+                  const option = document.createElement('option');
+                  option.value = unit.id; // PlotSizeUnits ID
+                  if (unit.available_units > 0) {
+                    option.textContent = `${unit.formatted_size} (${unit.available_units} available)`;
+                  } else {
+                    option.textContent = `${unit.formatted_size} (SOLD OUT)`;
+                    option.disabled = true;
+                  }
+                  plotSizeSelect.appendChild(option);
+                });
+              }
+            })
+            .catch(error => {
+              console.error('Error loading plot sizes:', error);
+              plotSizeSelect.innerHTML = '<option value="" disabled selected>Error loading plot sizes</option>';
+            });
+        }
+      });
+    });
+  </script>
+
+{% endblock %}

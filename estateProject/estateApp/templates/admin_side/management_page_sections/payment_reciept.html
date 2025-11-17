@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Receipt - {{ receipt_id }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: #f9f9f9;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 30px; 
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            padding-bottom: 20px; 
+            border-bottom: 2px solid #eee; 
+            position: relative;
+        }
+        .logo { 
+            max-height: 80px; 
+            margin-bottom: 15px; 
+        }
+        .receipt-title { 
+            font-size: 28px; 
+            font-weight: 600; 
+            margin: 10px 0; 
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .receipt-id { 
+            font-size: 16px; 
+            color: #7f8c8d; 
+            background: #f5f5f5;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        .section { 
+            margin-bottom: 25px; 
+        }
+        .section-title { 
+            font-weight: 600; 
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f5f5f5;
+        }
+        .row { 
+            display: flex; 
+            margin-bottom: 10px; 
+        }
+        .col { 
+            flex: 1; 
+            padding: 5px;
+        }
+        .label { 
+            font-weight: 500; 
+            min-width: 150px; 
+            color: #7f8c8d;
+        }
+        .value {
+            font-weight: 400;
+        }
+        .signature-area { 
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+        .signature-line { 
+            border-top: 1px solid #333; 
+            width: 200px; 
+            margin: 40px auto 10px;
+            height: 1px;
+        }
+        .footer { 
+            margin-top: 50px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #7f8c8d;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .table th { 
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .table td { 
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .text-right { 
+            text-align: right; 
+        }
+        .total-row { 
+            font-weight: 600;
+            background-color: #f5f5f5 !important;
+        }
+        .watermark {
+            position: absolute;
+            opacity: 0.1;
+            font-size: 120px;
+            font-weight: bold;
+            color: #2c3e50;
+            transform: rotate(-30deg);
+            top: 30%;
+            left: 10%;
+            z-index: -1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .overdue {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            background: #f5f5f5;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="watermark">NEURALENS</div>
+            {% if company.logo %}
+            <img src="{{ company.logo }}" alt="Company Logo" class="logo">
+            {% endif %}
+            <h1 class="receipt-title">OFFICIAL RECEIPT</h1>
+            <div class="receipt-id">Receipt #: {{ receipt_id }}</div>
+            <div style="margin-top: 10px;">Date: {{ date }}</div>
+            
+            <div style="margin-top: 15px;">
+                <span class="status-badge {% if transaction.status == 'Paid Complete' or transaction.status == 'Fully Paid' %}paid{% elif transaction.status == 'Pending' %}pending{% else %}overdue{% endif %}">
+                    {{ transaction.status|upper }}
+                </span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Transaction Details</div>
+            <div class="row">
+                <div class="col">
+                    <span class="label">Client Name:</span>
+                    <span class="value">{{ transaction.client.full_name }}</span>
+                </div>
+                <div class="col">
+                    <span class="label">Phone Number:</span>
+                    <span class="value">{{ transaction.client.phone }}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <span class="label">Estate:</span>
+                    <span class="value">{{ transaction.allocation.estate.name }}</span>
+                </div>
+                <div class="col">
+                    <span class="label">Plot Size:</span>
+                    <span class="value">{{ transaction.allocation.plot_size_unit.plot_size.size }}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <span class="label">Transaction Date:</span>
+                    <span class="value">{{ transaction.transaction_date|date:"d M Y" }}</span>
+                </div>
+                <div class="col">
+                    <span class="label">Marketer:</span>
+                    <span class="value">{{ transaction.marketer.full_name }}</span>
+                </div>
+            </div>
+            {% if transaction.allocation.plot_number %}
+            <div class="row">
+                <div class="col">
+                    <span class="label">Plot Number:</span>
+                    <span class="value">{{ transaction.allocation.plot_number }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <div class="section-title">Payment Summary</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="text-right">Amount (₦)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Property Value</td>
+                        <td class="text-right">{{ transaction.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% if transaction.allocation.payment_type == 'part' %}
+                    <tr>
+                        <td>First Installment ({{ transaction.first_percent }}%)</td>
+                        <td class="text-right">{{ transaction.first_installment|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Second Installment ({{ transaction.second_percent }}%)</td>
+                        <td class="text-right">{{ transaction.second_installment|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td>Third Installment ({{ transaction.third_percent }}%)</td>
+                        <td class="text-right">{{ transaction.third_installment|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    
+                    {% for payment in transaction.payment_records.all %}
+                    <tr>
+                        <td>
+                            Payment for {{ payment.get_installment_display }} 
+                            ({{ payment.payment_date|date:"d M Y" }})
+                            <div style="font-size: 12px; color: #7f8c8d;">
+                                Method: {{ payment.get_payment_method_display }}
+                                {% if payment.reference_note %} | Ref: {{ payment.reference_note }}{% endif %}
+                            </div>
+                        </td>
+                        <td class="text-right">{{ payment.amount_paid|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    
+                    <tr class="total-row">
+                        <td>Total Paid</td>
+                        <td class="text-right">{{ transaction.total_paid|floatformat:2 }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>Balance</td>
+                        <td class="text-right">{{ transaction.balance|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Payment Terms</div>
+            <div class="row">
+                <div class="col">
+                    <span class="label">Payment Duration:</span>
+                    <span class="value">
+                        {% if transaction.payment_duration %}
+                            {{ transaction.payment_duration }} months
+                        {% elif transaction.custom_duration %}
+                            {{ transaction.custom_duration }} months (Custom)
+                        {% else %}
+                            Full Payment
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col">
+                    <span class="label">Next Due Date:</span>
+                    <span class="value">
+                        {% if transaction.next_due_date %}
+                            {{ transaction.next_due_date|date:"d M Y" }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            {% if transaction.special_notes %}
+            <div class="row">
+                <div class="col">
+                    <span class="label">Notes:</span>
+                    <span class="value">{{ transaction.special_notes }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <div class="qr-code">
+                [QR CODE FOR TRANSACTION VERIFICATION]
+            </div>
+        </div>
+
+        <div class="signature-area">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div>Authorized Signature</div>
+                <div style="margin-top: 5px; font-size: 12px;">
+                    {{ company.name }}
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div>Client's Signature</div>
+                <div style="margin-top: 5px; font-size: 12px;">
+                    {{ transaction.client.full_name }}
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>{{ company.name }} | {{ company.address }} | {{ company.phone }} | {{ company.email }}</p>
+            <p>This is an official receipt. Please keep it for your records.</p>
+            <p style="margin-top: 10px; font-size: 10px;">
+                Transaction ID: {{ receipt_id }} | Generated on: {% now "d M Y H:i" %}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

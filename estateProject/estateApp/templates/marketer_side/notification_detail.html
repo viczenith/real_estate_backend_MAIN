@@ -1,0 +1,138 @@
+{% extends 'marketer_base.html' %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Notification Details</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url back_url %}">Notifications</a></li>
+        <li class="breadcrumb-item active">Detail</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="card notification-card">
+
+          <!-- Card Header -->
+          <div class="card-header bg-gradient-primary">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <div class="notification-icon bg-light rounded-circle d-flex align-items-center justify-content-center">
+                  <i class="bi bi-bell-fill fs-4 text-primary"></i>
+                </div>
+                <h4 class="card-title mb-0 ms-3 text-white">{{ notification.title }}</h4>
+              </div>
+              <span class="badge bg-light text-dark border border-light py-2 px-3 rounded-pill">
+                {{ notification.get_notification_type_display }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+
+            <!-- Timestamp -->
+            <div class="d-flex align-items-center mb-4">
+              <i class="bi bi-clock fs-5 me-2 text-primary"></i>
+              <span class="text-muted fw-medium">
+                {{ notification.created_at|date:"F j, Y, g:i A" }}
+              </span>
+            </div>
+
+            <!-- <hr class="mb-4"> -->
+
+            <!-- Message Body -->
+            <div class="notification-content mb-4">
+              <div class="message-body bg-light p-4 rounded">
+                {{ notification.message|safe }}
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <a href="{% url back_url %}" class="btn btn-outline-primary btn-back">
+                <i class="bi bi-arrow-left me-2"></i>
+                Back to Notifications
+              </a>
+            </div>
+
+          </div>
+
+          <!-- Card Footer -->
+          <div class="card-footer bg-light">
+              <div class="text-muted small text-end">
+                <i class="bi bi-people me-1"></i>
+                Sent by: Admin
+              </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  .notification-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  .notification-card:hover {
+    transform: translateY(-5px);
+  }
+  .card-header.bg-gradient-primary {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    padding: 1.5rem 1.8rem;
+    border-bottom: none;
+  }
+  .notification-icon {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(5px);
+  }
+  .card-title {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .message-body {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #343a40;
+    border-left: 3px solid #0d6efd;
+  }
+  .btn-back {
+    border-radius: 30px;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.3s;
+  }
+  .btn-back:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+  .btn-group .btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    margin-left: 0.5rem;
+    transition: all 0.2s;
+  }
+  .btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  .card-footer {
+    padding: 0.8rem 1.8rem;
+    border-top: 1px solid #e9ecef;
+  }
+</style>
+
+{% endblock %}

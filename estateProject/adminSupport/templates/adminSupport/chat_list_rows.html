@@ -1,0 +1,38 @@
+{% if chat_rows %}
+    {% for row in chat_rows %}
+        <a href="{{ row.url }}" class="chat-item" data-name="{{ row.name|lower }}"{% if row.last_seen %} data-last-seen="{{ row.last_seen|date:'U' }}"{% endif %}>
+            <div class="chat-avatar">
+                {% if row.avatar_url %}
+                    <img src="{{ row.avatar_url }}" alt="{{ row.name }}" loading="lazy">
+                {% else %}
+                    {{ row.initials }}
+                {% endif %}
+            </div>
+            <div class="chat-info">
+                <div class="chat-name">
+                    <h5>{{ row.name }}</h5>
+                    {% if row.unread_count > 0 %}
+                        <span class="unread-badge">{{ row.unread_count }}</span>
+                    {% endif %}
+                </div>
+                <div class="chat-last-message">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ row.last_message|default:'No messages yet.' }}</span>
+                </div>
+                {% if row.last_seen %}
+                <div class="chat-last-seen">
+                    <i class="fas fa-user-check"></i>
+                    <span data-last-seen-label>Last seen {{ row.last_seen|timesince }} ago</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="chat-arrow"><i class="fas fa-chevron-right"></i></div>
+        </a>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas {{ empty_icon|default:'fa-inbox' }}"></i></div>
+        <h4>{{ empty_title|default:'No conversations yet' }}</h4>
+        <p>{{ empty_description|default:"Once conversations begin, they’ll appear here." }}</p>
+    </div>
+{% endif %}

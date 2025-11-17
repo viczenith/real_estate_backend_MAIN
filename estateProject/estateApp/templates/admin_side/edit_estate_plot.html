@@ -1,0 +1,138 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Edit Estate Plot</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">Edit Estate Plot</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="container">
+    <h2>Edit {{ estate_plot.estate.name }}</h2>
+    <form id="editEstatePlotForm" method="post" action="{% url 'edit-estate-plot' estate_plot.id %}">
+      {% csrf_token %}
+
+      {% if messages %}
+      <div class="container mt-3">
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+      </div>
+      {% endif %}
+
+      <div id="plotResponseMessage"></div>
+
+      <!-- Plot Sizes & Units Section -->
+      <div class="mb-4">
+        <label class="form-label">Plot Sizes and Total Units</label>
+        <div id="plotUnitsContainer">
+          {% for size in plot_sizes %}
+          <div class="d-flex align-items-center mb-2">
+            <!-- Checkbox for selecting the plot size -->
+            <input type="checkbox" name="plot_sizes[]" value="{{ size.id }}" class="plot-size-checkbox"
+                   {% if size.id|stringformat:"s" in selected_plot_sizes %} checked {% endif %}>
+            <label class="ms-2">{{ size.size }} sqm</label>
+            <!-- Input for the total units for that plot size -->
+            <input type="number" name="plot_units_{{ size.id }}" 
+                   class="form-control ms-2 unit-input" 
+                   placeholder="Units for {{ size.size }} sqm" 
+                   min="1"
+                   {% if size.id|stringformat:"s" in selected_plot_sizes %}
+                    value="{{ selected_units|get_item:size.id }}"
+                   {% else %}
+                    disabled
+                   {% endif %}>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Plot Numbers Section -->
+      <div class="mb-4">
+        <label class="form-label">Plot Numbers</label>
+        <div class="position-relative">
+          <div class="plot-checkboxes">
+            {% for plot in plot_numbers %}
+            <div class="form-check form-check-inline">
+              <input class="form-check-input plot-number-checkbox" type="checkbox" 
+                     name="plot_numbers[]" 
+                     value="{{ plot.id }}" 
+                     id="plot-{{ plot.id }}"
+                     {% if plot.id|stringformat:"s" in selected_plot_numbers %} checked {% endif %}>
+              <label class="form-check-label" for="plot-{{ plot.id }}">{{ plot.number }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Place to display our error message -->
+      
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-success">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- jQuery for enabling/disabling the unit inputs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    $(document).ready(function(){
+      $('.plot-size-checkbox').on('change', function(){
+        const unitInput = $(this).closest('div').find('.unit-input');
+        unitInput.prop('disabled', !this.checked);
+        if (!this.checked) {
+          unitInput.val('');
+        }
+      });
+    });
+  </script>
+
+  <!-- New JavaScript to validate total units vs. selected plot numbers -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get our form element
+      const form = document.getElementById('editEstatePlotForm');
+
+      form.addEventListener('submit', function(e) {
+        // Prevent submission to validate first
+        e.preventDefault();
+
+        let totalUnits = 0;
+        // Loop over all checked plot-size checkboxes
+        document.querySelectorAll('.plot-size-checkbox:checked').forEach(function(checkbox) {
+          const inputName = 'plot_units_' + checkbox.value;
+          const unitInput = document.getElementsByName(inputName)[0];
+          if (unitInput && unitInput.value) {
+            totalUnits += parseInt(unitInput.value, 10);
+          }
+        });
+
+        // Count the number of selected plot numbers
+        let selectedPlotNumbersCount = document.querySelectorAll('.plot-number-checkbox:checked').length;
+
+        // Check if totalUnits equals selectedPlotNumbersCount
+        if (totalUnits !== selectedPlotNumbersCount) {
+          // Display error message and prevent form submission
+          const errorMessage = 'Total plot size units not equal to the total plot numbers selected, Please, kindly ensure the right thing';
+          document.getElementById('plotResponseMessage').innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`;
+          return false;
+        }
+
+        // If valid, submit the form
+        form.submit();
+      });
+    });
+  </script>
+</main>
+{% endblock %}

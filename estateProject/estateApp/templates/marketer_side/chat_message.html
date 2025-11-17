@@ -1,0 +1,717 @@
+{% load custom_filters %}
+{% load static %}
+
+<style>
+    /* Modern Chat Message Styling */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(0);
+            opacity: 0.6;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Message Wrapper */
+    .chat-message-wrapper {
+        display: flex;
+        margin-bottom: 15px;
+        animation: fadeInUp 0.4s ease-out;
+        position: relative;
+    }
+
+    .chat-message-wrapper.align-right {
+        justify-content: flex-end;
+    }
+
+    .chat-message-wrapper.align-left {
+        justify-content: flex-start;
+    }
+
+    /* Message Bubble */
+    .message-bubble {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 15px;
+        line-height: 1.5;
+        word-wrap: break-word;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .message-bubble:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        transform: translateY(-1px);
+    }
+
+    /* Sender messages (right side - marketer messages) */
+    .message-bubble.client-message {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+        margin-right: 8px;
+    }
+
+    .message-bubble.client-message .sender-name {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .message-bubble.client-message .message-time {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Admin/Receiver messages (left side) */
+    .message-bubble.admin-message {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 4px;
+        margin-left: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    /* Message Header */
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .sender-name {
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.3px;
+    }
+
+    .message-status {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    /* Status Icons */
+    .status-icon {
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .message-bubble.client-message .status-icon {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .message-bubble.admin-message .status-icon {
+        color: #999;
+    }
+
+    .status-icon.read {
+        color: #4fc3f7 !important;
+        animation: scaleIn 0.3s ease-out;
+    }
+
+    /* Message Text */
+    .message-text {
+        font-size: 15px;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    .message-text p {
+        margin: 0;
+    }
+
+    /* Message Time */
+    .message-time {
+        font-size: 11px;
+        opacity: 0.8;
+        align-self: flex-end;
+        margin-top: 4px;
+        font-weight: 500;
+    }
+
+    /* Attachment Preview - WhatsApp Style */
+    .attachment-preview {
+        cursor: pointer;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 8px;
+        max-width: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .attachment-preview:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .attachment-preview::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0);
+        transition: background 0.3s ease;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .attachment-preview:hover::before {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Image Attachments */
+    .attachment-preview img.attachment-thumb {
+        width: 100%;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: block;
+    }
+
+    /* Document Attachments - WhatsApp Style */
+    .attachment-file-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .message-bubble.admin-message .attachment-file-container {
+        background: rgba(102, 126, 234, 0.08);
+        border: 1px solid rgba(102, 126, 234, 0.15);
+    }
+
+    .attachment-file-container:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-bubble.admin-message .attachment-file-container:hover {
+        background: rgba(102, 126, 234, 0.12);
+    }
+
+    /* File Icon with Extension Badge */
+    .attachment-icon-wrapper {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+    }
+
+    .attachment-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        background: rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .message-bubble.admin-message .attachment-icon {
+        background: rgba(102, 126, 234, 0.15);
+    }
+
+    /* File Type Specific Colors */
+    .file-type-pdf .attachment-icon {
+        background: linear-gradient(135deg, #ff3b30, #ff6f61);
+        color: white;
+    }
+
+    .file-type-doc .attachment-icon, .file-type-docx .attachment-icon {
+        background: linear-gradient(135deg, #2979ff, #448aff);
+        color: white;
+    }
+
+    .file-type-xls .attachment-icon, .file-type-xlsx .attachment-icon {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+        color: white;
+    }
+
+    .file-type-zip .attachment-icon, .file-type-rar .attachment-icon {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
+    }
+
+    .file-type-txt .attachment-icon {
+        background: linear-gradient(135deg, #64748b, #94a3b8);
+        color: white;
+    }
+
+    /* File Info */
+    .attachment-file-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .attachment-filename {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+
+    .message-bubble.admin-message .attachment-filename {
+        color: #333;
+    }
+
+    .attachment-filesize {
+        font-size: 12px;
+        opacity: 0.7;
+        color: white;
+    }
+
+    .message-bubble.admin-message .attachment-filesize {
+        color: #666;
+    }
+
+    /* Download Icon */
+    .attachment-download-icon {
+        font-size: 20px;
+        color: white;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+
+    .message-bubble.admin-message .attachment-download-icon {
+        color: #667eea;
+    }
+
+    .attachment-file-container:hover .attachment-download-icon {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+
+    /* Delete Button */
+    .delete-msg-btn {
+        background: rgba(255, 59, 48, 0.1);
+        border-radius: 50%;
+        border: none;
+        color: #ff3b30;
+        cursor: pointer;
+        font-size: 16px;
+        width: 32px;
+        height: 32px;
+        align-self: flex-end;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .delete-msg-btn::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 59, 48, 0.2);
+        transition: width 0.4s, height 0.4s;
+    }
+
+    .delete-msg-btn:hover::before {
+        width: 100%;
+        height: 100%;
+    }
+
+    .delete-msg-btn:hover {
+        transform: scale(1.1);
+        background: rgba(255, 59, 48, 0.2);
+    }
+
+    .delete-msg-btn:active {
+        transform: scale(0.95);
+    }
+
+    .delete-msg-btn i {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Delete Confirmation Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        margin: 15% auto;
+        padding: 35px;
+        border-radius: 20px;
+        max-width: 450px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: scaleIn 0.3s ease-out;
+    }
+
+    .modal-content h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .modal-content p {
+        color: var(--text-color);
+        opacity: 0.7;
+        margin-bottom: 25px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .modal-buttons {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(235, 51, 73, 0.4);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(235, 51, 73, 0.5);
+    }
+
+    .btn-secondary {
+        background: rgba(102, 126, 234, 0.1);
+        color: var(--text-color);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .message-bubble {
+            max-width: 85%;
+            font-size: 14px;
+            padding: 10px 14px;
+        }
+
+        .attachment-preview img.attachment-thumb {
+            max-height: 200px;
+        }
+
+        .delete-msg-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .message-bubble {
+            max-width: 90%;
+            font-size: 13px;
+        }
+
+        .modal-content {
+            margin: 25% auto;
+            padding: 25px;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .message-bubble.admin-message {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .attachment-filename {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="dark"] .attachment-file-container {
+        background: rgba(102, 126, 234, 0.15);
+    }
+</style>
+
+<div class="chat-message-wrapper {% if msg.sender == request.user %}align-right{% else %}align-left{% endif %}"
+     data-msg-timestamp="{{ msg.date_sent|date:'U' }}">
+    <div class="message-bubble {% if msg.sender == request.user %}client-message{% else %}admin-message{% endif %}"
+         data-msg-id="{{ msg.id }}"
+         data-deleted="{% if msg.deleted_for_everyone %}true{% else %}false{% endif %}"
+         data-sent-at="{{ msg.date_sent|isoformat }}">
+        <div class="message-header">
+            <span class="sender-name">
+                {% if msg.sender == request.user %}
+                    You
+                {% else %}
+                    Admin Support
+                {% endif %}
+            </span>
+            {% if msg.sender == request.user %}
+            <span class="message-status">
+                {% if msg.status == 'sent' %}
+                    <i class="bi bi-check status-icon" title="Sent"></i>
+                {% elif msg.status == 'delivered' %}
+                    <i class="bi bi-check-all status-icon" title="Delivered"></i>
+                {% elif msg.status == 'read' %}
+                    <i class="bi bi-check-all status-icon read" title="Read"></i>
+                {% endif %}
+            </span>
+            {% endif %}
+        </div>
+        
+        {% if msg.file and not msg.deleted_for_everyone %}
+            <div class="attachment-preview" onclick="openAttachment('{{ msg.file.url }}')">
+                {% with file_url=msg.file.url|lower file_name=msg.file.name %}
+                    {% if ".jpg" in file_url or ".jpeg" in file_url or ".png" in file_url or ".gif" in file_url or ".webp" in file_url %}
+                        <!-- Image Preview -->
+                        <img src="{{ msg.file.url }}" class="attachment-thumb" alt="Attachment" loading="lazy">
+                    {% else %}
+                        <!-- Document Preview - WhatsApp Style -->
+                        {% with file_ext=file_name|slice:"-4:"|lower|cut:"." %}
+                        <div class="attachment-file-container file-type-{{ file_ext }}">
+                            <div class="attachment-icon-wrapper">
+                                <div class="attachment-icon">
+                                    {% if ".pdf" in file_url %}
+                                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                                    {% elif ".doc" in file_url or ".docx" in file_url %}
+                                        <i class="bi bi-file-earmark-word-fill"></i>
+                                    {% elif ".xls" in file_url or ".xlsx" in file_url %}
+                                        <i class="bi bi-file-earmark-excel-fill"></i>
+                                    {% elif ".ppt" in file_url or ".pptx" in file_url %}
+                                        <i class="bi bi-file-earmark-ppt-fill"></i>
+                                    {% elif ".zip" in file_url or ".rar" in file_url or ".7z" in file_url %}
+                                        <i class="bi bi-file-earmark-zip-fill"></i>
+                                    {% elif ".txt" in file_url %}
+                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                    {% elif ".mp4" in file_url or ".mov" in file_url or ".avi" in file_url %}
+                                        <i class="bi bi-file-earmark-play-fill"></i>
+                                    {% elif ".mp3" in file_url or ".wav" in file_url or ".m4a" in file_url %}
+                                        <i class="bi bi-file-earmark-music-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-file-earmark-fill"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="attachment-file-info">
+                                <span class="attachment-filename" title="{{ file_name|filename }}">{{ file_name|filename|truncatechars:35 }}</span>
+                                <span class="attachment-filesize">
+                                    {% if msg.file.size %}
+                                        {{ msg.file.size|filesizeformat }}
+                                    {% else %}
+                                        Document
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <i class="bi bi-download attachment-download-icon"></i>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+        {% endif %}
+    
+        <div class="message-text">
+            {% if msg.deleted_for_everyone %}
+                🚫 This message was deleted
+            {% else %}
+                {{ msg.content|linebreaks }}
+            {% endif %}
+        </div>
+        
+        <div class="message-time">{{ msg.date_sent|date:"h:i A" }}</div>
+        
+        {% if msg.deleted_for_everyone %}
+            <small class="text-muted">Deleted for everyone</small>
+        {% elif msg.sender == request.user and msg.date_sent|within_minutes %}
+            <button class="delete-msg-btn" data-msg-id="{{ msg.id }}" title="Delete message">
+                <i class="bi bi-trash"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirmation-modal" class="modal">
+    <div class="modal-content">
+        <h2>Delete Message?</h2>
+        <p>Are you sure you want to delete this message? This action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    let msgIdToDelete = null;
+
+    // Delete button click handler
+    document.addEventListener('click', function(e) {
+        let deleteBtn = e.target.closest('.delete-msg-btn');
+        if (deleteBtn) {
+            msgIdToDelete = deleteBtn.getAttribute('data-msg-id');
+            showDeleteModal();
+        }
+    });
+
+    function showDeleteModal() {
+        let modal = document.getElementById('delete-confirmation-modal');
+        modal.style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+        let modal = document.getElementById('delete-confirmation-modal');
+        modal.style.display = 'none';
+        msgIdToDelete = null;
+    }
+
+    // Modal button event handlers
+    document.getElementById('cancel-delete-btn').addEventListener('click', function() {
+        closeDeleteModal();
+    });
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', function() {
+        if (msgIdToDelete) {
+            fetch("{% url 'delete_message' 0 %}".replace("0", msgIdToDelete), {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let wrapper = document.querySelector('.chat-message-wrapper [data-msg-id="' + msgIdToDelete + '"]').closest('.chat-message-wrapper');
+                    if (wrapper) {
+                        wrapper.style.animation = 'fadeOut 0.3s ease-out';
+                        setTimeout(() => wrapper.remove(), 300);
+                    }
+                    closeDeleteModal();
+                } else {
+                    alert("Error deleting message: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting message:', error);
+                alert("Error deleting message.");
+            });
+        }
+    });
+
+    // Auto-hide delete buttons after 30 minutes
+    function updateDeleteButtons() {
+        let now = Math.floor(Date.now() / 1000);
+        document.querySelectorAll('.chat-message-wrapper').forEach(function(wrapper) {
+            let timestamp = parseInt(wrapper.getAttribute('data-msg-timestamp'));
+            if (now - timestamp > 1800) { // 30 minutes = 1800 seconds
+                let deleteBtn = wrapper.querySelector('.delete-msg-btn');
+                if (deleteBtn) {
+                    deleteBtn.style.display = "none";
+                }
+            }
+        });
+    }
+    
+    setInterval(updateDeleteButtons, 60000);
+    updateDeleteButtons();
+
+    // Open attachment in modal (if needed)
+    window.openAttachment = function(url) {
+        window.open(url, '_blank');
+    };
+</script>

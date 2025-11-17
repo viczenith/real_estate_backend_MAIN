@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --primary: #4154f1;
+            --success: #2eca6a;
+            --warning: #ff771d;
+            --danger: #dc3545;
+        }
+        .email-container { max-width: 600px; margin: 20px auto; font-family: 'Segoe UI', sans-serif; }
+        .header { background: var(--primary); padding: 30px; border-radius: 10px 10px 0 0; }
+        .header h1 { color: white; margin: 0; text-align: center; }
+        .content { padding: 30px; background: #f8f9fa; }
+        .notification-type { 
+            font-size: 24px; 
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+        }
+        .payment { color: var(--success); border-color: var(--success); }
+        .allocation { color: var(--primary); border-color: var(--primary); }
+        .announcement { color: var(--warning); border-color: var(--warning); }
+        .reminder { color: var(--danger); border-color: var(--danger); }
+        .button { 
+            display: inline-block; 
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer { text-align: center; padding: 20px; color: #6c757d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>RealEstateMS Notifications</h1>
+        </div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="footer">
+            © {% now "Y" %} RealEstateMS. All rights reserved.<br>
+            <a href="" style="color: #6c757d;">Unsubscribe</a>
+        </div>
+    </div>
+
+    <script>
+        // Update notifications every 30 seconds
+        function updateNotifications() {
+            fetch('/api/notifications/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('notificationCounter').textContent = data.count;
+                    
+                    const list = document.getElementById('notificationList');
+                    list.innerHTML = '';
+                    
+                    data.notifications.forEach(notification => {
+                        const item = document.createElement('li');
+                        item.className = 'notification-item';
+                        item.innerHTML = `
+                            <i class="bi ${getNotificationIcon(notification.type)}"></i>
+                            <div>
+                                <h4>${notification.title}</h4>
+                                <p>${notification.message}</p>
+                                <small>${notification.time}</small>
+                            </div>
+                            <button class="mark-read" data-id="${notification.id}">×</button>
+                        `;
+                        list.appendChild(item);
+                    });
+                });
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'PAYMENT': 'bi-currency-dollar text-success',
+                'ALLOCATION': 'bi-pin-map text-primary',
+                'ANNOUNCEMENT': 'bi-megaphone text-warning',
+                'REMINDER': 'bi-exclamation-triangle text-danger'
+            };
+            return icons[type] || 'bi-bell';
+        }
+
+        // Update every 30 seconds
+        setInterval(updateNotifications, 30000);
+        document.addEventListener('DOMContentLoaded', updateNotifications);
+
+        // Mark as read
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mark-read')) {
+                const notificationId = e.target.dataset.id;
+                fetch(`/notifications/${notificationId}/mark-read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                }).then(() => updateNotifications());
+            }
+        });
+    </script>
+</body>
+</html>
+

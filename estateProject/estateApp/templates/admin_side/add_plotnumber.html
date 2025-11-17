@@ -1,0 +1,604 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .form-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .form-header h2 {
+        font-weight: 600;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .form-header p {
+        font-size: 14px;
+        color: #777;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        outline: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 16px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+    }
+
+    .table-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        margin-top: 30px;
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .table {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 15px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+        transform: translateX(5px);
+    }
+
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 60px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+
+    .plot-number-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-assigned {
+        background: linear-gradient(135deg, #00b894 0%, #00d2d3 100%);
+        color: white;
+    }
+
+    .status-not-assigned {
+        background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+        color: white;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(253, 203, 110, 0.4);
+        color: white;
+    }
+
+    .allocation-details {
+        font-size: 11px;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .allocation-item {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    .warning-box {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe5b4 100%);
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+    }
+
+    .warning-box i {
+        color: #ff9800;
+        font-size: 24px;
+        margin-right: 10px;
+    }
+</style>
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Plot Number Management</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}"><i class="fas fa-home"></i>
+                        Dashboard</a>
+                </li>
+                <li class="breadcrumb-item active">Add Plot Number</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section">
+        <div class="row">
+            <!-- Add Plot Number Form -->
+            <div class="col-lg-5">
+                <div class="form-container">
+                    <div class="form-header">
+                        <h2><i class="fas fa-hashtag me-2"></i>Add Plot Number</h2>
+                        <p>Define available plot numbers for estates</p>
+                    </div>
+                    <form method="POST" id="plotNumberForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="number" class="form-label fw-bold">Plot Number <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="number" name="number"
+                                placeholder="e.g., A1, B2, C3, 001, 002" required>
+                            <small class="text-muted">Enter a unique plot number (e.g., A1, B2, 001)</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus-circle me-2"></i>Add Plot Number
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Plot Number List -->
+            <div class="col-lg-7">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4><i class="fas fa-list me-2"></i>Existing Plot Numbers</h4>
+                        <span class="badge bg-primary" style="font-size: 14px;">Total: <span id="totalCount">{{ plot_numbers|length }}</span></span>
+                    </div>
+
+                    {% if plot_numbers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Plot Number</th>
+                                    <th>Status</th>
+                                    <th>Allocated To</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plotNumberTable">
+                                {% for plot_number in plot_numbers %}
+                                <tr id="row-{{ plot_number.id }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><span class="plot-number-badge">{{ plot_number.number }}</span></td>
+                                    <td>
+                                        {% if plot_number.is_assigned %}
+                                        <span class="status-badge status-assigned">
+                                            <i class="fas fa-check-circle me-1"></i>Assigned ({{ plot_number.allocation_count }} Client{{ plot_number.allocation_count|pluralize }})
+                                        </span>
+                                        {% else %}
+                                        <span class="status-badge status-not-assigned">
+                                            <i class="fas fa-circle me-1"></i>Not Assigned
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if plot_number.allocation_details %}
+                                        <div class="allocation-details">
+                                            {% for detail in plot_number.allocation_details %}
+                                            <span class="allocation-item">{{ detail }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if plot_number.is_assigned %}
+                                        <button class="btn btn-sm btn-warning"
+                                            onclick="openEditModal({{ plot_number.id }}, '{{ plot_number.number }}', {{ plot_number.allocation_count }}, '{{ plot_number.allocation_details|join:", " }}')">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </button>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-danger"
+                                            onclick="deletePlotNumber({{ plot_number.id }}, '{{ plot_number.number }}')">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-hashtag"></i>
+                        <h5>No Plot Numbers Added Yet</h5>
+                        <p>Add your first plot number using the form on the left</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Edit Plot Number Modal -->
+<div class="modal fade" id="editPlotNumberModal" tabindex="-1" aria-labelledby="editPlotNumberModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlotNumberModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Plot Number
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="warning-box mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Critical Warning:</strong> This plot number is assigned to <span
+                        id="modal-allocation-count"></span> client(s).
+                    Changing it will update the plot number for all allocations!
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Current Plot Number</label>
+                    <input type="text" class="form-control" id="current-plot-number" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Allocated To:</label>
+                    <div id="modal-allocation-details" class="p-2 bg-light rounded"
+                        style="max-height: 150px; overflow-y: auto;">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="new-plot-number" class="form-label">New Plot Number <span
+                            class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="new-plot-number" placeholder="Enter new plot number"
+                        required>
+                    <input type="hidden" id="edit-plot-number-id">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-warning" onclick="confirmUpdatePlotNumber()">
+                    <i class="fas fa-save me-1"></i>Proceed to Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Handle form submission
+    document.getElementById('plotNumberForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const number = formData.get('number');
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred. Please try again.'
+                });
+            });
+    });
+
+    // Delete plot number
+    function deletePlotNumber(id, number) {
+        Swal.fire({
+            title: 'Delete Plot Number?',
+            text: `Are you sure you want to delete "${number}"? This action cannot be undone.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/delete-plotnumber/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`row-${id}`).remove();
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+
+                            // Update count
+                            const currentCount = parseInt(document.getElementById('totalCount').textContent);
+                            document.getElementById('totalCount').textContent = currentCount - 1;
+
+                            // Check if table is empty
+                            if (currentCount - 1 === 0) {
+                                location.reload();
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: data.message
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred. Please try again.'
+                        });
+                    });
+            }
+        });
+    }
+
+    // Open edit modal with plot number data
+    function openEditModal(id, currentNumber, allocationCount, allocationDetails) {
+        document.getElementById('edit-plot-number-id').value = id;
+        document.getElementById('current-plot-number').value = currentNumber;
+        document.getElementById('new-plot-number').value = '';
+        document.getElementById('modal-allocation-count').textContent = allocationCount;
+
+        // Parse and display allocation details
+        const detailsContainer = document.getElementById('modal-allocation-details');
+        detailsContainer.innerHTML = '';
+
+        if (allocationDetails && allocationDetails.trim() !== '') {
+            const detailsArray = allocationDetails.split(', ');
+            detailsArray.forEach(detail => {
+                const detailElement = document.createElement('div');
+                detailElement.className = 'allocation-item';
+                detailElement.innerHTML = `<i class="fas fa-user-check me-2"></i>${detail}`;
+                detailsContainer.appendChild(detailElement);
+            });
+        }
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('editPlotNumberModal'));
+        modal.show();
+    }
+
+    // Confirm update plot number with SweetAlert
+    function confirmUpdatePlotNumber() {
+        const newNumber = document.getElementById('new-plot-number').value.trim();
+
+        if (!newNumber) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Required!',
+                text: 'Please enter a new plot number.'
+            });
+            return;
+        }
+
+        const currentNumber = document.getElementById('current-plot-number').value;
+        const allocationCount = document.getElementById('modal-allocation-count').textContent;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            html: `This will update the plot number from <strong>${currentNumber}</strong> to <strong>${newNumber}</strong> for <strong>${allocationCount} client(s)</strong>. This action cannot be undone!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Update It!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const plotNumberId = document.getElementById('edit-plot-number-id').value;
+                updatePlotNumber(plotNumberId, newNumber);
+            }
+        });
+    }
+
+    // Update plot number via AJAX
+    function updatePlotNumber(plotNumberId, newNumber) {
+        const formData = new FormData();
+        formData.append('action', 'update');
+        formData.append('plot_number_id', plotNumberId);
+        formData.append('number', newNumber);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch('{% url "update-plotnumber" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editPlotNumberModal'));
+                    modal.hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'An error occurred. Please try again.'
+                });
+            });
+    }
+</script>
+
+{% endblock %}

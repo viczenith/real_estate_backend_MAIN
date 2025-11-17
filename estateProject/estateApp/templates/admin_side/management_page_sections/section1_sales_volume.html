@@ -1,0 +1,1245 @@
+{% load humanize %}
+
+<!-- NEXT IS THE 
+Notify clients & marketers about these price changes
+
+
+THIS PROJECT CURRENTLY HAVE AN IN-APP NOTIFICATION
+IN #file:section4_value_regulation.html , I WANT THAT, WHEN THE Notify clients & marketers about these price changes CHECK IS SELECTED IN THE Bulk Price Update Review, IT SHOULD DYNAMICALLY SEND A VERY CONSTRUCTIVE NOTIFICATION TO BOTH CLIENTS AND MARKETERS. SOMETHING LIKE - NEW PRICE REVIEW FOR ESTATE (Dutchman Estate, Phase 2 PRICE ALERT) FOR 250 sqm NEW PRICE (NEW PRICE) EFFECTIVE (EFFECTIVE DATE). 50% INCREASE. HURRY UP TO BAG THIS OPPOTUNITY. -->
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        
+        --primary: #667eea;
+        --secondary: #764ba2;
+        --success: #11998e;
+        --danger: #eb3349;
+        --warning: #f2994a;
+        --info: #4facfe;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --card-bg: #ffffff;
+        --border: #e0e0e0;
+        --text-muted: #636e72;
+        
+        --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.15);
+        --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    body {
+        background-color: #f5f7fb;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .dashboard-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2.5rem 0;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 30px 30px;
+    }
+    
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        pointer-events: none;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .dashboard-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        font-weight: 500;
+    }
+
+    .date-time-badge {
+        background: white;
+        color: var(--dark);
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        font-weight: 600;
+        animation: fadeInUp 0.8s ease-out 0.3s backwards;
+    }
+
+    .date-time-badge i {
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    .date-time-badge span {
+        font-size: 0.95rem;
+    }
+    
+    .filter-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--border);
+        animation: fadeInUp 0.6s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .filter-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .filter-card h5 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .filter-card h5 i {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.75rem;
+        margin-top: 2rem;
+    }
+    
+    .metric-card {
+        background: var(--card-bg);
+        padding: 1.75rem;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: var(--transition);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease-out;
+        animation-fill-mode: backwards;
+    }
+
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .metric-card:nth-child(1) { animation-delay: 0.1s; }
+    .metric-card:nth-child(2) { animation-delay: 0.2s; }
+    .metric-card:nth-child(3) { animation-delay: 0.3s; }
+    .metric-card:nth-child(4) { animation-delay: 0.4s; }
+    .metric-card:nth-child(5) { animation-delay: 0.5s; }
+    .metric-card:nth-child(6) { animation-delay: 0.6s; }
+    .metric-card:nth-child(7) { animation-delay: 0.7s; }
+    .metric-card:nth-child(8) { animation-delay: 0.8s; }
+    
+    .metric-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--card-shadow-hover);
+        border-color: var(--primary);
+    }
+
+    .metric-card h6 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .metric-card h6 i {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+    
+    .metric-card .value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .period-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        background: rgba(102, 126, 234, 0.08);
+        padding: 0.35rem 1rem;
+        border-radius: 50px;
+        display: inline-block;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    
+    .trend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .trend.up { 
+        color: var(--success);
+    }
+
+    .trend.down { 
+        color: var(--danger);
+    }
+
+    .trend i {
+        font-size: 1.1rem;
+    }
+
+    .metric-card .text-muted {
+        font-size: 0.85rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .comparison-chart {
+        background: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        margin-top: 2.5rem;
+        border: 1px solid var(--border);
+        animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .comparison-chart::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .comparison-chart h5 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .comparison-chart h5 i {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+    
+    .filter-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        position: relative;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .filter-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        padding: 2px;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-group {
+        position: relative;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 0.75rem;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        padding-left: 0.5rem;
+    }
+
+    .filter-label::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        width: 3px;
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    .filter-label i {
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    .filter-input-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-input-wrapper .input-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--primary);
+        font-size: 1.2rem;
+        pointer-events: none;
+        z-index: 2;
+        transition: var(--transition);
+    }
+
+    .filter-input-wrapper:focus-within .input-icon {
+        color: var(--secondary);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1rem 1.25rem;
+        padding-left: 3.25rem;
+        font-weight: 600;
+        transition: var(--transition);
+        background-color: white;
+        font-size: 0.95rem;
+        cursor: pointer;
+        height: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23667eea' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1.25rem center;
+        background-size: 14px;
+    }
+
+    .form-select:hover:not(:disabled) {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+
+    .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 4px 12px rgba(102, 126, 234, 0.2);
+        outline: none;
+        background-color: white;
+        transform: translateY(-2px);
+    }
+
+    .form-select:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+        opacity: 0.6;
+        border-color: #dee2e6;
+        border-style: dashed;
+        color: #adb5bd;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23adb5bd' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    }
+
+    .form-select option {
+        padding: 1rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+    
+    .btn-apply {
+        background: var(--primary-gradient);
+        border: none;
+        font-weight: 800;
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 15px;
+        font-size: 1.05rem;
+        transition: var(--transition);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+    }
+
+    .btn-apply::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+    }
+
+    .btn-apply:hover::before {
+        transform: translateX(100%);
+    }
+    
+    .btn-apply:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+
+    .btn-apply:active {
+        transform: translateY(-2px) scale(0.98);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-apply i {
+        font-size: 1.2rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .chart-container {
+        height: 450px;
+        margin-top: 1.5rem;
+        position: relative;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+
+    .chart-legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    #metricsLoading {
+        padding: 3rem 0;
+    }
+
+    #metricsLoading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.3rem;
+        animation: spin 0.8s linear infinite;
+    }
+
+    #metricsLoading p {
+        margin-top: 1rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-header h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header h3 i {
+        color: var(--primary);
+        font-size: 2rem;
+    }
+
+    .current-period-badge {
+        background: rgba(102, 126, 234, 0.1);
+        color: var(--primary);
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    @media (max-width: 992px) {
+        .dashboard-header h1 {
+            font-size: 2rem;
+        }
+
+        .metrics-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .comparison-chart {
+            padding: 1.5rem;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .dashboard-header p {
+            font-size: 1rem;
+        }
+
+        .date-time-badge {
+            width: 100%;
+            justify-content: center;
+            padding: 0.6rem 1rem;
+        }
+
+        .metrics-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+        }
+        
+        .filter-row {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        .filter-section {
+            padding: 1.5rem;
+        }
+
+        .form-select {
+            padding: 0.875rem 1rem;
+            padding-left: 3rem;
+            font-size: 0.9rem;
+        }
+
+        .filter-label {
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-apply {
+            padding: 0.875rem 2rem;
+            font-size: 0.95rem;
+        }
+
+        .filter-card,
+        .comparison-chart {
+            padding: 1.25rem;
+            border-radius: 15px;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .section-header h3 {
+            font-size: 1.5rem;
+        }
+
+        .chart-container {
+            height: 350px;
+            padding: 1rem;
+        }
+
+        .chart-legend {
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .metric-card {
+            padding: 1.5rem;
+        }
+
+        .metric-card .value {
+            font-size: 1.75rem;
+        }
+
+        .chart-container {
+            height: 250px;
+        }
+    }
+</style>
+
+<div class="dashboard-header">
+  <div class="container">
+    <div class="row align-items-center gy-3">
+      <div class="col-md-8 text-center text-md-start">
+        <h1 class="mb-2">📊 Sales Performance</h1>
+        <p class="mb-0">Track and analyze your sales performance in real-time</p>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <div class="date-time-badge">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-calendar3"></i>
+            <span id="current-date">—</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock"></i>
+            <span id="current-time">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container">
+  
+  <!-- Sales Volume Metrics -->
+  <div id="volume" class="tab-pane fade show active mb-5">
+    <div class="section-header">
+      <h3><i class="bi bi-bar-chart-line-fill"></i>Sales Volume Metrics</h3>
+      <div class="current-period-badge">
+        <i class="bi bi-calendar-check me-2"></i>
+        <span id="current-period">—</span>
+      </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <h5><i class="bi bi-funnel-fill"></i> Filters</h5>
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="bi bi-calendar-year"></i> Year
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="bi bi-calendar3 input-icon"></i>
+                        <select id="yearFilter" class="form-select">
+                            <option value="">Select Year...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="bi bi-calendar-range"></i> Quarter
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="bi bi-calendar2-range input-icon"></i>
+                        <select id="quarterFilter" class="form-select" disabled>
+                            <option value="">Select Quarter...</option>
+                            <option value="1">🌱 Q1 (Jan-Mar)</option>
+                            <option value="2">☀️ Q2 (Apr-Jun)</option>
+                            <option value="3">🍂 Q3 (Jul-Sep)</option>
+                            <option value="4">❄️ Q4 (Oct-Dec)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="bi bi-calendar-month"></i> Month
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="bi bi-calendar-event input-icon"></i>
+                        <select id="monthFilter" class="form-select" disabled>
+                            <option value="">Select Month...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button id="applyFilters" class="btn btn-apply">
+                <i class="bi bi-funnel-fill"></i>
+                <span>Apply Filters</span>
+            </button>
+        </div>
+    </div>
+    <!-- Dashboard -->
+    <div id="metricsLoading" class="text-center py-5 d-none">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p>Loading metrics...</p>
+    </div>
+
+    <div id="metricsGrid" class="metrics-grid"></div>
+  </div>
+
+  <!-- Comparison Chart -->
+  <div class="comparison-chart">
+    <h5><i class="bi bi-graph-up-arrow"></i> Performance Comparison</h5>
+    <div class="chart-legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+            <span>Current Period</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+            <span>Previous Period</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);"></div>
+            <span>Growth Trend</span>
+        </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="comparisonChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+    function updateDateTime() {
+    const now = new Date();
+    // Format date: e.g. "Friday, July 4, 2025"
+    const dateStr = now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    // Format time: e.g. "09:05:03 PM"
+    const timeStr = now.toLocaleTimeString('en-US', {
+      hour:   '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    document.getElementById('current-date').textContent = dateStr;
+    document.getElementById('current-time').textContent = timeStr;
+  }
+
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+    const yearSel = document.getElementById('yearFilter'),
+            qSel    = document.getElementById('quarterFilter'),
+            mSel    = document.getElementById('monthFilter'),
+            btn     = document.getElementById('applyFilters'),
+            period  = document.getElementById('current-period'),
+            loader  = document.getElementById('metricsLoading'),
+            grid    = document.getElementById('metricsGrid'),
+            ctx     = document.getElementById('comparisonChart').getContext('2d');
+    let chart;
+
+    // Populate Year dropdown (last 5 years)
+    const thisYear = new Date().getFullYear();
+    for (let y = thisYear; y >= thisYear - 4; y--) {
+        yearSel.add(new Option(y, y));
+    }
+
+    // Month names
+    const MONTHS = [
+        '','January','February','March','April','May','June',
+        'July','August','September','October','November','December'
+    ];
+
+    // Cascade enable/disable
+    yearSel.onchange = () => {
+        qSel.disabled = !yearSel.value;
+        mSel.disabled = true;
+        mSel.innerHTML = '<option value="">All Months</option>';
+    };
+    qSel.onchange = () => {
+        mSel.disabled = !qSel.value;
+        mSel.innerHTML = '<option value="">All Months</option>';
+        if (qSel.value) {
+        const year = yearSel.value, q = +qSel.value;
+        const start = (q-1)*3 + 1;
+        for (let i = start; i < start + 3; i++) {
+            const mm = String(i).padStart(2,'0');
+            mSel.add(new Option(MONTHS[i], `${year}-${mm}`));
+        }
+        }
+    };
+
+    // Formatters
+    const fmtCurr = v => '₦' + Number(v).toLocaleString('en-US',{maximumFractionDigits:0});
+    const makeTrend = (c,p) => {
+        if (p == null || p === 0) return '';
+        const pct = Math.round((c - p) / p * 100), up = pct >= 0;
+        return `<div class="trend ${up?'up':'down'}">
+                <i class="bi bi-arrow-${up?'up':'down'}"></i>
+                <span>${Math.abs(pct)}% ${up? '↑' : '↓'}</span>
+                </div>`;
+    };
+
+    // Render metrics cards
+    function render(d, label) {
+        period.textContent = label;
+        grid.innerHTML = `
+        <div class="metric-card">
+            <h6><i class="bi bi-calendar-month"></i>Deals in Last Month</h6>
+            <div class="value">${d.monthly_closed}</div>
+            ${makeTrend(d.monthly_closed, d.prev_monthly_closed)}
+            <div class="period-label">${label}</div>
+            <p class="text-muted small">Count of properties sold</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-currency-exchange"></i>Sales Volume</h6>
+            <div class="value">${fmtCurr(d.quarterly_sales)}</div>
+            ${makeTrend(d.quarterly_sales, d.prev_quarterly_sales)}
+            <div class="period-label">${label}</div>
+            <p class="text-muted small">Total property value sold (₦)</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-calendar-year"></i>Total Deals This Period</h6>
+            <div class="value">${d.annual_transactions}</div>
+            ${makeTrend(d.annual_transactions, d.prev_annual_transactions)}
+            <div class="period-label">${label}</div>
+            <p class="text-muted small">Deals closed</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-calculator"></i>Average Deal Size</h6>
+            <div class="value">${fmtCurr(d.average_deal)}</div>
+            ${makeTrend(d.average_deal, d.prev_average_deal)}
+            <div class="period-label">${label}</div>
+            <p class="text-muted small">Total sales ÷ number of deals</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-credit-card"></i>Active Installments</h6>
+            <div class="value">${d.active_installments}</div>
+            <div class="period-label">All time</div>
+            <p class="text-muted small">Total ongoing installment</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-wallet"></i>Outstanding Payments</h6>
+            <div class="value">${fmtCurr(d.total_outstanding)}</div>
+            <div class="period-label">All time</div>
+            <p class="text-muted small">Pending payments across installments</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-exclamation-triangle"></i>Overdue Payments</h6>
+            <div class="value">${d.overdue_count}</div>
+            <div class="period-label">All time</div>
+            <p class="text-muted small">Delayed payments requiring follow-ups</p>
+        </div>
+        <div class="metric-card">
+            <h6><i class="bi bi-cash-coin"></i>Total Paid (YTD)</h6>
+            <div class="value">${fmtCurr(d.total_paid)}</div>
+            <div class="period-label">YTD</div>
+            <p class="text-muted small">Received this year</p>
+        </div>
+        `;
+    }
+
+    // Update Chart - Advanced Mixed Chart with Growth Trend
+    function updateChart(d) {
+        const categories = ['Monthly Closed', 'Quarterly Sales', 'Annual Deals', 'Average Deal'];
+
+        // Data preparation
+        const currentDeals = Number(d.monthly_closed) || 0;
+        const prevDeals = Number(d.prev_monthly_closed) || 0;
+        const currentSales = Number(d.quarterly_sales) || 0;
+        const prevSales = Number(d.prev_quarterly_sales) || 0;
+        const currentTransactions = Number(d.annual_transactions) || 0;
+        const prevTransactions = Number(d.prev_annual_transactions) || 0;
+        const currentAvg = Number(d.average_deal) || 0;
+        const prevAvg = Number(d.prev_average_deal) || 0;
+
+        // Calculate growth percentages
+        const growthPercentages = [
+            prevDeals ? ((currentDeals - prevDeals) / prevDeals * 100) : 0,
+            prevSales ? ((currentSales - prevSales) / prevSales * 100) : 0,
+            prevTransactions ? ((currentTransactions - prevTransactions) / prevTransactions * 100) : 0,
+            prevAvg ? ((currentAvg - prevAvg) / prevAvg * 100) : 0
+        ];
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [
+                    {
+                        label: 'Current Period',
+                        data: [currentDeals, currentSales / 1e6, currentTransactions, currentAvg / 1e3],
+                        backgroundColor: 'rgba(102, 126, 234, 0.85)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: 40,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Previous Period',
+                        data: [prevDeals, prevSales / 1e6, prevTransactions, prevAvg / 1e3],
+                        backgroundColor: 'rgba(240, 147, 251, 0.85)',
+                        borderColor: 'rgba(245, 87, 108, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: 40,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Growth %',
+                        data: growthPercentages,
+                        type: 'line',
+                        borderColor: 'rgba(17, 153, 142, 1)',
+                        backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(17, 153, 142, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 15,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: 'rgba(102, 126, 234, 0.5)',
+                        borderWidth: 1,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.parsed.y;
+                                
+                                if (context.datasetIndex === 2) {
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                } else if (context.dataIndex === 1) {
+                                    return `${label}: ₦${value.toFixed(2)}M`;
+                                } else if (context.dataIndex === 3) {
+                                    return `${label}: ₦${value.toFixed(0)}K`;
+                                } else {
+                                    return `${label}: ${value.toFixed(0)}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grace: '15%',
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                weight: '600'
+                            },
+                            color: '#495057',
+                            padding: 8,
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Values (Deals, ₦M, ₦K)',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            },
+                            color: '#495057'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grace: '20%',
+                        grid: {
+                            drawOnChartArea: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                weight: '600'
+                            },
+                            color: '#11998e',
+                            padding: 8,
+                            callback: function(value) {
+                                return value.toFixed(0) + '%';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Growth Rate (%)',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            },
+                            color: '#11998e'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            color: '#495057',
+                            padding: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    // Main load
+    function load() {
+        let per, sp, label;
+        const y = yearSel.value, q = qSel.value, m = mSel.value;
+        if (m) {
+        per   = 'monthly';
+        sp    = m;                // "2025-07"
+        const [yy,mm] = m.split('-');
+        label = MONTHS[+mm] + ' ' + yy;
+        } else if (q) {
+        per   = 'quarterly';
+        sp    = `${y}-Q${q}`;
+        label = `Q${q} ${y}`;
+        } else if (y) {
+        per   = 'yearly';
+        sp    = y;
+        label = y;
+        } else {
+        // default current month
+        const now = new Date(),
+                yy  = now.getFullYear(),
+                mm  = String(now.getMonth()+1).padStart(2,'0');
+        per   = 'monthly';
+        sp    = `${yy}-${mm}`;
+        label = MONTHS[now.getMonth()+1] + ' ' + yy;
+        }
+
+        grid.classList.add('d-none');
+        loader.classList.remove('d-none');
+
+        fetch(`{% url 'sales_volume_metrics' %}?period=${per}&specific_period=${sp}`)
+        .then(r => r.json())
+        .then(d => {
+            loader.classList.add('d-none');
+            grid.classList.remove('d-none');
+            render(d, label);
+            updateChart(d);
+        })
+        .catch(() => {
+            loader.innerHTML = '<div class="alert alert-danger">Error loading.</div>';
+        });
+    }
+
+    btn.addEventListener('click', load);
+    yearSel.dispatchEvent(new Event('change'));
+    load();
+    });
+</script>

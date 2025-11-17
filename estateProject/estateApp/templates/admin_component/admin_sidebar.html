@@ -1,0 +1,663 @@
+<!-- ======= Modern Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+  <!-- Navigation Menu -->
+  <ul class="sidebar-nav" id="sidebar-nav">
+    <!-- Dashboard Section -->
+    <li class="nav-section-title">
+      <span>Main Menu</span>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'admin-dashboard' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <span class="nav-link-text">Dashboard</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <!-- User Management Section -->
+    <li class="nav-section-title">
+      <span>User Management</span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'client' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <span class="nav-link-text">Clients</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'marketer-list' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <span class="nav-link-text">Marketers</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'user-registration' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <span class="nav-link-text">Register Users</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <!-- Property Management Section -->
+    <li class="nav-section-title">
+      <span>Property Management</span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'add-estate' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-plus-circle"></i>
+        </div>
+        <span class="nav-link-text">Add Estate</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'view-estate' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-eye"></i>
+        </div>
+        <span class="nav-link-text">View All Estates</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'add-estate-plot' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-map-pin"></i>
+        </div>
+        <span class="nav-link-text">Add Estate Plots</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'plot-allocation' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-map-marked-alt"></i>
+        </div>
+        <span class="nav-link-text">Allocate Plot</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <!-- Configuration Section -->
+    <li class="nav-section-title">
+      <span>Configuration</span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'add-plotnumber' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-hashtag"></i>
+        </div>
+        <span class="nav-link-text">Add Plot Number</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'add-plotsize' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-ruler-combined"></i>
+        </div>
+        <span class="nav-link-text">Add Plot Size</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <!-- Communication Section -->
+    <li class="nav-section-title">
+      <span>Communication</span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'admin_client_chat_list' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-comment-dots"></i>
+        </div>
+        <span class="nav-link-text">Chat</span>
+        <span id="sidebar-admin-chat-badge" class="chat-badge pulse" 
+              style="{% if total_unread_count > 0 %}display: flex;{% else %}display: none;{% endif %}">
+          {{ total_unread_count }}
+        </span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+
+    <!-- <li class="nav-item">
+      <a class="nav-link" href="{% url 'send-announcement' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-bell"></i>
+        </div>
+        <span class="nav-link-text">Notifications</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li> -->
+
+    <!-- Reports Section -->
+    <li class="nav-section-title">
+      <span>Reports & Analytics</span>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'management-dashboard' %}">
+        <div class="nav-link-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <span class="nav-link-text">Management Control</span>
+        <div class="nav-link-glow"></div>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="user-profile">
+      <div class="user-avatar">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <div class="user-info">
+        <h5>{{ user.full_name|truncatewords:2 }}</h5>
+        <span>Administrator</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Polling Script for Chat Badge -->
+  <script>
+    function updateBadge(elementId, count) {
+      const badge = document.getElementById(elementId);
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      }
+    }
+
+    function pollUnreadCounts() {
+      fetch("{% url 'chat_unread_count' %}", {credentials: 'same-origin'})
+        .then(response => response.json())
+        .then(data => {
+          const msgBadge = document.getElementById("sidebar-admin-chat-badge");
+          let count;
+          
+          {% if user.role == 'admin' %}
+            count = data.total_unread || 0;
+          {% else %}
+            count = data.global_message_count || 0;
+          {% endif %}
+          
+          msgBadge.textContent = count;
+          if (count > 0) {
+            msgBadge.classList.add('pulse');
+          } else {
+            msgBadge.classList.remove('pulse');
+          }
+          
+          if ("{{ user.role }}" === "admin") {
+            updateBadge('sidebar-admin-chat-badge', data.total_unread);
+          }
+        })
+        .catch(console.error);
+      setTimeout(pollUnreadCounts, 2000);
+    }
+    document.addEventListener('DOMContentLoaded', pollUnreadCounts);
+  </script>
+
+  <!-- Active Link Highlighter -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname;
+      const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+      
+      navLinks.forEach(link => {
+        const linkPath = new URL(link.href).pathname;
+        if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+          link.classList.add('active');
+          link.closest('.nav-item').classList.add('active');
+        }
+      });
+    });
+  </script>
+
+  <!-- Sidebar Toggle Script for Mobile -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.querySelector('.toggle-sidebar-btn');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          sidebar.classList.toggle('show');
+          document.body.classList.toggle('toggle-sidebar');
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+          if (window.innerWidth <= 768) {
+            if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+              sidebar.classList.remove('show');
+              document.body.classList.remove('toggle-sidebar');
+            }
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- ============================================ -->
+  <!-- ADVANCED MODERN SIDEBAR STYLES -->
+  <!-- ============================================ -->
+  <style>
+    /* ========== CSS VARIABLES ========== */
+    :root {
+      /* Primary Colors */
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --primary-color: #667eea;
+      --primary-dark: #5568d3;
+      --primary-light: #8b9cff;
+      
+      /* Accent Colors */
+      --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --accent-color: #f093fb;
+      
+      /* Neutral Colors */
+      --sidebar-bg: #ffffff;
+      --sidebar-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+      --text-primary: #2d3436;
+      --text-secondary: #636e72;
+      --text-muted: #b2bec3;
+      
+      /* Interactive States */
+      --hover-bg: rgba(102, 126, 234, 0.08);
+      --active-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --active-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+      
+      /* Spacing */
+      --sidebar-width: 280px;
+      --nav-item-spacing: 2px;
+      --border-radius: 14px;
+      
+      /* Transitions */
+      --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* ========== SIDEBAR CONTAINER ========== */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 60px; /* Position below navbar */
+      width: var(--sidebar-width);
+      height: calc(100vh - 60px); /* Adjust height to account for navbar */
+      background: var(--sidebar-bg);
+      box-shadow: var(--sidebar-shadow);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      z-index: 999; /* Lower than navbar */
+      transition: var(--transition-smooth);
+    }
+
+    /* ========== NAVIGATION MENU ========== */
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px 16px;
+      list-style: none;
+      margin: 0;
+    }
+
+    /* Custom Scrollbar */
+    .sidebar-nav::-webkit-scrollbar {
+      width: 0px; /* Hide scrollbar */
+      background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb:hover {
+      background: transparent;
+    }
+
+    /* For Firefox */
+    .sidebar-nav {
+      scrollbar-width: none; /* Hide scrollbar in Firefox */
+    }
+
+    /* For IE and Edge Legacy */
+    .sidebar-nav {
+      -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+    }
+
+    /* ========== SECTION TITLES ========== */
+    .nav-section-title {
+      padding: 16px 12px 8px 12px;
+      margin-top: 4px;
+      list-style: none;
+    }
+
+    .nav-section-title:first-child {
+      margin-top: 0;
+      padding-top: 8px;
+    }
+
+    .nav-section-title span {
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      position: relative;
+      padding-left: 12px;
+    }
+
+    .nav-section-title span::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 3px;
+      height: 12px;
+      background: var(--primary-gradient);
+      border-radius: 10px;
+    }
+
+    /* ========== NAV ITEMS ========== */
+    .nav-item {
+      margin-bottom: var(--nav-item-spacing);
+      list-style: none;
+      position: relative;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      text-decoration: none;
+      color: var(--text-primary);
+      background: transparent;
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    /* Hover Effect */
+    .nav-link:hover {
+      background: var(--hover-bg);
+      transform: translateX(6px);
+      border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .nav-link:hover .nav-link-icon {
+      transform: scale(1.15) rotate(5deg);
+      color: var(--primary-color);
+    }
+
+    .nav-link:hover .nav-link-glow {
+      opacity: 1;
+    }
+
+    /* Active State */
+    .nav-link.active {
+      background: var(--active-bg);
+      color: white !important;
+      box-shadow: var(--active-shadow);
+      border-color: transparent;
+      transform: translateX(8px);
+    }
+
+    .nav-link.active .nav-link-icon {
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .nav-link.active .nav-link-text {
+      font-weight: 600;
+      color: white !important;
+    }
+
+    /* Icon Container */
+    .nav-link-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 10px;
+      margin-right: 12px;
+      transition: var(--transition-bounce);
+      flex-shrink: 0;
+    }
+
+    .nav-link-icon i {
+      font-size: 16px;
+      color: var(--primary-color);
+      transition: var(--transition-smooth);
+    }
+
+    .nav-link.active .nav-link-icon {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-link.active .nav-link-icon i {
+      color: white;
+    }
+
+    /* Link Text */
+    .nav-link-text {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      transition: var(--transition-smooth);
+    }
+
+    /* Glow Effect */
+    .nav-link-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(102, 126, 234, 0.15), transparent 70%);
+      opacity: 0;
+      transition: var(--transition-smooth);
+      pointer-events: none;
+    }
+
+    /* ========== CHAT BADGE ========== */
+    .chat-badge {
+      min-width: 22px;
+      height: 22px;
+      padding: 0 8px;
+      background: linear-gradient(135deg, #00b894 0%, #00d2d3 100%) !important;
+      color: #f1f1f1 !important;
+      border-radius: 11px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      box-shadow: 0 4px 12px rgba(0, 184, 148, 0.4);
+      transition: var(--transition-smooth);
+    }
+
+    .chat-badge.pulse {
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(0, 184, 148, 0.4);
+      }
+      50% { 
+        transform: scale(1.15); 
+        box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+      }
+    }
+
+    .nav-link.active .chat-badge {
+      background: white;
+      color: var(--primary-color);
+    }
+
+    /* ========== SIDEBAR FOOTER ========== */
+    .sidebar-footer {
+      padding: 20px 24px;
+      background: linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.05) 100%);
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      margin-top: auto;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      transition: var(--transition-smooth);
+      cursor: pointer;
+    }
+
+    .user-profile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-avatar {
+      width: 42px;
+      height: 42px;
+      background: var(--primary-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-info h5 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-info span {
+      display: block;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 1200px) {
+      .sidebar {
+        width: 260px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 280px;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show,
+      body.toggle-sidebar .sidebar {
+        transform: translateX(0);
+      }
+
+      .nav-link-text {
+        font-size: 13px;
+      }
+    }
+
+    /* ========== ANIMATIONS ========== */
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .nav-item {
+      animation: slideInLeft 0.5s ease-out backwards;
+    }
+
+    .nav-item:nth-child(1) { animation-delay: 0.05s; }
+    .nav-item:nth-child(2) { animation-delay: 0.08s; }
+    .nav-item:nth-child(3) { animation-delay: 0.11s; }
+    .nav-item:nth-child(4) { animation-delay: 0.14s; }
+    .nav-item:nth-child(5) { animation-delay: 0.17s; }
+    .nav-item:nth-child(6) { animation-delay: 0.20s; }
+    .nav-item:nth-child(7) { animation-delay: 0.23s; }
+    .nav-item:nth-child(8) { animation-delay: 0.26s; }
+    .nav-item:nth-child(9) { animation-delay: 0.29s; }
+    .nav-item:nth-child(10) { animation-delay: 0.32s; }
+    .nav-item:nth-child(n+11) { animation-delay: 0.35s; }
+
+    /* ========== UTILITY CLASSES ========== */
+    .sidebar * {
+      box-sizing: border-box;
+    }
+
+    /* Prevent text selection on interactive elements */
+    .nav-link, .user-profile {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
+</aside><!-- End Sidebar-->

@@ -1,0 +1,114 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
+    id "com.google.firebase.firebase-perf"
+    id "com.google.firebase.appdistribution"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace "com.example.real_estate_app"
+    compileSdkVersion 35
+    ndkVersion "25.1.8937393"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    defaultConfig {
+        applicationId "com.example.real_estate_app"
+        minSdkVersion 21
+        targetSdkVersion 35
+        versionCode 1
+        versionName "1.0.0"
+        multiDexEnabled true
+    }
+
+    signingConfigs {
+        release {
+            keyAlias System.getenv('KEY_ALIAS') ?: 'androiddebugkey'
+            keyPassword System.getenv('KEY_PASSWORD') ?: 'android'
+            storeFile file(System.getenv('KEYSTORE_PATH') ?: 'debug.keystore')
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            versionNameSuffix "-DEBUG"
+            manifestPlaceholders = [
+                appName: "RealEase-Debug",
+                firebaseCrashlyticsCollectionEnabled: "false"
+            ]
+            // Firebase Performance disabled for debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                appName: "RealEase",
+                firebaseCrashlyticsCollectionEnabled: "true"
+            ]
+            // Firebase App Distribution configuration
+            def firebaseAppDistributionConfig = [
+                serviceCredentialsFile: file("app/service-account-key.json").exists() ? "app/service-account-key.json" : null,
+                groups: "Lamba",
+                releaseNotes: "New release with bug fixes and improvements"
+            ]
+            firebaseAppDistribution {
+                appId = "1:1007078615485:android:6cf5961afe84aab47e0ad4"
+                if (firebaseAppDistributionConfig.serviceCredentialsFile != null) {
+                    serviceCredentialsFile = firebaseAppDistributionConfig.serviceCredentialsFile
+                } else {
+                    project.logger.warn("Service credentials file not found. App Distribution upload will fail.\n" +
+                        "Please create a service account key and save it as 'app/service-account-key.json'")
+                }
+                releaseNotes = firebaseAppDistributionConfig.releaseNotes
+                groups = firebaseAppDistributionConfig.groups
+                artifactType = "APK"
+            }
+        }
+    }
+
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            versionNameSuffix "-DEV"
+            resValue "string", "app_name", "RealEase Dev"
+        }
+        prod {
+            dimension "environment"
+            resValue "string", "app_name", "RealEase"
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-perf'
+    implementation 'androidx.multidex:multidex:2.0.1'
+}

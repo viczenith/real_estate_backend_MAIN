@@ -1,0 +1,679 @@
+{% load static %}
+{% load custom_filters %}
+<!-- ======= Header ======= -->
+<header id="header" class="header fixed-top d-flex align-items-center" data-theme="light">
+
+  <div class="d-flex align-items-center justify-content-between">
+    <a href="{{ home_url }}" class="logo d-flex align-items-center">
+      <img src="{% static 'assets/img/logo.png' %}" alt="">
+    </a>
+    <i class="bi bi-list toggle-sidebar-btn"></i>
+  </div><!-- End Logo -->
+
+  <nav class="header-nav ms-auto">
+    <ul class="d-flex align-items-center">
+
+      <!-- Notification Nav - Only for Client and Marketer -->
+      {% if user.role != 'admin' %}
+      <li class="nav-item dropdown">
+        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+        <i class="bi bi-bell"></i>
+        {% if unread_notifications_count > 0 %}
+          <span class="badge bg-danger badge-number">
+            {{ unread_notifications_count }}
+          </span>
+        {% endif %}
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
+        <li class="dropdown-header">
+          {% if unread_notifications_count %}
+            You have {{ unread_notifications_count }} new notification{{ unread_notifications_count|pluralize }}
+          {% else %}
+            No new notifications
+          {% endif %}
+          <!-- Single dynamic “View all” link for every role -->
+          <a href="{% url 'notifications_all' %}" class="badge rounded-pill bg-primary p-2 ms-2">
+            View all
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        {% for un in unread_notifications %}
+          <li>
+            <a class="dropdown-item d-flex align-items-start"
+              href="{% url 'mark_notification_read' un.id %}?next={{ request.path|urlencode }}">
+              <i class="bi bi-bell text-info me-2"></i>
+              <div>
+                <h6 class="mb-1">{{ un.notification.title }}</h6>
+                <p class="small mb-0">{{ un.notification.message|truncatechars:60 }}</p>
+                <small class="text-muted">{{ un.created_at|timesince }} ago</small>
+              </div>
+            </a>
+          </li>
+          {% if not forloop.last %}<li><hr class="dropdown-divider"></li>{% endif %}
+        {% empty %}
+          <li class="text-center py-2 text-muted">No new notifications</li>
+        {% endfor %}
+      </ul>
+      </li>
+      {% endif %}
+      <!-- End Notification Nav -->
+
+
+      <!-- Chat Messages Icon -->
+      {% if user.role == 'admin' %}
+        <!-- ADMIN: Message icon with dropdown showing client list -->
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-chat-left-text"></i>
+            {% if total_unread_messages > 0 %}
+              <span id="global-messages-badge" class="badge bg-success badge-number">{{ total_unread_messages }}</span>
+            {% else %}
+              <span id="global-messages-badge" class="badge bg-success badge-number" style="display:none">0</span>
+            {% endif %}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
+            <li class="dropdown-header">
+              <span id="admin-client-count-text">
+                {{ client_count }} client{{ client_count|pluralize }} with new message{{ client_count|pluralize }}
+              </span>
+              <a href="{% url 'admin_client_chat_list' %}">
+                <span class="badge rounded-pill bg-primary p-2 ms-2">View all</span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <div id="admin-messages-list">
+              {% if unread_clients %}
+                {% for client in unread_clients %}
+                  <li class="message-item position-relative">
+                    <a href="{% url 'admin_chat' client.id %}" class="d-flex align-items-center p-2">
+                      <div class="avatar me-3">
+                        {% if client.profile_image %}
+                          <img src="{{ client.profile_image.url }}" 
+                              alt="{{ client.full_name }}" 
+                              class="rounded-circle"
+                              style="width:40px;height:40px;object-fit:cover">
+                        {% else %}
+                          <div class="avatar-initials bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                              style="width:40px;height:40px">
+                            {{ client.full_name|slice:":1" }}
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <h6 class="mb-0">{{ client.full_name }}</h6>
+                          <span class="badge bg-danger rounded-pill">
+                            {{ client.unread_count }}
+                          </span>
+                        </div>
+                        <div class="text-muted small">
+                          {% if client.last_file %}
+                            <i class="bi bi-file-earmark me-1"></i>
+                            {{ client.last_file|filename|truncatechars:25 }}
+                          {% else %}
+                            {{ client.last_content|truncatechars:40 }}
+                          {% endif %}
+                        </div>
+                        <small class="text-muted">{{ client.last_message|timesince }} ago</small>
+                      </div>
+                    </a>
+                  </li>
+                  {% if not forloop.last %}<li><hr class="dropdown-divider"></li>{% endif %}
+                {% endfor %}
+              {% else %}
+                <li class="text-center py-2">
+                  <span class="text-muted">No new client messages</span>
+                </li>
+              {% endif %}
+            </div>
+
+            <!-- Marketers section header -->
+            <li><hr class="dropdown-divider"></li>
+            <li class="dropdown-header">
+              <span id="admin-marketer-count-text">
+                {{ marketers_unread_count|default:0 }} marketer{{ marketers_unread_count|default:0|pluralize }} with new message{{ marketers_unread_count|default:0|pluralize }}
+              </span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <div id="admin-marketers-list">
+              {% if marketers %}
+                {% for m in marketers %}
+                  {% if m.unread_count %}
+                  <li class="message-item position-relative">
+                    <a href="{% url 'admin_marketer_chat' m.id %}" class="d-flex align-items-center p-2">
+                      <div class="avatar me-3">
+                        {% if m.profile_image %}
+                          <img src="{{ m.profile_image.url }}" 
+                              alt="{{ m.full_name }}" 
+                              class="rounded-circle"
+                              style="width:40px;height:40px;object-fit:cover">
+                        {% else %}
+                          <div class="avatar-initials bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                              style="width:40px;height:40px">
+                            {{ m.full_name|slice:":1" }}
+                          </div>
+                        {% endif %}
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <h6 class="mb-0">{{ m.full_name }}</h6>
+                          <span class="badge bg-danger rounded-pill">
+                            {{ m.unread_count }}
+                          </span>
+                        </div>
+                        <div class="text-muted small">
+                          {% if m.last_file %}
+                            <i class="bi bi-file-earmark me-1"></i>
+                            {{ m.last_file|filename|truncatechars:25 }}
+                          {% else %}
+                            {{ m.last_content|truncatechars:40 }}
+                          {% endif %}
+                        </div>
+                        <small class="text-muted">{{ m.last_message|timesince }} ago</small>
+                      </div>
+                    </a>
+                  </li>
+                  {% if not forloop.last %}<li><hr class="dropdown-divider"></li>{% endif %}
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <li class="text-center py-2">
+                  <span class="text-muted">No new marketer messages</span>
+                </li>
+              {% endif %}
+            </div>
+          </ul>
+        </li>
+      {% else %}
+        <!-- CLIENT/MARKETER: Message icon with badge only (no dropdown) -->
+        <li class="nav-item">
+          <a class="nav-link nav-icon" href="{% url 'chat' %}" title="Messages from Admin">
+            <i class="bi bi-chat-left-text"></i>
+            {% if global_message_count > 0 %}
+              <span id="global-messages-badge" class="badge bg-success badge-number">{{ global_message_count }}</span>
+            {% else %}
+              <span id="global-messages-badge" class="badge bg-success badge-number" style="display:none">0</span>
+            {% endif %}
+          </a>
+        </li>
+      {% endif %}
+      <!-- End Chat Messages Icon -->
+
+      <!-- Profile Nav -->
+      <li class="nav-item dropdown pe-3">
+        {% if user.is_authenticated %}
+          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+            {% if user.is_staff %}
+            {% else %}
+              {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="{{ user.full_name }} Profile Image" class="rounded-circle">
+              {% else %}
+                <img src="{% static 'assets/img/profile_avatar.jpeg' %}" alt="Avatar Image" width="100" height="100">
+              {% endif %}
+            {% endif %}
+            <span class="d-none d-md-block dropdown-toggle ps-2">{{ user.full_name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+            <li class="dropdown-header">
+              <h6>{{ user.full_name }}</h6>
+              <span>{{ user.job }}</span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% if user.role == 'admin' %}
+              {% url 'company-profile' as company_profile_url %}
+              <li>
+                <a class="dropdown-item d-flex align-items-center" href="{{ company_profile_url|default:'/company-profile/' }}">
+                  <i class="bi bi-person"></i>
+                  <span>Company Profile</span>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            <li>
+              <form action="{% url 'logout' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item d-flex align-items-center">
+                  <i class="bi bi-box-arrow-right"></i>
+                  <span>Logout</span>
+                </button>
+              </form>
+            </li>
+          </ul>
+        {% else %}
+          <a class="nav-link" href="{% url 'login' %}">Login</a>
+        {% endif %}
+      </li><!-- End Profile Nav -->
+    </ul>
+  </nav><!-- End Icons Navigation -->
+
+  <style>
+    :root {
+      --header-bg: #ffffff;
+      --header-text: #000000;
+      --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      --dropdown-bg: #ffffff;
+      --dropdown-text: #212529;
+      --dropdown-border: rgba(0, 0, 0, 0.15);
+      --dropdown-divider: rgba(0, 0, 0, 0.1);
+      --dropdown-hover: #f8f9fa;
+      --nav-icon-color: #495057;
+      --nav-icon-hover: #4a6cf7;
+      --profile-dropdown-header: #f8f9fa;
+    }
+
+    [data-theme="dark"] {
+      --header-bg: #1e1e1e;
+      --header-text: #ffffff;
+      --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      --dropdown-bg: #2d2d2d;
+      --dropdown-text: #ffffff;
+      --dropdown-border: rgba(255, 255, 255, 0.1);
+      --dropdown-divider: rgba(255, 255, 255, 0.1);
+      --dropdown-hover: #3e3e3e;
+      --nav-icon-color: #adb5bd;
+      --nav-icon-hover: #6c8af8;
+      --profile-dropdown-header: #333333;
+    }
+
+    /* Header Base Styles */
+    .header {
+      background-color: var(--header-bg);
+      color: var(--header-text);
+      box-shadow: var(--header-shadow);
+      padding: 0.5rem 1rem;
+      z-index: 999;
+      transition: all 0.3s ease;
+    }
+
+    .logo img {
+      height: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .logo span {
+      font-weight: 600;
+      color: var(--header-text);
+      margin-left: 10px;
+    }
+
+    .toggle-sidebar-btn {
+      font-size: 1.5rem;
+      color: var(--nav-icon-color);
+      cursor: pointer;
+      margin-left: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-sidebar-btn:hover {
+      color: var(--nav-icon-hover);
+    }
+
+    /* Navigation Icons */
+    .nav-link.nav-icon {
+      color: var(--nav-icon-color);
+      font-size: 1.25rem;
+      position: relative;
+      margin: 0 0.5rem;
+      transition: all 0.3s ease;
+      border: none !important;
+      overflow: visible; 
+    }
+
+    .nav-link.nav-icon:hover {
+      color: var(--nav-icon-hover);
+    }
+
+    .badge-number {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      z-index: 1000;                      /* Ensure it sits above any borders */
+      pointer-events: none;               /* Avoid capturing clicks */
+      box-shadow: 0 0 0 2px var(--header-bg); /* Contrast ring so it’s always visible */
+    }
+
+    /* Dropdown Menus */
+    .dropdown-menu {
+      background-color: var(--dropdown-bg);
+      border: 1px solid var(--dropdown-border);
+      color: var(--dropdown-text);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .dropdown-header {
+      background-color: var(--profile-dropdown-header);
+      color: var(--dropdown-text);
+    }
+
+    .dropdown-divider {
+      border-color: var(--dropdown-divider);
+    }
+
+    .dropdown-item {
+      color: var(--dropdown-text);
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      background-color: var(--dropdown-hover);
+      color: var(--dropdown-text);
+    }
+
+    /* Profile Dropdown */
+    .nav-profile img {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+    }
+
+    .dropdown-menu.profile {
+      min-width: 250px;
+    }
+
+    .dropdown-menu.profile .dropdown-header h6 {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .dropdown-menu.profile .dropdown-header span {
+      font-size: 0.85rem;
+      color: var(--dropdown-text);
+      opacity: 0.8;
+    }
+
+    /* Notification Items */
+    .notification-item i {
+      font-size: 1.25rem;
+      margin-right: 1rem;
+    }
+
+    .notification-item div h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .notification-item div p {
+      font-size: 0.85rem;
+      margin-bottom: 0;
+    }
+
+    .notification-item div p:last-child {
+      font-size: 0.75rem;
+      color: var(--dropdown-text);
+      opacity: 0.7;
+    }
+
+    /* Message Items */
+    .message-item .avatar-initials {
+      font-weight: 600;
+    }
+
+    .message-item h6 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .message-item .text-muted {
+      font-size: 0.85rem;
+    }
+
+    /* Pulse Animation */
+    .pulse {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .logo span {
+        display: none;
+      }
+      
+      .nav-profile span {
+        display: none;
+      }
+      
+      .header {
+        padding: 0.5rem;
+      }
+      
+      .nav-link.nav-icon {
+        margin: 0 0.25rem;
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+
+  <script>
+    let chatAlertAudioContext = null;
+
+    function playChatAlert() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+          return;
+        }
+
+        if (!chatAlertAudioContext) {
+          chatAlertAudioContext = new AudioCtx();
+        }
+
+        // Some browsers require resuming the context after user gesture
+        if (chatAlertAudioContext.state === 'suspended') {
+          chatAlertAudioContext.resume().catch(() => {});
+        }
+
+        const oscillator = chatAlertAudioContext.createOscillator();
+        const gain = chatAlertAudioContext.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 1200;
+        gain.gain.setValueAtTime(0.12, chatAlertAudioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, chatAlertAudioContext.currentTime + 0.25);
+
+        oscillator.connect(gain);
+        gain.connect(chatAlertAudioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(chatAlertAudioContext.currentTime + 0.25);
+      } catch (error) {
+        // Silently ignore audio errors (e.g. autoplay restrictions)
+        console.debug('chat alert audio failed', error);
+      }
+    }
+
+    const badgeCounters = window.__chatBadgeCounters || {};
+    window.__chatBadgeCounters = badgeCounters;
+
+    // Update header theme when system theme changes
+    function updateHeaderTheme() {
+      const header = document.getElementById('header');
+      if (header) {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        header.setAttribute('data-theme', currentTheme);
+      }
+    }
+
+    // Initialize header theme
+    document.addEventListener('DOMContentLoaded', () => {
+      updateHeaderTheme();
+      
+      // Watch for theme changes
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.attributeName === 'data-theme') {
+            updateHeaderTheme();
+          }
+        });
+      });
+      
+      observer.observe(document.documentElement, {
+        attributes: true
+      });
+
+      // Ensure sidebar toggle works on desktop as well
+      const toggleBtn = document.querySelector('.toggle-sidebar-btn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          document.body.classList.toggle('toggle-sidebar');
+        });
+      }
+    });
+
+    // Chat badge polling function
+    function updateBadge(elementId, count) {
+      const badge = document.getElementById(elementId);
+      if (!badge) return;
+
+      const previousCount = badgeCounters[elementId] || 0;
+      badgeCounters[elementId] = count;
+
+      badge.textContent = count;
+      if (count > 0) {
+        badge.style.display = 'inline-block';
+        badge.classList.add('pulse');
+        if (count > previousCount) {
+          playChatAlert();
+        }
+      } else {
+        badge.style.display = 'none';
+        badge.classList.remove('pulse');
+      }
+    }
+
+    function pollUnreadCounts() {
+      fetch("{% url 'chat_unread_count' %}", {credentials: 'same-origin'})
+        .then(response => response.json())
+        .then(data => {
+          const msgBadge = document.getElementById("global-messages-badge");
+          let count;
+          
+          {% if user.role == 'admin' %}
+            count = data.total_unread || 0;
+          {% else %}
+            count = data.global_message_count || 0;
+          {% endif %}
+          
+          msgBadge.textContent = count;
+          if (count > 0) {
+            msgBadge.classList.add('pulse');
+          } else {
+            msgBadge.classList.remove('pulse');
+          }
+          
+          {% if user.role == 'admin' %}
+            updateBadge('global-messages-badge', data.total_unread || 0);
+            if (typeof updateBadge === 'function') {
+              updateBadge('sidebar-admin-chat-badge', data.total_unread || 0);
+            }
+
+            // Render admin dropdown list if available
+            try {
+              const listHost = document.getElementById('admin-messages-list');
+              const headText = document.getElementById('admin-client-count-text');
+              if (headText && (typeof data.client_count !== 'undefined')) {
+                const n = data.client_count || 0;
+                headText.textContent = `${n} client${n === 1 ? '' : 's'} with new message${n === 1 ? '' : 's'}`;
+              }
+              if (listHost && Array.isArray(data.admin_unread_clients)) {
+                if (data.admin_unread_clients.length === 0) {
+                  listHost.innerHTML = '<li class="text-center py-2"><span class="text-muted">No new client messages</span></li>';
+                } else {
+                  const itemHtml = data.admin_unread_clients.map((c, idx) => {
+                    const initials = (c.full_name || 'C').slice(0,1);
+                    const avatar = c.profile_image
+                      ? `<img src="${c.profile_image}" alt="${c.full_name}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover">`
+                      : `<div class=\"avatar-initials bg-primary text-white rounded-circle d-flex align-items-center justify-content-center\" style=\"width:40px;height:40px\">${initials}</div>`;
+                    const filePart = c.last_file
+                      ? (() => { const lf = (c.last_file || '').replace(/\\\\/g,'/'); const bn = lf.split('/').pop(); return `<i class=\\"bi bi-file-earmark me-1\\"></i>${(bn || '').slice(0,25)}` })()
+                      : (c.last_content || '').slice(0, 40);
+                    const timeText = c.last_message_iso ? new Date(c.last_message_iso).toLocaleString() : '';
+                    const link = "{% url 'admin_chat' 0 %}".replace('/0/', `/${c.id}/`);
+                    const divider = (idx < data.admin_unread_clients.length - 1) ? '<li><hr class="dropdown-divider"></li>' : '';
+                    return `
+                      <li class=\"message-item position-relative\">
+                        <a href=\"${link}\" class=\"d-flex align-items-center p-2\">
+                          <div class=\"avatar me-3\">${avatar}</div>
+                          <div class=\"flex-grow-1\">
+                            <div class=\"d-flex justify-content-between align-items-center\">
+                              <h6 class=\"mb-0\">${c.full_name || 'Client'}</h6>
+                              <span class=\"badge bg-danger rounded-pill\">${c.unread_count || 0}</span>
+                            </div>
+                            <div class=\"text-muted small\">${filePart || ''}</div>
+                            <small class=\"text-muted\">${timeText}</small>
+                          </div>
+                        </a>
+                      </li>
+                      ${divider}
+                    `;
+                  }).join('');
+                  listHost.innerHTML = itemHtml;
+                }
+              }
+
+              // Render marketers block
+              const mkHead = document.getElementById('admin-marketer-count-text');
+              if (mkHead && (typeof data.marketer_count !== 'undefined')) {
+                const n = data.marketer_count || 0;
+                mkHead.textContent = `${n} marketer${n === 1 ? '' : 's'} with new message${n === 1 ? '' : 's'}`;
+              }
+              const mkList = document.getElementById('admin-marketers-list');
+              if (mkList && Array.isArray(data.admin_unread_marketers)) {
+                if (data.admin_unread_marketers.length === 0) {
+                  mkList.innerHTML = '<li class="text-center py-2"><span class="text-muted">No new marketer messages</span></li>';
+                } else {
+                  const itemHtml = data.admin_unread_marketers.map((m, idx) => {
+                    const initials = (m.full_name || 'M').slice(0,1);
+                    const avatar = m.profile_image
+                      ? `<img src="${m.profile_image}" alt="${m.full_name}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover">`
+                      : `<div class=\"avatar-initials bg-success text-white rounded-circle d-flex align-items-center justify-content-center\" style=\"width:40px;height:40px\">${initials}</div>`;
+                    const filePart = m.last_file
+                      ? (() => { const lf = (m.last_file || '').replace(/\\\\/g,'/'); const bn = lf.split('/').pop(); return `<i class=\\"bi bi-file-earmark me-1\\"></i>${(bn || '').slice(0,25)}` })()
+                      : (m.last_content || '').slice(0, 40);
+                    const timeText = m.last_message_iso ? new Date(m.last_message_iso).toLocaleString() : '';
+                    const link = "{% url 'admin_marketer_chat' 0 %}".replace('/0/', `/${m.id}/`);
+                    const divider = (idx < data.admin_unread_marketers.length - 1) ? '<li><hr class="dropdown-divider"></li>' : '';
+                    return `
+                      <li class=\"message-item position-relative\">
+                        <a href=\"${link}\" class=\"d-flex align-items-center p-2\">
+                          <div class=\"avatar me-3\">${avatar}</div>
+                          <div class=\"flex-grow-1\">
+                            <div class=\"d-flex justify-content-between align-items-center\">
+                              <h6 class=\"mb-0\">${m.full_name || 'Marketer'}</h6>
+                              <span class=\"badge bg-danger rounded-pill\">${m.unread_count || 0}</span>
+                            </div>
+                            <div class=\"text-muted small\">${filePart || ''}</div>
+                            <small class=\"text-muted\">${timeText}</small>
+                          </div>
+                        </a>
+                      </li>
+                      ${divider}
+                    `;
+                  }).join('');
+                  mkList.innerHTML = itemHtml;
+                }
+              }
+            } catch (e) { console.error(e); }
+          {% else %}
+            const clientMarketerCount = data.global_message_count || 0;
+            updateBadge('global-messages-badge', clientMarketerCount);
+            ['sidebar-chat-badge', 'sidebar-client-chat-badge'].forEach(function(id) {
+              updateBadge(id, clientMarketerCount);
+            });
+          {% endif %}
+        })
+        .catch(console.error);
+      setTimeout(pollUnreadCounts, 3000);
+    }
+    document.addEventListener('DOMContentLoaded', pollUnreadCounts);
+  </script>
+</header><!-- End Header -->
+

@@ -1,0 +1,666 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+
+    .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 10px;
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .map-container {
+        width: 100%;
+        height: 400px;
+        position: relative;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        overflow: hidden;
+        background: linear-gradient(45deg, #87cefa, #add8e6, #ffffff);
+        animation: backgroundMotion 8s infinite alternate;
+    }
+
+    @keyframes backgroundMotion {
+        0% {
+            background-position: 0% 50%;
+        }
+        100% {
+            background-position: 100% 50%;
+        }
+    }
+
+    .plot {
+        position: absolute;
+        width: 60px;
+        height: 50px;
+        border-radius: 5px;
+        text-align: center;
+        line-height: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .plot.allocated {
+        background-color: darkgreen;
+    }
+
+    .plot.not-allocated {
+        background-color: darkred;
+    }
+
+    .plot:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    /* .connection-line {
+        position: absolute;
+        stroke: rgba(0, 0, 0, 0.3);
+        stroke-width: 2px;
+    } */
+
+     /* SVG Line Styles */
+     .wave-line {
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .wave-line.allocated {
+        stroke: green;
+    }
+
+    .wave-line.not-allocated {
+        stroke: red;
+        stroke-dasharray: 6, 4; /* Dashed effect for not-allocated lines */
+    }
+
+    /* Table Styles */
+    .table-responsive {
+        overflow-x: auto;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    table th,
+    table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f9fa;
+    }
+
+    table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    table tbody tr:hover {
+        background-color: #e9ecef;
+    }
+
+    tr .allocated span{
+        background-color: darkgreen; 
+        padding: 3px 10px; 
+        border-radius: 10px; 
+        color: white;
+        box-shadow: 4px 4px 10px black;
+    }
+    tr .not-allocated span{
+        background-color: darkred; 
+        padding: 3px 10px; 
+        border-radius: 10px; 
+        color: white;
+        box-shadow: 4px 4px 10px black;
+    }
+
+    tr .allocated span:hover{
+        background-color: green; 
+        font-size: 17px;
+        transition: 1s all;
+    }
+
+    tr .not-allocated span:hover{
+        background-color: red; 
+        font-size: 17px;
+        transition: 1s all;
+    }
+
+    .btn {
+        padding: 5px 10px;
+        font-size: 12px;
+        text-decoration: none;
+        color: #fff;
+        border-radius: 3px;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .map-container {
+            height: 300px;
+        }
+        
+
+        table th,
+        table td {
+            font-size: 12px;
+            padding: 8px;
+        }
+
+        .btn {
+            font-size: 10px;
+            padding: 3px 6px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding: 5px;
+        }
+
+        table {
+            font-size: 12px;
+        }
+        .btn {
+            font-size: 10px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .map-container {
+            height: 60vh; /* Reduce height on small screens */
+        }
+
+        .plot {
+            width: 15%;  /* Slightly larger plots on small screens */
+            height: 12%; /* Larger height for better visibility */
+        }
+    }
+
+    @media (max-width: 400px) {
+        .map-container {
+            height: 50vh; /* Further reduce height for very small screens */
+        }
+
+        .plot {
+            width: 20%;  /* Larger plots for very small screens */
+            height: 15%; /* Larger height for better visibility */
+        }
+    }
+
+    .map-container-plot-sizes {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #87cefa, #add8e6, #ffffff);
+}
+.map-container-plot-sizes .map {
+    position: relative;
+    width: 100%;
+    height: 80%;
+}
+.map-container-plot-sizes .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.legend-item .color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+}
+
+</style>
+
+<main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Estate List</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+          <!-- <li class="breadcrumb-item">Pages</li> -->
+          <li class="breadcrumb-item active">Allocated Plots</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="container">
+                <h3>Plot Dashboard</h3>
+            <div class="table-wrapper">
+                
+                <!-- <div class="map-container">
+                    <svg class="line-container" width="100%" height="100%" style="position: absolute; top: 0; left: 0;"></svg>
+                </div> -->
+                <div id="map-container">
+                    <svg id="plot-map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+                        <!-- SVG shapes for plots -->
+                    </svg>
+                </div>
+                
+                <table id="client-details" border="1">
+                    <thead>
+                        <tr>
+                            <th>Plot Number</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows populated dynamically -->
+                    </tbody>
+                </table>
+                
+
+                <div class="dashboard">
+                    <div class="plot-box" id="plot-600">
+                        <h3>600 SQM</h3>
+                        <p>Total Units: <span id="total-600">55</span></p>
+                        <p>Allocated: <span id="allocated-600">21</span></p>
+                        <p>Reserved: <span id="reserved-600">34</span></p>
+                    </div>
+                    <div class="plot-box" id="plot-500">
+                        <h3>500 SQM</h3>
+                        <p>Total Units: <span id="total-500">30</span></p>
+                        <p>Allocated: <span id="allocated-500">12</span></p>
+                        <p>Reserved: <span id="reserved-500">18</span></p>
+                    </div>
+                    <div class="plot-box" id="plot-800">
+                        <h3>800 SQM</h3>
+                        <p>Total Units: <span id="total-800">40</span></p>
+                        <p>Allocated: <span id="allocated-800">22</span></p>
+                        <p>Reserved: <span id="reserved-800">18</span></p>
+                    </div>
+                </div>
+                
+                <style>
+                /* Dashboard container */
+                .dashboard {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    padding: 20px;
+                    background: linear-gradient(135deg, #e3f2fd, #f9f9f9);
+                    cursor: pointer;
+                }
+                
+                /* Plot Box styling */
+                .plot-box {
+                    position: relative;
+                    padding: 20px;
+                    border: none;
+                    border-radius: 15px;
+                    background: #ffffff;
+                    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    overflow: hidden;
+                    text-align: center;
+                }
+                
+                /* Hover animation */
+                .plot-box:hover {
+                    transform: translateY(-10px);
+                    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+                }
+                
+                /* Plot Box Header */
+                .plot-box h3 {
+                    font-size: 1.6rem;
+                    color: #4caf50;
+                    margin-bottom: 10px;
+                }
+                
+                /* Paragraphs inside boxes */
+                .plot-box p {
+                    font-size: 1rem;
+                    color: #333;
+                    margin: 5px 0;
+                }
+                
+                /* Highlight numbers with animation */
+                .plot-box span {
+                    font-weight: bold;
+                    color: #007bff;
+                    animation: pulse 2s infinite;
+                }
+                
+                /* Animation for numbers */
+                @keyframes pulse {
+                    0%, 100% {
+                        color: #007bff;
+                        transform: scale(1);
+                    }
+                    50% {
+                        color: #ff5722;
+                        transform: scale(1.1);
+                    }
+                }
+                
+                /* Responsive design */
+                @media (max-width: 768px) {
+                    .plot-box {
+                        padding: 15px;
+                    }
+                    .plot-box h3 {
+                        font-size: 1.4rem;
+                    }
+                    .plot-box p {
+                        font-size: 0.9rem;
+                    }
+                }
+                </style>
+                
+                
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Client Name</th>
+                                <th>Payment Type</th>
+                                <th>Estate Name</th>
+                                <th>Estate Plot Sizes</th>
+                                <th>Estate Plot Number</th>
+                                <th class="col-sm-2 status">Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Victor Akor Godwin</td>
+                                <td>Full Payment</td>
+                                <td>Valley Hills Estate</td>
+                                <td>600 sqm</td>
+                                <td>df100</td>
+                                <td class="allocated"><span  >Allocated</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-primary">Update Client</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Mark Godwin</td>
+                                <td>Part Payment</td>
+                                <td>Valley Hills Estate</td>
+                                <td>500 sqm</td>
+                                <td>-</td>
+                                <td class="not-allocated"> <span>Not Allocated</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-primary">Update Client</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </section>
+
+<script>
+    const plots = [
+        { id: 1, size: 'A001', allocated: true },
+        { id: 2, size: 'A007', allocated: false },
+        { id: 3, size: 'A011', allocated: true },
+        { id: 4, size: 'B743', allocated: false },
+        { id: 5, size: 'B453', allocated: true },
+    ];
+
+    const mapContainer = document.querySelector('.map-container');
+    const svgContainer = document.querySelector('.line-container');
+    const plotElements = [];
+
+    // Function to create wavy SVG path
+    const createWavePath = (x1, y1, x2, y2) => {
+        const midX = (x1 + x2) / 2;
+        const waveHeight = 15; // Height of the wave
+        return `
+            M ${x1},${y1}
+            Q ${midX},${y1 - waveHeight} ${x2},${y2}
+        `;
+    };
+
+    // Function to draw lines dynamically
+    const drawLines = () => {
+        svgContainer.innerHTML = ''; // Clear existing lines
+
+        // Separate allocated and not-allocated plots
+        const allocatedPlots = plotElements.filter(plot => plot.allocated);
+        const notAllocatedPlots = plotElements.filter(plot => !plot.allocated);
+
+        // Draw lines for allocated plots
+        for (let i = 0; i < allocatedPlots.length - 1; i++) {
+            const { x: x1, y: y1 } = allocatedPlots[i].position;
+            const { x: x2, y: y2 } = allocatedPlots[i + 1].position;
+
+            const path = createWavePath(x1, y1, x2, y2);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('d', path);
+            line.classList.add('wave-line', 'allocated');
+            svgContainer.appendChild(line);
+        }
+
+        // Draw lines for not-allocated plots
+        for (let i = 0; i < notAllocatedPlots.length - 1; i++) {
+            const { x: x1, y: y1 } = notAllocatedPlots[i].position;
+            const { x: x2, y: y2 } = notAllocatedPlots[i + 1].position;
+
+            const path = createWavePath(x1, y1, x2, y2);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            line.setAttribute('d', path);
+            line.classList.add('wave-line', 'not-allocated');
+            svgContainer.appendChild(line);
+        }
+    };
+
+    // Initialize plots on the map
+    plots.forEach((plot, index) => {
+        const plotElement = document.createElement('div');
+        plotElement.className = `plot ${plot.allocated ? 'allocated' : 'not-allocated'}`;
+        plotElement.textContent = plot.size;
+
+        // Set initial random positions
+        const x = Math.random() * 80 + 10; // Randomize within 10% to 90%
+        const y = Math.random() * 80 + 10;
+        plotElement.style.left = `${x}%`;
+        plotElement.style.top = `${y}%`;
+
+        plotElements.push({ element: plotElement, position: { x: x * mapContainer.offsetWidth / 100, y: y * mapContainer.offsetHeight / 100 }, allocated: plot.allocated });
+        mapContainer.appendChild(plotElement);
+
+        // Make plots draggable
+        plotElement.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const onMouseMove = (event) => {
+                const rect = mapContainer.getBoundingClientRect();
+                let newX = event.clientX - rect.left;
+                let newY = event.clientY - rect.top;
+
+                // Clamp positions within the container
+                newX = Math.max(0, Math.min(rect.width - plotElement.offsetWidth, newX));
+                newY = Math.max(0, Math.min(rect.height - plotElement.offsetHeight, newY));
+
+                plotElement.style.left = `${newX}px`;
+                plotElement.style.top = `${newY}px`;
+
+                const plotIndex = plotElements.findIndex(p => p.element === plotElement);
+                plotElements[plotIndex].position = { x: newX, y: newY };
+
+                drawLines(); // Redraw lines as the plot moves
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    });
+
+    // Initial draw of lines
+    drawLines();
+
+//     const plotData = [
+//     { size: '600', total: 55, allocated: 21, reserved: 34 },
+//     { size: '500', total: 30, allocated: 12, reserved: 18 },
+//     { size: '800', total: 40, allocated: 22, reserved: 18 },
+// ];
+// const plotData = [
+//     { size: '600', total: 55, allocated: 21, reserved: 34 },
+//     { size: '500', total: 30, allocated: 12, reserved: 18 },
+//     { size: '800', total: 40, allocated: 22, reserved: 18 },
+// ];
+
+// // Function to populate data dynamically
+// const populatePlots = (data) => {
+//     data.forEach(plot => {
+//         const totalElem = document.getElementById(`total-${plot.size}`);
+//         const allocatedElem = document.getElementById(`allocated-${plot.size}`);
+//         const reservedElem = document.getElementById(`reserved-${plot.size}`);
+
+//         if (totalElem) totalElem.textContent = plot.total;
+//         if (allocatedElem) allocatedElem.textContent = plot.allocated;
+//         if (reservedElem) reservedElem.textContent = plot.reserved;
+//     });
+// };
+
+// // Populate the plot boxes
+// populatePlots(plotData);
+
+
+
+</script>
+
+
+<script>
+    $(document).ready(function () {
+    function updatePlotData() {
+        $.ajax({
+            url: '/api/fetch-plot-data/', // Endpoint to fetch plot data
+            method: 'GET',
+            success: function (response) {
+                const allocatedPlots = response.allocated_plots;
+                const reservedCount = response.reserved_count;
+
+                // Update the SVG map
+                updateSVGMap(allocatedPlots);
+
+                // Update the client detail table
+                updateClientDetailsTable(allocatedPlots, reservedCount);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching plot data:', error);
+            }
+        });
+    }
+
+    function updateSVGMap(allocatedPlots) {
+        const svg = $('#plot-map');
+
+        // Clear existing plots
+        svg.find('.plot').remove();
+
+        // Add allocated plots to the map
+        allocatedPlots.forEach(plot => {
+            svg.append(`
+                <rect class="plot allocated" x="${plot.x || 0}" y="${plot.y || 0}" width="50" height="50"
+                      data-plot-number="${plot.plot_number}" />
+            `);
+        });
+    }
+
+    function updateClientDetailsTable(allocatedPlots, reservedCount) {
+        const tableBody = $('#client-details tbody');
+        tableBody.empty();
+
+        // Add allocated plots to the table
+        allocatedPlots.forEach(plot => {
+            tableBody.append(`
+                <tr>
+                    <td>${plot.plot_number}</td>
+                    <td>Allocated</td>
+                </tr>
+            `);
+        });
+
+        // Add reserved plots count to the table
+        tableBody.append(`
+            <tr>
+                <td>Reserved</td>
+                <td>${reservedCount} plots</td>
+            </tr>
+        `);
+    }
+
+    // Initial data fetch
+    updatePlotData();
+
+    // Refresh plot data every 60 seconds (optional)
+    setInterval(updatePlotData, 60000);
+});
+
+</script>
+</main>
+
+{% endblock %}

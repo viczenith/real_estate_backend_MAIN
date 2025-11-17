@@ -1,0 +1,529 @@
+{% load humanize %}
+
+<!-- Latest Price Increments Carousel -->
+<section class="mt-5">
+  <div class="header-container animate__animated animate__fadeInDown">
+    <h2 class="header-title">Latest Price Increments</h2>
+    <p class="header-subtitle">
+      Recent price movements across our premium estates
+    </p>
+
+    {% if latest_value %}
+      <div class="swiper-container">
+        <div class="swiper priceIncrementsSwiper">
+          <div class="swiper-wrapper">
+            {% for update in latest_value %}
+              <div class="swiper-slide">
+                <div class="card price-card animate__animated animate__fadeInUp">
+                  <!-- Card header -->
+                  <div class="card-header">
+                    <h5 class="card-title">{{ update.price.estate.name }}</h5>
+                    <p class="property-size">
+                      <i class="bi bi-upc-scan me-1"></i>
+                      {{ update.price.plot_unit.plot_size.size }}
+                    </p>
+                  </div>
+
+                  <!-- Card body -->
+                  <div class="card-body">
+                    <!-- Price change row -->
+                    <div class="price-change {% if update.percent_change < 0 %}decrease{% endif %}">
+                      <span class="previous-price">₦{{ update.previous|intcomma }}</span>
+                      <i class="bi bi-arrow-right price-change-arrow"></i>
+                      <span class="current-price">₦{{ update.current|intcomma }}</span>
+
+                      {% if update.percent_change %}
+                        <span class="trend-indicator
+                                    {% if update.percent_change < 0 %}trend-down{% else %}trend-up{% endif %}">
+                          {{ update.percent_change|floatformat:1 }}%
+                          <i class="bi bi-arrow-{% if update.percent_change < 0 %}down{% else %}up{% endif %}"></i>
+                        </span>
+                      {% endif %}
+                    </div>
+
+                    <!-- Effective date -->
+                    <div class="price-info">
+                      <span class="info-label">
+                        <i class="bi bi-calendar-event me-1"></i> Effective:
+                      </span>
+                      <span class="info-value">{{ update.effective }}</span>
+                    </div>
+
+                    <!-- Notes -->
+                    {% if update.notes %}
+                      <div class="notes-container">
+                        <p class="notes-text">“{{ update.notes }}”</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Navigation & pagination -->
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-pagination"></div> 
+        </div>
+      </div>
+    {% else %}
+      <div class="no-data-container">
+        <div class="no-data-icon"><i class="bi bi-graph-down"></i></div>
+        <h4>No Recent Price Changes</h4>
+        <p class="text-muted">
+          Check back later for updates on property price movements.
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<style>
+  :root {
+    --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --card-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    --hover-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    --success-color: #00c9a7;
+    --warning-color: #ff9e1b;
+    --border-radius: 18px;
+  }
+
+  .header-container {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 30px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 6px;
+    background: var(--primary-gradient);
+  }
+  .header-title {
+    position: relative;
+    display: inline-block;
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 0;
+    width: 60px; height: 4px;
+    background: var(--success-color);
+    border-radius: 2px;
+  }
+  .header-subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+  }
+
+  .swiper-container {
+    padding: 15px 15px 60px;
+    position: relative;
+  }
+
+  .price-card {
+    background: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: all .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    height: 100%;
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+  .swiper-slide-active .price-card {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: var(--hover-shadow);
+    z-index: 10;
+  }
+  .price-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: var(--hover-shadow);
+  }
+
+  .card-header {
+    background: var(--primary-gradient);
+    color: #fff;
+    padding: 25px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 50%;
+    transform: translateX(-50%);
+    width: 50px; height: 50px;
+    background: #fff;
+    border-radius: 50%;
+    z-index: 1;
+  }
+  .card-header::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 0; right: 0;
+    height: 30px;
+    background: #fff;
+    border-radius: 50% 50% 0 0;
+  }
+  .card-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+  }
+  .card-title {
+    position: relative;
+    z-index: 2;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: white;
+  }
+  .property-size {
+    position: relative;
+    z-index: 2;
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+  }
+  .property-size i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 40px 25px 30px;
+  }
+
+  .price-change {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px dashed #e0e0e0;
+    position: relative;
+  }
+  .price-change::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 50%;
+  }
+  .price-change span,
+  .price-change i {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .previous-price {
+    font-size: 1.1rem;
+    color: #95a5a6;
+    text-decoration: line-through;
+    font-weight: 500;
+  }
+  .current-price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2c3e50;
+    letter-spacing: -0.5px;
+  }
+  .price-change-arrow {
+    font-size: 2.2rem;
+    color: var(--success-color);
+  }
+  .decrease .price-change-arrow {
+    color: var(--warning-color);
+  }
+  .decrease .current-price {
+    color: var(--warning-color);
+  }
+
+  .trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 15px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .trend-up {
+    background: rgba(0,201,167,0.15);
+    color: var(--success-color);
+  }
+  .trend-down {
+    background: rgba(255,158,27,0.15);
+    color: var(--warning-color);
+  }
+
+  .price-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+  }
+  .info-label {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+  }
+  .info-label i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+  }
+  .info-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.05rem;
+  }
+
+  .notes-container {
+    background: #f9f9ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 25px;
+    border-left: 4px solid var(--success-color);
+    position: relative;
+    overflow: hidden;
+  }
+  .notes-container::before {
+    content: '"';
+    position: absolute;
+    top: -25px;
+    left: 10px;
+    font-size: 6rem;
+    color: rgba(0, 201, 167, 0.1);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .notes-text {
+    font-style: italic;
+    color: #546e7a;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    position: relative;
+    z-index: 2;
+  }
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    top: calc(50% - 50px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .swiper-button-next::after,
+  .swiper-button-prev::after {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #6a11cb;
+    transition: all 0.3s ease;
+  }
+  
+  .swiper-button-next:hover,
+  .swiper-button-prev:hover {
+    transform: scale(1.12);
+    background: #6a11cb;
+    box-shadow: 0 10px 30px rgba(106, 17, 203, 0.4);
+  }
+  
+  .swiper-button-next:hover::after,
+  .swiper-button-prev:hover::after {
+    color: white;
+  }
+
+  .swiper-pagination {
+    bottom: 20px !important;
+  }
+  .swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+    background: #d1d1d1;
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+  .swiper-pagination-bullet-active {
+    background: #6a11cb;
+    width: 35px;
+    border-radius: 8px;
+    transform: scale(1.1);
+  }
+
+  .no-data-container {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    max-width: 700px;
+    margin: 0 auto;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  
+  .no-data-icon {
+    font-size: 5rem;
+    color: #e0e0e0;
+    margin-bottom: 25px;
+  }
+  
+  .no-data-container h4 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  .no-data-container p {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Decorative elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    z-index: -1;
+  }
+  
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(106, 17, 203, 0.08) 0%, rgba(37, 117, 252, 0.08) 100%);
+    top: 10%;
+    right: -100px;
+  }
+  
+  .circle-2 {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, rgba(0, 201, 167, 0.1) 0%, rgba(0, 201, 167, 0.05) 100%);
+    bottom: 10%;
+    left: -80px;
+  }
+
+  @media (max-width: 768px) {
+    .swiper-button-next,
+    .swiper-button-prev {
+      display: none;
+    }
+    .current-price {
+      font-size: 1.5rem;
+    }
+    .header-title {
+      font-size: 1.8rem;
+    }
+    .card-body {
+      padding: 30px 20px;
+    }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Swiper for Price Increments with advanced transitions
+    const priceSwiper = new Swiper('.priceIncrementsSwiper', {
+      slidesPerView: 1,
+      spaceBetween: 30,
+      loop: true,
+      centeredSlides: true,
+      autoplay: {
+        delay: 5500,
+        disableOnInteraction: false,
+      },
+      speed: 1000,
+      effect: 'coverflow',
+      coverflowEffect: {
+        rotate: 0,
+        stretch: 0,
+        depth: 100,
+        modifier: 2.5,
+        slideShadows: true,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: 1,
+        },
+        768: {
+          slidesPerView: 2,
+          coverflowEffect: {
+            rotate: 0,
+            stretch: 0,
+            depth: 100,
+            modifier: 2.5,
+          }
+        },
+        1024: {
+          slidesPerView: 3,
+          coverflowEffect: {
+            rotate: 0,
+            stretch: 0,
+            depth: 100,
+            modifier: 2.5,
+          }
+        }
+      }
+    });
+    
+    // Add hover animation to cards
+    document.querySelectorAll('.price-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.classList.add('animate__pulse');
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.classList.remove('animate__pulse');
+      });
+    });
+  });
+</script>

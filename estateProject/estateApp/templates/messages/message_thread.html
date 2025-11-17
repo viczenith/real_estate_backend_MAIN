@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Thread</title>
+</head>
+<body>
+    <h1>{{ message.message_type|title }}</h1>
+    <p>{{ message.content }}</p>
+    <p><strong>Replies:</strong></p>
+    <ul>
+        {% for reply in replies %}
+        <li>
+            <p>{{ reply.content }}</p>
+            <small>By: {{ reply.sender.username }}</small>
+        </li>
+        {% endfor %}
+    </ul>
+    <form method="post">
+        {% csrf_token %}
+        <textarea name="reply_content" rows="3" placeholder="Type your reply here"></textarea>
+        <button type="submit">Reply</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <h2>Reply to Message from {{ message.sender }}</h2>
+    <p><strong>Message Type:</strong> {{ message.get_message_type_display }}</p>
+    <p><strong>Message Content:</strong> {{ message.content }}</p>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="reply">Your Reply:</label>
+        <textarea name="reply" id="reply" rows="4" cols="50">{{ message.reply }}</textarea><br>
+        <button type="submit">Send Reply</button>
+    </form>
+    
+{% endblock %}

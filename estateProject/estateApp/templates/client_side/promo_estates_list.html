@@ -1,0 +1,259 @@
+{% extends 'client_base.html' %}
+{% now "Y-m-d" as today %}
+{% load humanize %}
+{% block content %}
+ 
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Promo Estate List</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'client-dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">Estate Active Promos</li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>All Estates</h2>
+    <form class="d-flex" method="get">
+      <input name="q" class="form-control form-control-sm me-2" placeholder="Search estates..." value="{{ request.GET.q }}">
+      <button class="btn btn-sm btn-outline-secondary" type="submit">Search</button>
+    </form>
+  </div>
+
+  {% if estates %}
+    <div class="row g-3">
+      {% for estate in estates %}
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ estate.name }}</h5>
+            <p class="small text-muted mb-1">{{ estate.location }}</p>
+            <p class="mb-2 text-muted small">Added: {{ estate.created_at|date:"Y-m-d" }}</p>
+
+            {% with estate_promos=estate.promotional_offers.all %}
+                {% if estate_promos %}
+                    <div class="mb-2">
+                    {% for p in estate_promos|slice:":3" %}
+                        {% if p.is_active %}
+                        <!-- ACTIVE promo: green badge -->
+                        <span class="badge bg-success me-1"
+                                title="Active • Valid: {{ p.start|date:'M d, Y' }} → {{ p.end|date:'M d, Y' }}"
+                                aria-label="Active promo {{ p.name }} - {{ p.discount }} percent">
+                            -{{ p.discount }}%
+                        </span>
+                        {% else %}
+                        <!-- NOT ACTIVE: muted/grey badge -->
+                        <span class="badge bg-secondary text-white me-1"
+                                title="Not active • Valid: {{ p.start|date:'M d, Y' }} → {{ p.end|date:'M d, Y' }}"
+                                aria-label="Expired or future promo {{ p.name }} - {{ p.discount }} percent">
+                            -{{ p.discount }}%
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if estate_promos|length > 3 %}
+                        <span class="small text-muted">+{{ estate_promos|length|add:"-3" }} more</span>
+                    {% endif %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+
+
+            <!-- button opens modal and requests JSON from the same list view -->
+            <button type="button" class="btn btn-sm btn-primary view-sizes-btn" data-estate-id="{{ estate.id }}">
+              View Plots & prices
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <nav class="mt-4" aria-label="Estate pagination">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+
+  {% else %}
+    <div class="card p-4 text-center">
+      <h5>No estates found</h5>
+      <p class="text-muted">There are no estates to show. Try adjusting your search or contact support.</p>
+    </div>
+  {% endif %}
+
+  <!-- ================= Modal (ONE instance) ================= -->
+  <div class="modal fade" id="estateSizesModal" tabindex="-1" aria-labelledby="estateSizesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="estateSizesModalLabel">Plot sizes & prices</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="sizesModalSpinner" class="text-center py-4">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+          </div>
+
+          <div id="sizesModalContent" class="d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div><strong id="modalEstateName"></strong></div>
+              <div><span id="modalPromoBadge" class="badge bg-danger d-none"></span></div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-sm align-middle" id="sizesTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Size</th>
+                    <th class="text-end">Price</th>
+                  </tr>
+                </thead>
+                <tbody id="sizesTableBody">
+                  <!-- filled by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="sizesModalEmpty" class="d-none text-center py-4">
+            <p class="text-muted">No Plots/prices found for this estate.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- small style polish -->
+  <style>
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+        opacity: 0.95;
+    }
+    .badge.bg-success {
+        box-shadow: 0 2px 6px rgba(0,123,85,0.12);
+    }
+    #sizesTable tbody tr td { vertical-align: middle; }
+    #modalPromoBadge { font-size: .95rem; padding:.45rem .6rem; }
+    #sizesModalContent { padding-bottom: 0; }
+  </style>
+
+</main>
+
+<!-- ================= JS: fetch sizes and render modal ================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const listUrl = "{% url 'estates-list' %}";
+  const modalEl = document.getElementById('estateSizesModal');
+  const modal = new bootstrap.Modal(modalEl, {});
+  const spinner = document.getElementById('sizesModalSpinner');
+  const content = document.getElementById('sizesModalContent');
+  const emptyMsg = document.getElementById('sizesModalEmpty');
+
+  function formatNGN(v) {
+    if (v === null || v === undefined) return 'NO AMOUNT SET';
+    try {
+      const opts = { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 2 };
+      return new Intl.NumberFormat('en-NG', opts).format(v);
+    } catch (e) {
+      return '₦' + Number(v).toLocaleString();
+    }
+  }
+
+  document.querySelectorAll('.view-sizes-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const estateId = this.dataset.estateId;
+      if (!estateId) return;
+
+      // reset UI
+      spinner.classList.remove('d-none');
+      content.classList.add('d-none');
+      emptyMsg.classList.add('d-none');
+      document.getElementById('sizesTableBody').innerHTML = '';
+      document.getElementById('modalEstateName').textContent = '';
+      document.getElementById('modalPromoBadge').classList.add('d-none');
+
+      modal.show();
+
+      // request JSON from the same ListView endpoint
+      fetch(`${listUrl}?estate_id=${encodeURIComponent(estateId)}`, {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      }).then(resp => {
+        if (!resp.ok) throw new Error('Network error');
+        return resp.json();
+      }).then(json => {
+        spinner.classList.add('d-none');
+
+        const sizes = json.sizes || [];
+        if (!sizes.length) {
+          emptyMsg.classList.remove('d-none');
+          return;
+        }
+
+        content.classList.remove('d-none');
+        document.getElementById('modalEstateName').textContent = json.estate_name || 'Estate';
+
+        if (json.promo && json.promo.active) {
+          const badge = document.getElementById('modalPromoBadge');
+          badge.textContent = `–${json.promo.discount_pct}%`;
+          badge.classList.remove('d-none');
+        }
+
+        const tbody = document.getElementById('sizesTableBody');
+        sizes.forEach(s => {
+          const tr = document.createElement('tr');
+
+          const tdSize = document.createElement('td');
+          tdSize.textContent = s.size || '-';
+          tr.appendChild(tdSize);
+
+          const tdPrice = document.createElement('td');
+          tdPrice.classList.add('text-end');
+
+          if (s.amount === null) {
+            tdPrice.innerHTML = '<span class="text-muted">NO AMOUNT SET</span>';
+          } else {
+            if (s.discounted !== null && s.discount_pct !== null) {
+              tdPrice.innerHTML =
+                `<div><s>${formatNGN(s.amount)}</s></div>
+                 <div class="fw-bold text-success">${formatNGN(s.discounted)}</div>
+                 <div class="small text-muted">-${s.discount_pct}% promo</div>`;
+            } else {
+              tdPrice.textContent = formatNGN(s.amount);
+            }
+          }
+          tr.appendChild(tdPrice);
+
+          tbody.appendChild(tr);
+        });
+      }).catch(err => {
+        console.error(err);
+        spinner.classList.add('d-none');
+        emptyMsg.classList.remove('d-none');
+        emptyMsg.innerHTML = '<p class="text-danger">Could not load sizes. Try again later.</p>';
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

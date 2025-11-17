@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Customer Relations{% endblock %} - Admin Support</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #16a34a;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --sidebar-width: 260px;
+            --subsidebar-width: 280px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            line-height: 1.6;
+        }
+
+        /* Customer Relations Sub-Sidebar */
+        .customer-relations-sidebar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            height: 100vh;
+            width: var(--subsidebar-width);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-right: 1px solid #e2e8f0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .customer-relations-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .customer-relations-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .customer-relations-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .customer-relations-nav {
+            padding: 1.5rem 0;
+        }
+
+        .customer-nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .customer-nav-section-title {
+            padding: 0 1.5rem 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+            letter-spacing: 0.05em;
+        }
+
+        .customer-nav-item {
+            margin: 0 1rem 0.25rem 1rem;
+        }
+
+        .customer-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1rem;
+            color: var(--dark-color);
+            text-decoration: none;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .customer-nav-link:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .customer-nav-link.active {
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .customer-nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: -1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .customer-nav-link i {
+            margin-right: 0.75rem;
+            width: 18px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .customer-nav-badge {
+            margin-left: auto;
+            background: var(--danger-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: calc(var(--sidebar-width) + var(--subsidebar-width));
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .content-header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .content-header h1 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .breadcrumb {
+            background: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--primary-color);
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .customer-relations-sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: calc(var(--sidebar-width) + 240px);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            
+            .customer-relations-sidebar {
+                left: 0;
+                width: 100%;
+                transform: translateX(-100%);
+            }
+            
+            .customer-relations-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Animation for page transitions */
+        .page-content {
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Main Sidebar -->
+    {% include 'adminSupport/includes/main_sidebar.html' %}
+
+    <!-- Customer Relations Sub-Sidebar -->
+    <div class="customer-relations-sidebar">
+        <div class="customer-relations-header">
+            <h5><i class="fas fa-users-cog me-2"></i>Customer Relations</h5>
+            <p>Manage client relationships and communications</p>
+        </div>
+        
+        <nav class="customer-relations-nav">
+            <!-- Dashboard Section -->
+            <div class="customer-nav-section">
+                <div class="customer-nav-section-title">Overview</div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:support_dashboard' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'support_dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Client Management Section -->
+            <div class="customer-nav-section">
+                <div class="customer-nav-section-title">Client Management</div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:clients_directory' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'clients_directory' %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        Clients Directory
+                    </a>
+                </div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:marketers_directory' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'marketers_directory' %}active{% endif %}">
+                        <i class="fas fa-user-tie"></i>
+                        Marketers Directory
+                    </a>
+                </div>
+            </div>
+
+            <!-- Automation Section -->
+            <div class="customer-nav-section">
+                <div class="customer-nav-section-title">Automation</div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:templates' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'templates' %}active{% endif %}">
+                        <i class="fas fa-birthday-cake"></i>
+                        Auto Birthday
+                        <span id="autoBirthdayBadge" class="customer-nav-badge" style="display:none"></span>
+                    </a>
+                </div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:auto_special_day_template' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'auto_special_day_template' %}active{% endif %}">
+                        <i class="fas fa-star"></i>
+                        Auto Special Days
+                        <span id="autoSpecialBadge" class="customer-nav-badge" style="display:none"></span>
+                    </a>
+                </div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:messages' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+                        <i class="fas fa-users-cog"></i>
+                        Staff Management
+                        <!-- <span class="customer-nav-badge">New</span> -->
+                    </a>
+                </div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:newsletter' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'newsletter' %}active{% endif %}">
+                        <i class="fas fa-newspaper"></i>
+                        Newsletter
+                    </a>
+                </div>
+            </div>
+
+
+            <!-- Analytics Section -->
+            <div class="customer-nav-section">
+                <div class="customer-nav-section-title">Analytics</div>
+                <div class="customer-nav-item">
+                    <a href="#" class="customer-nav-link" data-tab="analytics">
+                        <i class="fas fa-chart-pie"></i>
+                        Performance Analytics
+                    </a>
+                </div>
+                <div class="customer-nav-item">
+                    <a href="#" class="customer-nav-link" data-tab="reports">
+                        <i class="fas fa-file-chart"></i>
+                        Reports
+                    </a>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="customer-nav-section">
+                <div class="customer-nav-section-title">Configuration</div>
+                <div class="customer-nav-item">
+                    <a href="{% url 'adminSupport:settings' %}" class="customer-nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-primary d-lg-none position-fixed" style="top: 1rem; left: 1rem; z-index: 1050;" onclick="toggleCustomerSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Toggle mobile sidebar
+        function toggleCustomerSidebar() {
+            $('.customer-relations-sidebar').toggleClass('show');
+        }
+
+        // Handle sub-navigation clicks for single-page app functionality
+        $(document).ready(function() {
+            // Handle tab navigation within the dashboard
+            $('.customer-nav-link[data-tab]').on('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all nav links
+                $('.customer-nav-link').removeClass('active');
+                // Add active class to clicked link
+                $(this).addClass('active');
+                
+                // Get the tab to show
+                const tabToShow = $(this).data('tab');
+                
+                // If we're on the dashboard page, trigger the tab change
+                if (typeof window.showDashboardTab === 'function') {
+                    window.showDashboardTab(tabToShow);
+                }
+            });
+
+            const mainChatBadge = document.getElementById('main-chat-badge');
+            const chatListPollUrl = '{% url "adminSupport:chat_list_partial" %}';
+
+            function setChatBadge(count) {
+                if (!mainChatBadge) return;
+                if (count > 0) {
+                    mainChatBadge.textContent = String(count);
+                    mainChatBadge.classList.add('show');
+                } else {
+                    mainChatBadge.classList.remove('show');
+                    mainChatBadge.textContent = '';
+                }
+            }
+
+            async function refreshMainChatBadge() {
+                if (!mainChatBadge) return;
+                try {
+                    const response = await fetch(chatListPollUrl, {
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) throw new Error('network');
+                    const data = await response.json();
+                    const totals = data?.totals || {};
+                    const totalThreads = Number(totals.client_threads || 0) + Number(totals.marketer_threads || 0);
+                    setChatBadge(totalThreads);
+                } catch (error) {
+                    console.error('Unable to refresh chat badge:', error);
+                }
+            }
+
+            if (mainChatBadge) {
+                const initialCount = parseInt(mainChatBadge.dataset.initial || '0', 10);
+                if (!Number.isNaN(initialCount) && initialCount > 0) {
+                    setChatBadge(initialCount);
+                }
+                refreshMainChatBadge();
+                setInterval(refreshMainChatBadge, 10000);
+            }
+
+            // Dynamic monthly count for Auto Special Days badge
+            (function(){
+                const badge = document.getElementById('autoSpecialBadge');
+                if(!badge) return;
+                const specialDaysUrl = '{% url "adminSupport:api_special_days" %}';
+                function ymd(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+                async function fetchMonthCount(date){
+                    const y = date.getFullYear();
+                    const m = date.getMonth()+1;
+                    try{
+                        const resp = await fetch(`${specialDaysUrl}?year=${y}&month=${m}`);
+                        if(!resp.ok) throw new Error('backend');
+                        const data = await resp.json();
+                        const events = data.events || [];
+                        return Array.isArray(events) ? events.length : 0;
+                    }catch(e){
+                        try{
+                            const r = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/NG`);
+                            if(!r.ok) throw new Error('nager');
+                            const list = await r.json();
+                            const mm = String(m).padStart(2,'0');
+                            return (list||[]).filter(h => (h.date||'').startsWith(`${y}-${mm}-`)).length;
+                        }catch{ return 0; }
+                    }
+                }
+                async function updateBadge(dateOverride){
+                    const now = dateOverride instanceof Date ? dateOverride : new Date();
+                    const count = await fetchMonthCount(now);
+                    if(count > 0){ badge.textContent = String(count); badge.style.display = ''; }
+                    else { badge.style.display = 'none'; }
+                }
+                function scheduleNextMonth(){
+                    const now = new Date();
+                    const next = new Date(now.getFullYear(), now.getMonth()+1, 1, 0, 1, 0, 0);
+                    const delay = Math.max(5000, next.getTime() - now.getTime());
+                    setTimeout(async ()=>{ await updateBadge(); scheduleNextMonth(); }, delay);
+                }
+                // Update from the Auto Special Day page only when it reports the CURRENT system month; ignore other months
+                window.addEventListener('autoSpecialMonthChanged', (ev) => {
+                    try{
+                        const { year, month, count } = ev.detail || {};
+                        if(!year || !month) return;
+                        const now = new Date();
+                        const sysY = now.getFullYear();
+                        const sysM = now.getMonth()+1;
+                        if(year !== sysY || month !== sysM) return; // keep badge stable until month expires
+                        if(typeof count === 'number'){
+                            if(count > 0){ badge.textContent = String(count); badge.style.display = ''; }
+                            else { badge.style.display = 'none'; }
+                        }
+                    }catch{}
+                });
+                updateBadge();
+                scheduleNextMonth();
+            })();
+
+            // Dynamic monthly count for Auto Birthday badge (from Auto Birthday page)
+            (function(){
+                const badge = document.getElementById('autoBirthdayBadge');
+                if(!badge) return;
+                function setBadge(n){ if(n>0){ badge.textContent = String(n); badge.style.display = ''; } else { badge.style.display = 'none'; } }
+                const birthdaysUrl = '{% url "adminSupport:api_birthdays" %}';
+                function fetchMonthCount(){
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = now.getMonth()+1;
+                    const mm = String(m).padStart(2,'0');
+                    const normalize = (data)=>{
+                        const list = Array.isArray(data) ? data : (data && Array.isArray(data.birthdays) ? data.birthdays : []);
+                        return (list||[]).filter(it => ((it.date||'').slice(0,10) || '').startsWith(`${y}-${mm}-`)).length;
+                    };
+                    // Try simple monthly endpoints in order
+                    return new Promise((resolve)=>{
+                        fetch(`${birthdaysUrl}?period=this_month`).then(r=>r.ok?r.json():Promise.reject()).then(d=>resolve(normalize(d))).catch(()=>{
+                            fetch(`${birthdaysUrl}?period=month&year=${y}&month=${m}`).then(r=>r.ok?r.json():Promise.reject()).then(d=>resolve(normalize(d))).catch(()=>{
+                                fetch(`${birthdaysUrl}?year=${y}&month=${m}`).then(r=>r.ok?r.json():Promise.reject()).then(d=>resolve(normalize(d))).catch(()=>{
+                                    fetch(birthdaysUrl).then(r=>r.ok?r.json():Promise.reject()).then(d=>resolve(normalize(d))).catch(()=>resolve(0));
+                                });
+                            });
+                        });
+                    });
+                }
+                // Only accept current system month to keep stable until month expires
+                window.addEventListener('autoBirthdayMonthChanged', (ev) => {
+                    try{
+                        const { year, month, count } = ev.detail || {};
+                        if(!year || !month) return;
+                        const now = new Date();
+                        const sysY = now.getFullYear();
+                        const sysM = now.getMonth()+1;
+                        if(year !== sysY || month !== sysM) return;
+                        if(typeof count === 'number') setBadge(count);
+                    }catch{}
+                });
+                // Initial fetch so the badge appears even before visiting the page
+                fetchMonthCount().then(setBadge).catch(()=>{});
+                // At month rollover, clear badge; it will refresh when the birthday page dispatches again
+                function scheduleNextMonth(){
+                    const now = new Date();
+                    const next = new Date(now.getFullYear(), now.getMonth()+1, 1, 0, 1, 0, 0);
+                    const delay = Math.max(5000, next.getTime() - now.getTime());
+                    setTimeout(()=>{ setBadge(0); scheduleNextMonth(); }, delay);
+                }
+                scheduleNextMonth();
+            })();
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

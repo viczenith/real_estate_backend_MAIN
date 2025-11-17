@@ -1,0 +1,826 @@
+{% extends 'client_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block head %}
+  {{ block.super }}
+  <!-- Animate.css for entry animations -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
+{% block content %}
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Client Dashboard</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+        <li class="breadcrumb-item active">Dashboard</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section dashboard">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="row">
+          <!-- My Properties Purchased -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card">
+              <div class="card-body">
+                <h5 class="card-title"><span>My Properties Purchased</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-cart"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ total_properties }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Properties Fully Paid & Allocated -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card revenue-card">
+              <div class="card-body">
+                <h5 class="card-title"><span>Properties Fully Paid & Allocated</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-currency-dollar"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ fully_paid_allocations }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Properties Not Fully Paid -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card revenue-card">
+              <div class="card-body">
+                <h5 class="card-title"><span>Properties Not Fully Paid</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-currency-dollar"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ not_fully_paid_allocations }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Active Promotional Offers -->
+  {% now "Y-m-d" as today_local %}
+  <section class="mb-5" aria-labelledby="active-promos-heading">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h4 id="active-promos-heading" class="mb-0">Active Promotional Offers</h4>
+        <small class="text-muted">Running promotions — limited time</small>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'promotions-list' %}" class="btn btn-sm btn-outline-primary" role="button">View All</a>
+      </div>
+    </div>
+
+    {% if active_promotions and active_promotions|length > 0 %}
+      <div id="promoCarousel"
+           class="carousel slide"
+           data-bs-ride="carousel"
+           data-bs-interval="2000"
+           role="region"
+           aria-roledescription="carousel"
+           aria-label="Active promotional offers">
+
+        {% if active_promotions|length > 1 %}
+          <div class="carousel-indicators">
+            {% for promo in active_promotions %}
+              <button type="button"
+                      data-bs-target="#promoCarousel"
+                      data-bs-slide-to="{{ forloop.counter0 }}"
+                      class="{% if forloop.first %}active{% endif %}"
+                      aria-current="{% if forloop.first %}true{% endif %}"
+                      aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="carousel-inner">
+          {% for promo in active_promotions %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <div class="card shadow-sm rounded-3 p-3 d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                <div class="promo-icon d-flex align-items-center justify-content-center me-3 mb-3 mb-md-0" style="min-width:84px;">
+                  <i class="bi bi-tag display-4 text-secondary" aria-hidden="true"></i>
+                </div>
+
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h5 class="mb-1">{{ promo.name|default:"Promotion" }} <span class="badge bg-danger ms-2">–{{ promo.discount }}%</span></h5>
+                      <p class="mb-1 text-muted small">{{ promo.description|default:"No additional description provided." }}</p>
+                      <p class="mb-0 small text-muted">Valid: <strong>{{ promo.start|date:"M d, Y" }}</strong> → <strong>{{ promo.end|date:"M d, Y" }}</strong></p>
+                    </div>
+
+                    <div class="text-end ms-3">
+                      <p class="mb-1 small text-muted">Ends</p>
+                      <p class="mb-0 fw-semibold">
+                        {% if promo.end %}
+                          {{ promo.end|timeuntil }}
+                        {% else %}
+                          —
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    {% with estates=promo.estates.all %}
+                      {% if estates %}
+                        <p class="mb-1 small text-muted">Applies to:</p>
+                        <ul class="list-inline mb-0">
+                          {% for estate in estates|slice:":3" %}
+                            <li class="list-inline-item badge bg-light text-dark border me-1 py-1 px-2">{{ estate.name }}</li>
+                          {% endfor %}
+                          {% if estates|length > 3 %}
+                            <li class="list-inline-item small text-muted align-middle">+{{ estates|length|add:"-3" }} more</li>
+                          {% endif %}
+                        </ul>
+                      {% else %}
+                        <p class="mb-0 small text-muted">Applies to all estates.</p>
+                      {% endif %}
+                    {% endwith %}
+                  </div>
+
+                  <div class="mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-2 view-promo-btn" data-promo-id="{{ promo.id }}">View promo</button>
+                    <a href="{% url 'estates-list' %}?promo={{ promo.id }}" class="btn btn-sm btn-primary" role="button">View estates</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <script type="application/json" id="promo-data-{{ promo.id }}">
+              {
+                "id": {{ promo.id }},
+                "name": "{{ promo.name|escapejs }}",
+                "discount": {{ promo.discount }},
+                "start": "{{ promo.start|date:'Y-m-d' }}",
+                "end": "{{ promo.end|date:'Y-m-d' }}",
+                "estates": [
+                  {% for estate in promo.estates.all %}
+                    {
+                      "id": {{ estate.id }},
+                      "name": "{{ estate.name|escapejs }}",
+                      "sizes": [
+                        {% for pp in estate.property_prices.all %}
+                          {
+                            "plot_unit_id": {{ pp.plot_unit.id }},
+                            "size": "{{ pp.plot_unit.plot_size.size|escapejs }}",
+                            "current": {% if pp.current is not None %}{{ pp.current|floatformat:2 }}{% else %}null{% endif %}
+                          }{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                      ]
+                    }{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+                ]
+              }
+            </script>
+          {% endfor %}
+        </div>
+
+        {% if active_promotions|length > 1 %}
+          <button class="carousel-control-prev" type="button" data-bs-target="#promoCarousel" data-bs-slide="prev" aria-label="Previous slide">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#promoCarousel" data-bs-slide="next" aria-label="Next slide">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          </button>
+        {% endif %}
+      </div>
+
+    {% else %}
+      <div class="card shadow-sm rounded-3 p-4 text-center">
+        <i class="bi bi-tag display-3 text-muted mb-3"></i>
+        <h5 class="mb-1">No active promotions right now</h5>
+        <p class="text-muted mb-3">We don't have any running promotions at the moment. Check back later or explore all estates.</p>
+        <a href="{% url 'estates-list' %}" class="btn btn-primary btn-sm">Browse estates</a>
+        <a href="{% url 'promotions-list' %}" class="btn btn-outline-secondary btn-sm ms-2">See past/promos</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Promo Modal -->
+  <div class="modal fade" id="promoModal" tabindex="-1" aria-labelledby="promoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="promoModalLabel">Promotion details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="promoModalSpinner" class="text-center py-4 d-none">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+          </div>
+
+          <div id="promoModalContent" class="d-none">
+            <div class="mb-3">
+              <h5 id="promoName" class="mb-1"></h5>
+              <div class="small text-muted" id="promoDates"></div>
+            </div>
+
+            <div id="promoEstatesContainer"></div>
+          </div>
+
+          <div id="promoModalEmpty" class="text-center py-4 d-none">
+            <p class="text-muted">No promo details available.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          <a id="promoViewAllLink" href="{% url 'promotions-list' %}" class="btn btn-primary btn-sm">View all promotions</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Latest Price Increments -->
+  <section class="mt-5">
+    <div class="card p-3 border-0 shadow-sm small-header">
+      <div class="d-flex justify-content-between align-items-start mb-2 gap-3">
+        <div>
+          <h3 class="m-0 fw-bold">Latest Price Increments</h3>
+          <p class="mb-0 text-muted small">Recent, relevant price moves across estates — search, filter, and sort.</p>
+        </div>
+
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <div class="input-group input-group-sm me-1" style="min-width:200px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="priceSearch" class="form-control form-control-sm" placeholder="Search estate or size" aria-label="Search price updates">
+          </div>
+
+          <select id="priceSort" class="form-select form-select-sm" aria-label="Sort price updates">
+            <option value="newest" selected>Newest</option>
+            <option value="biggest_up">Largest increase</option>
+            <option value="biggest_down">Largest decrease</option>
+            <option value="highest_price">Highest price</option>
+            <option value="promo_first">Promo first</option>
+          </select>
+
+          <div class="form-check form-check-inline ms-1">
+            <input class="form-check-input" type="checkbox" id="promoOnly">
+            <label class="form-check-label small" for="promoOnly">Promo only</label>
+          </div>
+
+          <button id="resetPriceFilters" class="btn btn-sm btn-outline-secondary ms-2" type="button" title="Reset filters">Reset</button>
+
+          <div class="ms-2 text-muted small align-self-end" id="priceCount">
+            {% if latest_value %}{{ latest_value|length }} updates{% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if latest_value %}
+      <div id="priceCardsWrapper" class="position-relative">
+        <button class="btn btn-sm btn-light price-scroll-btn left" aria-hidden="true" title="Scroll left" type="button">&#10094;</button>
+        <button class="btn btn-sm btn-light price-scroll-btn right" aria-hidden="true" title="Scroll right" type="button">&#10095;</button>
+
+        <div id="priceCards" class="price-grid">
+          {% for update in latest_value %}
+            <article class="price-card shadow-sm" tabindex="0"
+                     data-estate-name="{{ update.price.estate.name|lower }}"
+                     data-size="{{ update.price.plot_unit.plot_size.size|lower }}"
+                     data-current="{{ update.current|default:0|floatformat:2 }}"
+                     data-previous="{{ update.previous|default:0|floatformat:2 }}"
+                     data-percent-change="{{ update.percent_change|default:0|floatformat:2 }}"
+                     data-effective="{{ update.effective|date:'Y-m-d' }}"
+                     data-has-promo="{% if update.promo %}1{% else %}0{% endif %}"
+                     data-promo-discount="{% if update.promo %}{{ update.promo.discount }}{% else %}0{% endif %}">
+              <div class="card-body p-3 d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="minw-0">
+                    <div class="fw-semibold text-truncate" title="{{ update.price.estate.name }}">{{ update.price.estate.name }}</div>
+                    <div class="small text-muted text-truncate" title="{{ update.price.plot_unit.plot_size.size }}">{{ update.price.plot_unit.plot_size.size }}</div>
+                  </div>
+
+                  {% if update.promo %}
+                    <div class="text-end ms-2">
+                      <span class="badge promo-badge-sm">-{{ update.promo.discount }}% Off</span>
+                      <div class="small text-muted">Promo</div>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end gap-3">
+                  <div class="minw-0">
+                    {% if update.promo and update.promo_price %}
+                      <div class="small text-muted text-decoration-line-through badge text-success" style="color: #0b6b2e !important;">₦{{ update.current|intcomma }}</div>
+                      <div class="fw-bold fs-6 price-current promo-badge-sm">₦{{ update.promo_price|floatformat:2|intcomma }}</div>
+                    {% else %}
+                      <div class="fw-bold fs-6 price-current badge text-success">₦{{ update.current|intcomma }}</div>
+                    {% endif %}
+                    <div class="small text-muted">Prev: ₦{{ update.previous|intcomma }}</div>
+                  </div>
+
+                  <div class="text-end d-flex flex-column align-items-end">
+                    {% if update.percent_change is not None %}
+                      <span class="change-pill {% if update.percent_change|floatformat:2 < 0 %}down{% else %}up{% endif %}">
+                        {{ update.percent_change|floatformat:1 }}%
+                      </span>
+                    {% endif %}
+
+                    {% if update.effective and update.effective|date:'Y-m-d' > today_local %}
+                      <span class="badge effective-badge effective-on" aria-label="Effective on {{ update.effective|date:'M d, Y' }}">
+                        <strong>Effective on</strong>
+                        <div class="small d-block">{{ update.effective|date:"M d, Y" }}</div>
+                      </span>
+                    {% else %}
+                      <span class="badge effective-badge effective-since" aria-label="Effective since {{ update.effective|date:'M d, Y' }}">
+                        <strong>Effective since</strong>
+                        <div class="small d-block">{{ update.effective|date:"M d, Y" }}</div>
+                      </span>
+                    {% endif %}
+
+                    <div class="mt-2">
+                      <button class="btn btn-sm btn-outline-primary view-update-btn" data-update-id="{{ update.id }}">View</button>
+                    </div>
+                  </div>
+                </div>
+
+                {% if update.notes %}
+                  <div class="small text-muted mt-2">{{ update.notes|truncatechars:80 }}</div>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-graph-down mb-2" style="font-size:22px;"></i>
+        <div>No Recent Price Changes</div>
+        <div class="small">Check back for updates or active promotions.</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Price Update Modal -->
+    <div class="modal fade" id="priceUpdateModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">Price update</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="priceModalSpinner" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+
+            <div id="priceModalContent" class="d-none">
+              <div class="fw-semibold" id="priceModalEstate"></div>
+              <div class="small text-muted mb-2" id="priceModalMeta"></div>
+              <dl class="row mb-0">
+                <dt class="col-6 small text-muted">Previous</dt>
+                <dd class="col-6 small" id="pricePrev">—</dd>
+
+                <dt class="col-6 small text-muted">Current</dt>
+                <dd class="col-6 small fw-semibold" id="priceCurr">—</dd>
+
+                <dt class="col-6 small text-muted">Change</dt>
+                <dd class="col-6 small" id="priceChange">—</dd>
+
+                <dt class="col-6 small text-muted">Effective</dt>
+                <dd class="col-6 small" id="priceEffective">—</dd>
+
+                <dt class="col-6 small text-muted">Notes</dt>
+                <dd class="col-6 small text-muted" id="priceNotes">—</dd>
+              </dl>
+            </div>
+
+            <div id="priceModalEmpty" class="d-none text-center text-muted py-3">
+              Could not load details
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Consolidated styles -->
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      --card-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      --hover-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    }
+
+    .price-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(1, 1fr);
+      padding: 0.5rem 0.25rem;
+      overflow: visible;
+    }
+    @media (min-width: 576px) { .price-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 900px) { .price-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .price-card {
+      background:#fff;
+      border-radius:10px;
+      overflow:hidden;
+      transition:transform .14s ease, box-shadow .14s ease;
+      border:1px solid rgba(16,24,40,0.04);
+    }
+    .price-card:focus, .price-card:hover { transform:translateY(-6px); box-shadow: 0 10px 24px rgba(2,6,23,0.08); outline: none; }
+
+    .effective-badge {
+      display: inline-block;
+      padding: 0.45rem 0.6rem;
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 140px;
+      line-height: 1;
+      box-shadow: 0 6px 14px rgba(18,38,63,.06);
+    }
+    .effective-badge strong { display: block; font-size: .80rem; line-height: 1; }
+    .effective-badge .small { font-size: .72rem; opacity: .95; margin-top: 0.18rem; }
+
+    .effective-on {
+      background: linear-gradient(90deg,#ecffd9,#d3f7ce);
+      color: #0b6b2e;
+      border: 1px solid rgba(11,107,46,.08);
+    }
+    .effective-since {
+      background: linear-gradient(90deg,#f5f5f6,#ececec);
+      color: #495057;
+      border: 1px solid rgba(73,80,87,.06);
+    }
+
+    @media (max-width: 640px) {
+      #priceCards {
+        display:flex;
+        gap:0.75rem;
+        overflow-x:auto;
+        padding-bottom:0.25rem;
+        scroll-snap-type: x mandatory;
+      }
+      .price-card { min-width: 80%; scroll-snap-align: start; flex:0 0 auto; }
+      .price-scroll-btn { display:block; position:absolute; top:50%; transform:translateY(-50%); z-index:3; border-radius:50%; width:34px; height:34px; padding:0; }
+      .price-scroll-btn.left { left:6px; }
+      .price-scroll-btn.right { right:6px; }
+    }
+    @media (max-width: 575px) {
+      .effective-badge { min-width: 110px; padding: .35rem .5rem; font-size: .84rem; }
+      .effective-badge .small { font-size: .66rem; }
+    }
+    .price-scroll-btn { display:none; }
+
+    .promo-badge { background: linear-gradient(90deg,#ff5f6d,#ffc371); color: #fff; font-weight:700; border-radius:8px; padding:.25rem .5rem; font-size:.80rem; }
+    .promo-badge-sm { background: linear-gradient(90deg,#ff7a7a,#ffb46b); color: #fff; font-weight:700; border-radius:6px; padding:.22rem .45rem; font-size:.75rem; }
+
+    .text-decoration-line-through { text-decoration: line-through !important; opacity: 0.85; }
+    .change-pill.up { background: rgba(6,157,116,.1); color:#059d74; padding:.18rem .45rem; border-radius:999px; font-weight:700; }
+    .change-pill.down { background: rgba(255,138,92,.1); color:#ff8a5c; padding:.18rem .45rem; border-radius:999px; font-weight:700; }
+
+    .compact-price-card { border-radius: 10px; box-shadow: 0 6px 14px rgba(18,38,63,.06); }
+    .compact-price-card .card-body { padding:.8rem .9rem; }
+
+    .text-truncate { max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  </style>
+
+  <!-- Consolidated scripts: promo modal + price explorer + price modal -->
+  <script>
+    // Utility: NGN formatter
+    function formatNGN(v) {
+      if (v === null || v === undefined) return '—';
+      try {
+        const opts = { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 2 };
+        return new Intl.NumberFormat('en-NG', opts).format(Number(v));
+      } catch (e) {
+        return '₦' + Number(v).toLocaleString();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      /* =========================
+         Price explorer: filters, sorting, rendering
+         ========================= */
+      (function () {
+        function pf(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+        const container = document.getElementById('priceCards');
+        if (!container) return;
+
+        const searchInput = document.getElementById('priceSearch');
+        const sortSelect = document.getElementById('priceSort');
+        const promoOnlyCheckbox = document.getElementById('promoOnly');
+        const resetBtn = document.getElementById('resetPriceFilters');
+        const countEl = document.getElementById('priceCount');
+
+        const originalCards = Array.from(container.children);
+
+        function updateCount(n) { if (countEl) countEl.textContent = `${n} updates`; }
+
+        function matchesFilter(card, q, promoOnly) {
+          if (!card) return false;
+          const estate = (card.dataset.estateName || card.dataset['estate-name'] || '').toLowerCase();
+          const size = (card.dataset.size || '').toLowerCase();
+          const hasPromo = (card.dataset.hasPromo === '1' || card.dataset['hasPromo'] === '1');
+          if (promoOnly && !hasPromo) return false;
+          if (!q) return true;
+          q = q.trim().toLowerCase();
+          return (estate && estate.includes(q)) || (size && size.includes(q));
+        }
+
+        function sortCards(cards, mode) {
+          const copy = cards.slice();
+          copy.sort((a, b) => {
+            const aPct = pf(a.dataset.percentChange || a.dataset['percent-change'] || a.dataset.percent_change || 0);
+            const bPct = pf(b.dataset.percentChange || b.dataset['percent-change'] || b.dataset.percent_change || 0);
+            const aCur = pf(a.dataset.current || 0);
+            const bCur = pf(b.dataset.current || 0);
+            const aEff = (a.dataset.effective || '');
+            const bEff = (b.dataset.effective || '');
+
+            switch (mode) {
+              case 'biggest_up': return (bPct - aPct);
+              case 'biggest_down': return (aPct - bPct);
+              case 'highest_price': return (bCur - aCur);
+              case 'promo_first': {
+                const ad = parseInt(a.dataset.hasPromo || 0), bd = parseInt(b.dataset.hasPromo || 0);
+                if (ad !== bd) return bd - ad;
+                return bPct - aPct;
+              }
+              case 'newest':
+              default:
+                if (aEff === bEff) return bCur - aCur;
+                return (bEff.localeCompare(aEff));
+            }
+          });
+          return copy;
+        }
+
+        function applyFilters() {
+          const q = searchInput ? (searchInput.value || '') : '';
+          const promoOnly = promoOnlyCheckbox ? promoOnlyCheckbox.checked : false;
+          const sortMode = sortSelect ? sortSelect.value : 'newest';
+
+          let filtered = originalCards.filter(c => matchesFilter(c, q, promoOnly));
+          filtered = sortCards(filtered, sortMode);
+
+          container.innerHTML = '';
+          filtered.forEach(n => container.appendChild(n));
+          updateCount(filtered.length);
+        }
+
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
+        if (sortSelect) sortSelect.addEventListener('change', applyFilters);
+        if (promoOnlyCheckbox) promoOnlyCheckbox.addEventListener('change', applyFilters);
+        if (resetBtn) resetBtn.addEventListener('click', function () {
+          if (searchInput) searchInput.value = '';
+          if (sortSelect) sortSelect.value = 'newest';
+          if (promoOnlyCheckbox) promoOnlyCheckbox.checked = false;
+          applyFilters();
+        });
+
+        applyFilters();
+
+        // small-screen scroll buttons
+        const btnLeft = document.querySelector('.price-scroll-btn.left');
+        const btnRight = document.querySelector('.price-scroll-btn.right');
+        if (btnLeft && btnRight) {
+          const scrollBy = () => {
+            const w = container.clientWidth || Math.round(window.innerWidth * 0.8);
+            return Math.round(w * 0.6);
+          };
+          btnLeft.addEventListener('click', () => container.scrollBy({ left: -scrollBy(), behavior: 'smooth' }));
+          btnRight.addEventListener('click', () => container.scrollBy({ left: scrollBy(), behavior: 'smooth' }));
+        }
+      })();
+
+      /* =========================
+         Price update modal (delegated)
+         ========================= */
+      (function () {
+        const apiUrlBase = "{% url 'api-price-update' 0 %}".replace(/0\/?$/, '');
+        const priceModalEl = document.getElementById('priceUpdateModal');
+        const priceModal = priceModalEl ? new bootstrap.Modal(priceModalEl, {}) : null;
+        const priceSpinner = document.getElementById('priceModalSpinner');
+        const priceContent = document.getElementById('priceModalContent');
+        const priceEmpty = document.getElementById('priceModalEmpty');
+
+        document.addEventListener('click', function (ev) {
+          const btn = ev.target.closest('.view-update-btn');
+          if (!btn) return;
+          ev.preventDefault();
+
+          const updateId = btn.dataset.updateId;
+          if (!updateId || !priceModal) return;
+
+          priceSpinner.classList.remove('d-none');
+          priceContent.classList.add('d-none');
+          priceEmpty.classList.add('d-none');
+
+          ['priceModalEstate','priceModalMeta','pricePrev','priceCurr','priceChange','priceEffective','priceNotes'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.textContent = '';
+          });
+
+          priceModal.show();
+
+          const url = `${apiUrlBase}${encodeURIComponent(updateId)}/`;
+          fetch(url, { credentials: 'same-origin' })
+            .then(async resp => {
+              if (!resp.ok) {
+                let errText = `HTTP ${resp.status} ${resp.statusText}`;
+                try {
+                  const errJson = await resp.json().catch(() => null);
+                  if (errJson && errJson.error) errText += ` — ${errJson.error}`;
+                } catch (e) {}
+                throw new Error(errText);
+              }
+              return resp.json();
+            })
+            .then(json => {
+              priceSpinner.classList.add('d-none');
+              if (!json || typeof json !== 'object') { priceEmpty.classList.remove('d-none'); return; }
+
+              document.getElementById('priceModalEstate').textContent = json.estate_name || '';
+              document.getElementById('priceModalMeta').textContent = json.recorded_at ? new Date(json.recorded_at).toLocaleString() : '';
+              document.getElementById('pricePrev').textContent = json.previous ? formatNGN(json.previous) : '—';
+              document.getElementById('priceCurr').textContent = json.current ? formatNGN(json.current) : '—';
+              document.getElementById('priceChange').textContent = (json.percent_change !== null && json.percent_change !== undefined) ? `${Number(json.percent_change).toFixed(1)}%` : '—';
+              document.getElementById('priceEffective').textContent = json.effective ? new Date(json.effective).toLocaleDateString() : '—';
+              document.getElementById('priceNotes').textContent = json.notes || '—';
+              priceContent.classList.remove('d-none');
+            })
+            .catch(err => {
+              console.error('Price update fetch error:', err);
+              priceSpinner.classList.add('d-none');
+              priceEmpty.classList.remove('d-none');
+            });
+        });
+      })();
+
+      /* =========================
+         Promo modal logic (reads embedded JSON, pauses carousel while modal open)
+         ========================= */
+      (function () {
+        const promoModalEl = document.getElementById('promoModal');
+        const promoModal = promoModalEl ? new bootstrap.Modal(promoModalEl, {}) : null;
+        const promoSpinner = document.getElementById('promoModalSpinner');
+        const promoContent = document.getElementById('promoModalContent');
+        const promoEmpty = document.getElementById('promoModalEmpty');
+        const promoEstatesContainer = document.getElementById('promoEstatesContainer');
+        const promoNameEl = document.getElementById('promoName');
+        const promoDatesEl = document.getElementById('promoDates');
+        const carouselEl = document.getElementById('promoCarousel');
+
+        if (!promoModalEl || !promoModal) {
+          console.warn('Promo modal elements not found - promo modal JS disabled.');
+          return;
+        }
+
+        function renderCurrency(n) {
+          if (n === null || n === undefined) return '—';
+          try {
+            return formatNGN(Number(n));
+          } catch (e) { return '₦' + String(n); }
+        }
+
+        function clearPromoModalUI() {
+          promoSpinner.classList.add('d-none');
+          promoContent.classList.add('d-none');
+          promoEmpty.classList.add('d-none');
+          if (promoEstatesContainer) promoEstatesContainer.innerHTML = '';
+          if (promoNameEl) promoNameEl.textContent = '';
+          if (promoDatesEl) promoDatesEl.textContent = '';
+        }
+
+        function populatePromoModal(payload) {
+          promoSpinner.classList.add('d-none');
+
+          if (!payload || !Array.isArray(payload.estates)) {
+            promoEmpty.classList.remove('d-none');
+            return;
+          }
+
+          promoNameEl.textContent = `${payload.name} — ${payload.discount}% off`;
+          promoDatesEl.textContent = `Valid: ${payload.start} → ${payload.end}`;
+
+          const container = promoEstatesContainer;
+          container.innerHTML = '';
+
+          payload.estates.forEach(est => {
+            const estateCard = document.createElement('div');
+            estateCard.className = 'mb-3';
+
+            let sizesHtml = '';
+            if (est.sizes && est.sizes.length) {
+              sizesHtml = '<div class="table-responsive"><table class="table table-sm mb-0"><thead class="table-light"><tr><th>Size</th><th>Current</th><th>Promo Price</th></tr></thead><tbody>';
+              est.sizes.forEach(s => {
+                const curr = (s.current !== null) ? Number(s.current) : null;
+                let promoPrice = null;
+                if (curr !== null) {
+                  promoPrice = (curr * (100 - Number(payload.discount)) / 100);
+                }
+                sizesHtml += `<tr>
+                  <td>${s.size}</td>
+                  <td>${ curr !== null ? '<span class="text-decoration-line-through">'+ renderCurrency(curr) +'</span>' : '—' }</td>
+                  <td>${ promoPrice !== null ? '<strong class="text-success">'+ renderCurrency(promoPrice.toFixed(2)) +'</strong>' : '&mdash;' }</td>
+                </tr>`;
+              });
+              sizesHtml += `</tbody></table></div>`;
+            } else {
+              sizesHtml = '<div class="small text-muted">No size/price data for this estate.</div>';
+            }
+
+            estateCard.innerHTML = `<div class="fw-semibold">${est.name}</div>${sizesHtml}`;
+            container.appendChild(estateCard);
+          });
+
+          promoContent.classList.remove('d-none');
+        }
+
+        // obtain or create a carousel instance to pause/resume while modal is open
+        let bsCarouselInstance = null;
+        if (carouselEl) {
+          bsCarouselInstance = bootstrap.Carousel.getInstance(carouselEl) || null;
+          if (!bsCarouselInstance) {
+            try {
+              bsCarouselInstance = new bootstrap.Carousel(carouselEl, { ride: 'carousel', interval: 2000 });
+            } catch (e) { bsCarouselInstance = null; }
+          }
+        }
+
+        // attach handlers to view buttons
+        document.querySelectorAll('.view-promo-btn').forEach(btn => {
+          try { btn.setAttribute('type', 'button'); } catch (e) {}
+
+          btn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            const promoId = this.dataset.promoId;
+            if (!promoId) {
+              console.warn('view-promo-btn clicked but data-promo-id missing');
+              return;
+            }
+
+            if (bsCarouselInstance) {
+              try { bsCarouselInstance.pause(); } catch (e) {}
+            }
+
+            clearPromoModalUI();
+            promoSpinner.classList.remove('d-none');
+            promoModal.show();
+
+            try {
+              const script = document.getElementById(`promo-data-${promoId}`);
+              if (!script) throw new Error('Promo data missing from page.');
+              const payload = JSON.parse(script.textContent.trim());
+              populatePromoModal(payload);
+            } catch (err) {
+              console.error('Promo modal error:', err);
+              promoSpinner.classList.add('d-none');
+              promoEmpty.classList.remove('d-none');
+            }
+
+            // when modal closes, resume carousel if we paused it
+            const restoreCarousel = () => {
+              if (bsCarouselInstance) {
+                try { bsCarouselInstance.cycle(); } catch (e) {}
+              }
+            };
+            promoModalEl.addEventListener('hidden.bs.modal', function handler() {
+              restoreCarousel();
+              promoModalEl.removeEventListener('hidden.bs.modal', handler);
+            }, { once: true });
+          }, { passive: false });
+        });
+      })();
+
+    }); // DOMContentLoaded
+  </script>
+
+</main>
+{% endblock %}

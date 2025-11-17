@@ -1,0 +1,131 @@
+{% extends 'client_base.html' %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>All Property Requests</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">Property Requests</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-12">
+        <div class="card p-4 shadow">
+          <div class="card-header mb-3">
+            <h4 class="card-title">Requests Made</h4>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead class="medium text-bg-dark">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Estate</th>
+                    <th scope="col">Plot Size</th>
+                    <th scope="col">Payment Type</th>
+                    <th scope="col">Date Sent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for req in requests %}
+                  <tr data-id="{{ req.id }}">
+                    <td data-label="#">{{ forloop.counter }}</td>
+                    <td data-label="Estate">{{ req.estate.name }}</td>
+                    <td data-label="Plot Size">{{ req.plot_size }}</td>
+                    <td data-label="Payment Type">{{ req.payment_type }}</td>
+                    <td data-label="Date Sent">{{ req.created_at|date:"d-M-Y" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center">No requests made.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    /* Apple-Like Font */
+    @font-face {
+      font-family: "SF Pro";
+      src: url("https://fonts.cdnfonts.com/s/59278/SFPRODISPLAYREGULAR.woff") format("woff");
+      font-display: swap;
+    }
+    body {
+      font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    /* Card and Table Styling */
+    .card {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      background-color: #ffffff;
+    }
+    .table {
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 16px;
+      font-weight: 500;
+      color: #1d1d1f;
+    }
+    .table thead {
+      background: rgba(245, 245, 247, 0.9);
+      font-size: 17px;
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+    .table th,
+    .table td {
+      padding: 14px 16px;
+      text-align: left;
+    }
+    .table tbody tr {
+      transition: all 0.2s ease-in-out;
+    }
+    .table tbody tr:hover {
+      background: rgba(0, 0, 0, 0.05);
+      transform: scale(1.01);
+    }
+    /* Responsive Table */
+    @media screen and (max-width: 768px) {
+      .table thead {
+        display: none;
+      }
+      .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+      }
+      .table tr {
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e5e5ea;
+      }
+      .table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+      }
+      .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 16px;
+        font-weight: 600;
+        color: #8e8e93;
+      }
+    }
+  </style>
+
+</main>
+
+{% endblock %}

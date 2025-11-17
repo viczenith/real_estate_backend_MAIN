@@ -1,0 +1,10 @@
+{% extends "notifications/emails/base.html" %}
+
+{% block content %}
+<div class="notification-type announcement">Important Announcement</div>
+<h3 style="margin-top:0;">Dear Valued Client,</h3>
+<div style="background:#fff; padding:20px; border:1px solid #ddd; border-radius:8px; margin:20px 0;">
+    {{ message|safe }}
+</div>
+<a href="{{ announcement_url }}" class="button" style="background:#ffc107;">Visit Portal</a>
+{% endblock %}

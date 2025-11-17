@@ -1,0 +1,1548 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Include Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  :root {
+    --primary: #6C5CE7;
+    --primary-dark: #5649C0;
+    --primary-light: #A29BFE;
+    --accent: #FD79A8;
+    --success: #00B894;
+    --warning: #FDCB6E;
+    --danger: #D63031;
+    --info: #0984E3;
+    --background-color: #f5f7fa;
+    --text-color: #2D3436;
+    --text-muted: #636E72;
+    --card-bg: #ffffff;
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+    --border-radius: 16px;
+    --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  [data-theme="dark"] {
+    --primary: #7B6EF6;
+    --primary-dark: #5A4FCF;
+    --primary-light: #9D94FF;
+    --background-color: #0f0f1e;
+    --text-color: #F5F6FA;
+    --text-muted: #BDC3C7;
+    --card-bg: #1a1a2e;
+    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Global Styles */
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .main {
+    padding: 2rem;
+  }
+
+  /* Page Header */
+  .pagetitle {
+    margin-bottom: 2.5rem;
+    animation: slideInDown 0.6s ease-out;
+  }
+
+  .pagetitle h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .pagetitle h1::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: var(--gradient-accent);
+    border-radius: 4px;
+    animation: slideInLeft 0.8s ease-out 0.3s backwards;
+  }
+
+  .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+
+  .breadcrumb-item {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .breadcrumb-item a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+
+  .breadcrumb-item a:hover {
+    color: var(--primary-dark);
+  }
+
+  /* Table Container */
+  .table-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+    transition: var(--transition);
+    padding: 2rem;
+  }
+
+  .table-container:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  /* Header Section */
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .table-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .table-header h3 i {
+    color: var(--primary);
+    font-size: 1.75rem;
+  }
+
+  /* Action Bar */
+  .action-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Search Box */
+  .search-wrapper {
+    position: relative;
+    min-width: 300px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 2px solid var(--primary-light);
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.95rem;
+    transition: var(--transition);
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1rem;
+    pointer-events: none;
+  }
+
+  /* Stats Badge */
+  .stats-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--gradient-primary);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+  }
+
+  .stats-badge i {
+    font-size: 1rem;
+  }
+
+  /* Table Styling */
+  .table-responsive {
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    color: var(--text-color);
+  }
+
+  .data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .data-table thead tr {
+    background: var(--gradient-primary);
+    color: white;
+  }
+
+  .data-table th {
+    padding: 1.25rem 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    border: none;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .data-table th:first-child {
+    border-top-left-radius: 12px;
+  }
+
+  .data-table th:last-child {
+    border-top-right-radius: 12px;
+  }
+
+  .data-table th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .data-table td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    transition: var(--transition);
+  }
+
+  [data-theme="dark"] .data-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .data-table tbody tr {
+    transition: var(--transition);
+    background-color: var(--card-bg);
+  }
+
+  .data-table tbody tr:hover {
+    background-color: rgba(108, 92, 231, 0.05);
+    transform: scale(1.01);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Avatar Styling */
+  .avatar {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    transition: var(--transition);
+  }
+
+  .data-table tbody tr:hover .avatar {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+  }
+
+  .marketer-info h6 {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+  }
+
+  .marketer-info small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Contact Info */
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .contact-item i {
+    color: var(--primary);
+    width: 18px;
+    text-align: center;
+  }
+
+  .contact-item a {
+    color: var(--text-color);
+    text-decoration: none;
+    transition: var(--transition);
+  }
+
+  .contact-item a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+  }
+
+  .btn i {
+    font-size: 0.9rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #00b894 0%, #00d2d3 100%);
+    color: white;
+  }
+
+  .btn-success:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(214, 48, 49, 0.4);
+  }
+
+  .btn:active {
+    transform: translateY(-1px);
+  }
+
+  /* Download Button Special */
+  .btn-download {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+  }
+
+  .btn-download:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .empty-state i {
+    font-size: 4rem;
+    color: var(--primary-light);
+    margin-bottom: 1.5rem;
+    opacity: 0.7;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .empty-state h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+  }
+
+  .empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+
+  .empty-state .btn {
+    background: var(--gradient-primary);
+    color: white;
+  }
+
+  .empty-state .btn:hover {
+    background: var(--gradient-primary);
+  }
+
+  /* No Results State */
+  .no-results {
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .no-results i {
+    font-size: 3rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .no-results p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  /* ==================== DELETED ROW STYLING ==================== */
+  .deleted-row {
+    opacity: 0.5;
+    background-color: rgba(220, 53, 69, 0.05) !important;
+    position: relative;
+  }
+
+  .deleted-row::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #dc3545, transparent);
+    pointer-events: none;
+  }
+
+  .deleted-row td {
+    text-decoration: line-through;
+  }
+
+  .deleted-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-radius: 12px;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+    animation: pulse 2s infinite;
+  }
+
+  .deleted-badge i {
+    font-size: 0.8em;
+    margin-right: 0.25rem;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .deleted-avatar {
+    opacity: 0.5;
+    filter: grayscale(100%);
+  }
+
+  .deletion-info {
+    display: block;
+    color: #dc3545 !important;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .deletion-info i {
+    margin-right: 0.25rem;
+  }
+
+  /* ==================== DELETION MODAL STYLING ==================== */
+  .delete-modal .modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .delete-modal .modal-header {
+    background: linear-gradient(135deg, #FFF3CD 0%, #FFE5B4 100%);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom: 2px solid #FFC107;
+  }
+
+  .delete-modal .modal-title {
+    color: #856404;
+    font-weight: 600;
+  }
+
+  .delete-warning {
+    padding: 1rem;
+    background-color: #FFF3CD;
+    border-left: 4px solid #FFC107;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+  }
+
+  .delete-message {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .deletion-reasons {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+  }
+
+  .deletion-reasons .form-label {
+    color: #495057;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .reason-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .reason-checkboxes .form-check {
+    padding: 0.75rem;
+    background-color: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .reason-checkboxes .form-check:hover {
+    border-color: #6C5CE7;
+    background-color: #f8f7ff;
+  }
+
+  .reason-checkboxes .form-check-input:checked + .form-check-label {
+    color: #6C5CE7;
+    font-weight: 600;
+  }
+
+  .reason-checkboxes .form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-color: #6C5CE7;
+  }
+
+  .reason-checkboxes .form-check-input:checked {
+    background-color: #6C5CE7;
+    border-color: #6C5CE7;
+  }
+
+  .reason-checkboxes .form-check-label {
+    margin-left: 0.5rem;
+    cursor: pointer;
+  }
+
+  #otherReasonContainer textarea {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.3s ease;
+  }
+
+  #otherReasonContainer textarea:focus {
+    border-color: #6C5CE7;
+    box-shadow: 0 0 0 0.2rem rgba(108, 92, 231, 0.25);
+  }
+
+  #reasonError {
+    animation: shake 0.5s;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  /* ==================== RESTORE MODAL STYLING ==================== */
+  .restore-modal .modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .restore-modal .modal-header {
+    background: linear-gradient(135deg, #D4EDDA 0%, #C3E6CB 100%);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom: 2px solid #28A745;
+  }
+
+  .restore-modal .modal-title {
+    color: #155724;
+    font-weight: 600;
+  }
+
+  /* ==================== PERMANENT DELETE MODAL STYLING ==================== */
+  .permanent-delete-modal .modal-content {
+    border: 3px solid #dc3545;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(220, 53, 69, 0.3);
+  }
+
+  .permanent-delete-modal .modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  /* ==================== RESTORE BUTTON STYLING ==================== */
+  .btn-success.restore-btn {
+    background: linear-gradient(135deg, #28A745 0%, #218838 100%);
+    border: none;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+  }
+
+  .btn-success.restore-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+  }
+
+  .btn-success.restore-btn i {
+    margin-right: 0.5rem;
+  }
+
+  /* ==================== CLIENT COUNT BADGE ==================== */
+  .client-count-cell {
+    text-align: center;
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .count-badge i {
+    font-size: 1rem;
+  }
+
+  .count-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .data-table tbody tr:hover .count-badge {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+  }
+
+  .client-count-cell small {
+    font-size: 0.75rem;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Row Animation */
+  .data-table tbody tr {
+    animation: fadeIn 0.5s ease-out backwards;
+  }
+
+  .data-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+  .data-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+  .data-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+  .data-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+  .data-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+  .data-table tbody tr:nth-child(n+6) { animation-delay: 0.3s; }
+
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .table-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .action-bar {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .search-wrapper {
+      min-width: auto;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .main {
+      padding: 1rem;
+    }
+
+    .pagetitle h1 {
+      font-size: 1.8rem;
+    }
+
+    .table-container {
+      padding: 1rem;
+    }
+
+    .action-bar {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .search-wrapper {
+      width: 100%;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .avatar {
+      width: 35px;
+      height: 35px;
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Loading State */
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+  }
+
+  .loading i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Marketer Management</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li class="breadcrumb-item active">Marketer List</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="table-container">
+          <!-- Table Header -->
+          <div class="table-header">
+            <div>
+              <h3><i class="fas fa-briefcase"></i>Marketer Directory</h3>
+              <span class="stats-badge">
+                <i class="fas fa-chart-line"></i>
+                <span id="marketerCount">{{ marketers|length }}</span> Total Marketers
+              </span>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+              <!-- Search Box -->
+              <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="marketerSearch" placeholder="Search by name, email, or phone...">
+              </div>
+
+              <!-- Download Button -->
+              <button class="btn btn-success btn-download" id="downloadCSV">
+                <i class="fas fa-download"></i> Download CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="marketerTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Marketer</th>
+                  <th>Contact</th>
+                  <th>Clients Assigned</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="marketerTableBody">
+                {% if marketers %}
+                  {% for marketer in marketers %}
+                  <tr class="marketer-row {% if marketer.is_deleted %}deleted-row{% endif %}" data-deleted="{{ marketer.is_deleted|default:False|yesno:'true,false' }}" data-delete-date="{{ marketer.deleted_at|date:'Y-m-d'|default:'' }}">
+                    <td><strong>{{ forloop.counter }}</strong></td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div class="avatar {% if marketer.is_deleted %}deleted-avatar{% endif %}">
+                          {{ marketer.full_name|first|upper }}
+                        </div>
+                        <div class="marketer-info ms-3">
+                          <h6 class="mb-0">
+                            {{ marketer.full_name }}
+                            {% if marketer.is_deleted %}
+                              <span class="deleted-badge"><i class="fas fa-ban"></i> Deleted</span>
+                            {% endif %}
+                          </h6>
+                          <small>ID: MKT{{ marketer.id|stringformat:"04d" }}</small>
+                          {% if marketer.is_deleted and marketer.deleted_at %}
+                            <small class="deletion-info">
+                              <i class="fas fa-clock"></i> Deleted on {{ marketer.deleted_at|date:"M d, Y" }}
+                            </small>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="contact-info {% if marketer.is_deleted %}text-muted{% endif %}">
+                        <div class="contact-item">
+                          <i class="fas fa-envelope"></i>
+                          <a href="mailto:{{ marketer.email }}">{{ marketer.email }}</a>
+                        </div>
+                        <div class="contact-item">
+                          <i class="fas fa-phone"></i>
+                          <a href="tel:{{ marketer.phone }}">{{ marketer.phone }}</a>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="client-count-cell">
+                        <div class="count-badge">
+                          <i class="fas fa-users"></i>
+                          <span class="count-number">{{ marketer.client_count|default:0 }}</span>
+                        </div>
+                        {% if marketer.client_count > 0 %}
+                          <small class="text-muted d-block mt-1">Active client{{ marketer.client_count|pluralize }}</small>
+                        {% else %}
+                          <small class="text-muted d-block mt-1">No clients yet</small>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        {% if marketer.is_deleted %}
+                          <button class="btn btn-sm btn-success restore-btn" data-id="{{ marketer.id }}" data-name="{{ marketer.full_name }}">
+                            <i class="fas fa-undo"></i> Restore
+                          </button>
+                          <button class="btn btn-sm btn-danger permanent-delete-btn" data-id="{{ marketer.id }}" data-name="{{ marketer.full_name }}">
+                            <i class="fas fa-trash-alt"></i> Permanent Delete
+                          </button>
+                        {% else %}
+                          <a href="{% url 'admin-marketer-profile' marketer.id %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> View
+                          </a>
+                          <button class="btn btn-sm btn-danger delete-btn" data-id="{{ marketer.id }}" data-name="{{ marketer.full_name }}">
+                            <i class="fas fa-trash-alt"></i> Delete
+                          </button>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="5">
+                      <div class="empty-state">
+                        <i class="fas fa-user-slash"></i>
+                        <h4>No Marketers Found</h4>
+                        <p>You haven't registered any marketers yet. Get started by adding your first marketer.</p>
+                        <a href="{% url 'user-registration' %}" class="btn">
+                          <i class="fas fa-plus"></i> Add New Marketer
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+
+            <!-- No Results Message (Hidden by default) -->
+            <div id="noResults" style="display: none;">
+              <div class="no-results">
+                <i class="fas fa-search"></i>
+                <p>No marketers match your search criteria</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content delete-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning"></i> Confirm Marketer Deletion
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-warning">
+          <p class="delete-message">
+            Are you sure you want to delete <strong id="deleteMarketerName"></strong>?
+          </p>
+          <p class="text-muted small mb-3">
+            <i class="fas fa-info-circle"></i> This marketer will be marked as deleted and can be restored within 30 days. After 30 days, the marketer will be permanently removed.
+          </p>
+        </div>
+
+        <div class="deletion-reasons">
+          <label class="form-label fw-bold">
+            <i class="fas fa-clipboard-list"></i> Please select reason(s) for deletion:
+            <span class="text-danger">*</span>
+          </label>
+          <div class="reason-checkboxes">
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="No longer working with company" id="reason1">
+              <label class="form-check-label" for="reason1">
+                No longer working with company
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Performance issues" id="reason2">
+              <label class="form-check-label" for="reason2">
+                Performance issues
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Resigned/Terminated" id="reason3">
+              <label class="form-check-label" for="reason3">
+                Resigned/Terminated
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Contract expired" id="reason4">
+              <label class="form-check-label" for="reason4">
+                Contract expired
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Relocated" id="reason5">
+              <label class="form-check-label" for="reason5">
+                Relocated to different region
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Duplicate entry" id="reason6">
+              <label class="form-check-label" for="reason6">
+                Duplicate entry
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input deletion-reason" type="checkbox" value="Other" id="reasonOther">
+              <label class="form-check-label" for="reasonOther">
+                Other (please specify)
+              </label>
+            </div>
+          </div>
+          
+          <div id="otherReasonContainer" class="mt-3" style="display: none;">
+            <label for="otherReasonText" class="form-label">Please specify:</label>
+            <textarea class="form-control" id="otherReasonText" rows="2" placeholder="Enter specific reason..."></textarea>
+          </div>
+
+          <div id="reasonError" class="text-danger small mt-2" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i> Please select at least one reason before proceeding.
+          </div>
+        </div>
+
+        <div class="mt-3 p-3 bg-light rounded">
+          <small class="text-muted">
+            <i class="fas fa-shield-alt"></i> <strong>Data Protection:</strong> 
+            Marketer data will be preserved and can be restored at any time within the next 30 days.
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+          <i class="fas fa-check"></i> Confirm Deletion
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restore Confirmation Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content restore-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-undo text-success"></i> Restore Marketer
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to restore <strong id="restoreMarketerName"></strong>?</p>
+        <p class="text-muted small">
+          <i class="fas fa-info-circle"></i> This marketer will be reactivated and all their data will be accessible again.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-success" id="confirmRestoreBtn">
+          <i class="fas fa-check"></i> Restore Marketer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Permanent Delete Modal -->
+<div class="modal fade" id="permanentDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content permanent-delete-modal">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-trash-alt"></i> Permanent Deletion Warning
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger mb-3">
+          <i class="fas fa-exclamation-triangle"></i> 
+          <strong>Warning:</strong> This action cannot be undone!
+        </div>
+        <p>Are you absolutely sure you want to permanently delete <strong id="permanentDeleteMarketerName"></strong>?</p>
+        <p class="text-danger small">
+          <i class="fas fa-ban"></i> All marketer data, client assignments, and history will be permanently removed from the system.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmPermanentDeleteBtn">
+          <i class="fas fa-trash-alt"></i> Permanently Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // ==================== SEARCH FUNCTIONALITY ====================
+  const searchInput = document.getElementById('marketerSearch');
+  const tableBody = document.getElementById('marketerTableBody');
+  const noResults = document.getElementById('noResults');
+  const marketerCount = document.getElementById('marketerCount');
+
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    const rows = tableBody.querySelectorAll('.marketer-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const marketerName = row.querySelector('.marketer-info h6').textContent.toLowerCase();
+      const marketerEmail = row.querySelector('.contact-item a[href^="mailto:"]').textContent.toLowerCase();
+      const marketerPhone = row.querySelectorAll('.contact-item a')[1].textContent.toLowerCase();
+      
+      const matches = marketerName.includes(searchTerm) || 
+                     marketerEmail.includes(searchTerm) || 
+                     marketerPhone.includes(searchTerm);
+
+      if (matches) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Update count
+    marketerCount.textContent = visibleCount;
+
+    // Show/hide no results message
+    if (visibleCount === 0 && searchTerm !== '') {
+      noResults.style.display = 'block';
+      tableBody.style.display = 'none';
+    } else {
+      noResults.style.display = 'none';
+      tableBody.style.display = '';
+    }
+  });
+
+  // ==================== CSV DOWNLOAD FUNCTIONALITY ====================
+  document.getElementById('downloadCSV').addEventListener('click', function() {
+    const table = document.getElementById('marketerTable');
+    const rows = table.querySelectorAll('tbody .marketer-row');
+    
+    if (rows.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Data',
+        text: 'There are no marketers to download.',
+        confirmButtonColor: '#6C5CE7'
+      });
+      return;
+    }
+
+    // CSV Headers
+    let csv = 'No,Marketer Name,Marketer ID,Email,Phone,Clients Assigned\n';
+
+    // CSV Data
+    let rowNum = 1;
+    rows.forEach(row => {
+      if (row.style.display !== 'none') {
+        const name = row.querySelector('.marketer-info h6').textContent.trim();
+        const id = row.querySelector('.marketer-info small').textContent.replace('ID: ', '').trim();
+        const email = row.querySelector('.contact-item a[href^="mailto:"]').textContent.trim();
+        const phone = row.querySelectorAll('.contact-item a')[1].textContent.trim();
+        const clientCount = row.querySelector('.count-number').textContent.trim();
+
+        csv += `${rowNum},"${name}","${id}","${email}","${phone}","${clientCount}"\n`;
+        rowNum++;
+      }
+    });
+
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `marketers_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Success notification
+    Swal.fire({
+      icon: 'success',
+      title: 'Download Complete!',
+      text: `Successfully downloaded ${rowNum - 1} marketer records.`,
+      timer: 2000,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
+    });
+  });
+
+  // ==================== DELETE CONFIRMATION ====================
+  let currentMarketerId = null;
+  let currentMarketerName = null;
+
+  // Handle delete button click
+  document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      currentMarketerId = this.getAttribute('data-id');
+      currentMarketerName = this.getAttribute('data-name');
+      
+      document.getElementById('deleteMarketerName').textContent = currentMarketerName;
+      
+      // Reset modal
+      document.querySelectorAll('.deletion-reason').forEach(cb => cb.checked = false);
+      document.getElementById('otherReasonText').value = '';
+      document.getElementById('otherReasonContainer').style.display = 'none';
+      document.getElementById('reasonError').style.display = 'none';
+      document.getElementById('confirmDeleteBtn').disabled = true;
+      
+      const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+      modal.show();
+    });
+  });
+
+  // Handle "Other" checkbox
+  document.getElementById('reasonOther').addEventListener('change', function() {
+    document.getElementById('otherReasonContainer').style.display = 
+      this.checked ? 'block' : 'none';
+  });
+
+  // Enable confirm button when at least one reason is selected
+  document.querySelectorAll('.deletion-reason').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const anyChecked = Array.from(document.querySelectorAll('.deletion-reason'))
+        .some(cb => cb.checked);
+      
+      document.getElementById('confirmDeleteBtn').disabled = !anyChecked;
+      
+      if (anyChecked) {
+        document.getElementById('reasonError').style.display = 'none';
+      }
+    });
+  });
+
+  // Handle confirm delete
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    const selectedReasons = Array.from(document.querySelectorAll('.deletion-reason:checked'))
+      .map(cb => cb.value);
+    
+    const otherReason = document.getElementById('otherReasonText').value.trim();
+    if (document.getElementById('reasonOther').checked && otherReason) {
+      selectedReasons.push(`Other: ${otherReason}`);
+    }
+
+    if (selectedReasons.length === 0) {
+      document.getElementById('reasonError').style.display = 'block';
+      return;
+    }
+
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+
+    // Show loading
+    Swal.fire({
+      title: 'Processing...',
+      text: 'Marking marketer as deleted...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Submit soft delete
+    fetch(`/marketer/${currentMarketerId}/soft-delete/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        reasons: selectedReasons
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Marketer Deleted',
+          html: `<strong>${currentMarketerName}</strong> has been marked as deleted.<br>
+                 <small>Can be restored within 30 days.</small>`,
+          timer: 3000,
+          showConfirmButton: false
+        }).then(() => {
+          location.reload();
+        });
+      } else {
+        throw new Error(data.message || 'Failed to delete marketer');
+      }
+    })
+    .catch(error => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to delete marketer. Please try again.',
+        confirmButtonColor: '#6C5CE7'
+      });
+    });
+  });
+
+  // ==================== RESTORE FUNCTIONALITY ====================
+  document.querySelectorAll('.restore-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      currentMarketerId = this.getAttribute('data-id');
+      currentMarketerName = this.getAttribute('data-name');
+      
+      document.getElementById('restoreMarketerName').textContent = currentMarketerName;
+      
+      const modal = new bootstrap.Modal(document.getElementById('restoreModal'));
+      modal.show();
+    });
+  });
+
+  document.getElementById('confirmRestoreBtn').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('restoreModal')).hide();
+
+    Swal.fire({
+      title: 'Restoring...',
+      text: 'Please wait...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    fetch(`/marketer/${currentMarketerId}/restore/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Marketer Restored',
+          html: `<strong>${currentMarketerName}</strong> has been successfully restored.`,
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          location.reload();
+        });
+      } else {
+        throw new Error(data.message || 'Failed to restore marketer');
+      }
+    })
+    .catch(error => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to restore marketer. Please try again.',
+        confirmButtonColor: '#6C5CE7'
+      });
+    });
+  });
+
+  // ==================== PERMANENT DELETE FUNCTIONALITY ====================
+  document.querySelectorAll('.permanent-delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      currentMarketerId = this.getAttribute('data-id');
+      currentMarketerName = this.getAttribute('data-name');
+      
+      document.getElementById('permanentDeleteMarketerName').textContent = currentMarketerName;
+      
+      const modal = new bootstrap.Modal(document.getElementById('permanentDeleteModal'));
+      modal.show();
+    });
+  });
+
+  document.getElementById('confirmPermanentDeleteBtn').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('permanentDeleteModal')).hide();
+
+    Swal.fire({
+      title: 'Deleting Permanently...',
+      text: 'This cannot be undone...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Create and submit form for permanent delete
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/marketers/${currentMarketerId}/delete/`;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    form.submit();
+  });
+
+  // ==================== TABLE ROW ANIMATIONS ====================
+  document.addEventListener('DOMContentLoaded', () => {
+    const rows = document.querySelectorAll('.marketer-row');
+    rows.forEach((row, index) => {
+      row.style.animationDelay = `${index * 0.05}s`;
+    });
+  });
+
+  // ==================== KEYBOARD SHORTCUTS ====================
+  document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + F to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    
+    // Ctrl/Cmd + D to download CSV
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      document.getElementById('downloadCSV').click();
+    }
+  });
+</script>
+
+{% endblock %}

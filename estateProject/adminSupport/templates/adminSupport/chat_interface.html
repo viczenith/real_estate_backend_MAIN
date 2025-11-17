@@ -1,0 +1,1100 @@
+{% extends 'adminSupport/base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    /* Modern Color Palette & Variables */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+        --chat-bg: #e5ddd5;
+    }
+
+    /* Smooth Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Page Title Styling */
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .pagetitle h1 i {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Chat Container - Premium Design */
+    .chat-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        height: 80vh;
+        background: var(--card-bg);
+        position: relative;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .chat-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 24px 24px 0 0;
+    }
+
+    /* Chat Header */
+    .chat-header {
+        background: var(--card-bg);
+        padding: 20px 30px;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .chat-header-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chat-header-avatar::before {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #38ef7d;
+        border: 3px solid var(--card-bg);
+        border-radius: 50%;
+        bottom: 2px;
+        right: 2px;
+        box-shadow: 0 0 0 2px rgba(56, 239, 125, 0.3);
+    }
+
+    .chat-header-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .chat-header-info h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .chat-header-info p {
+        margin: 3px 0 0 0;
+        font-size: 13px;
+        color: var(--text-color);
+        opacity: 0.6;
+    }
+
+    /* Chat Window */
+    .chat-window {
+        flex: 1;
+        overflow-y: auto;
+        padding: 25px;
+        background: linear-gradient(to bottom, rgba(229, 221, 213, 0.3), rgba(229, 221, 213, 0.5)),
+                    url("{% static 'images/estate_logo_faded.png' %}") center center / cover no-repeat;
+        position: relative;
+    }
+
+    .chat-window::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 50px,
+            rgba(0, 0, 0, 0.02) 50px,
+            rgba(0, 0, 0, 0.02) 51px
+        );
+        pointer-events: none;
+    }
+
+    /* Custom Scrollbar */
+    .chat-window::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-window::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-window::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 10px;
+    }
+
+    .chat-window::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 126, 234, 0.5);
+    }
+
+    /* Empty State */
+    .chat-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-color);
+        opacity: 0.5;
+    }
+
+    .chat-empty-state i {
+        font-size: 60px;
+        margin-bottom: 15px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Chat Input Area - WhatsApp Style */
+    .chat-input-area {
+        background: var(--card-bg);
+        padding: 10px 15px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* File Preview Container - Enhanced WhatsApp Style */
+    .file-preview-container {
+        display: none;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+        border-left: 4px solid #667eea;
+        border-radius: 12px;
+        padding: 12px 15px;
+        animation: slideUp 0.3s ease-out;
+        gap: 12px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+
+    .file-preview-container.active {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Image Preview Thumbnail */
+    .file-thumbnail {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Document Icon Thumbnail */
+    .file-icon-thumbnail {
+        width: 56px;
+        height: 56px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-icon-thumbnail.pdf {
+        background: linear-gradient(135deg, #ff3b30, #ff6f61);
+    }
+
+    .file-icon-thumbnail.doc {
+        background: linear-gradient(135deg, #2979ff, #448aff);
+    }
+
+    .file-icon-thumbnail.xls {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+    }
+
+    .file-icon-thumbnail.zip {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    }
+
+    .file-icon-thumbnail.default {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    /* File Details */
+    .file-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-details-name {
+        font-size: 14px;
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    .file-details-size {
+        font-size: 12px;
+        color: var(--text-color);
+        opacity: 0.6;
+    }
+
+    /* Remove File Button */
+    .remove-file {
+        cursor: pointer;
+        color: #8696a0;
+        font-size: 22px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: transparent;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .remove-file:hover {
+        background: rgba(255, 59, 48, 0.1);
+        color: #ff3b30;
+        transform: rotate(90deg);
+    }
+
+    /* Chat Input Form - WhatsApp Style */
+    .chat-input-form {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .chat-input-form input[type="file"] {
+        display: none;
+    }
+
+    /* WhatsApp-style Input Wrapper */
+    .input-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        background: var(--card-bg);
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        border-radius: 24px;
+        padding: 8px 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-wrapper:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+
+    /* Attachment Button - WhatsApp Style */
+    .attachment-btn {
+        cursor: pointer;
+        font-size: 24px;
+        color: #8696a0;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: transparent;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-right: 4px;
+    }
+
+    .attachment-btn:hover {
+        background: rgba(134, 150, 160, 0.15);
+        color: #667eea;
+        transform: rotate(30deg);
+    }
+
+    .attachment-btn:active {
+        transform: rotate(30deg) scale(0.9);
+    }
+
+    /* Textarea - WhatsApp Style */
+    .chat-input-form textarea {
+        flex: 1;
+        resize: none;
+        border: none;
+        padding: 9px 0;
+        font-size: 15px;
+        line-height: 20px;
+        height: auto;
+        min-height: 20px;
+        max-height: 100px;
+        font-family: inherit;
+        color: var(--text-color);
+        background: transparent;
+        overflow-y: auto;
+    }
+
+    .chat-input-form textarea:focus {
+        outline: none;
+    }
+
+    .chat-input-form textarea::placeholder {
+        color: #8696a0;
+        opacity: 1;
+    }
+
+    /* Custom Scrollbar for Textarea */
+    .chat-input-form textarea::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-input-form textarea::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-input-form textarea::-webkit-scrollbar-thumb {
+        background: rgba(134, 150, 160, 0.3);
+        border-radius: 10px;
+    }
+
+    .chat-input-form textarea::-webkit-scrollbar-thumb:hover {
+        background: rgba(134, 150, 160, 0.5);
+    }
+
+    /* Emoji Button - WhatsApp Style (optional, can be added later) */
+    .emoji-btn {
+        cursor: pointer;
+        font-size: 24px;
+        color: #8696a0;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: transparent;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 4px;
+    }
+
+    .emoji-btn:hover {
+        background: rgba(134, 150, 160, 0.15);
+    }
+
+    /* Send Button - WhatsApp Style */
+    .send-btn {
+        background: #667eea;
+        border: none;
+        color: #fff;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .send-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s, height 0.4s;
+    }
+
+    .send-btn:hover::before {
+        width: 200px;
+        height: 200px;
+    }
+
+    .send-btn:hover {
+        background: #764ba2;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .send-btn:active {
+        transform: scale(0.95);
+    }
+
+    .send-btn i {
+        position: relative;
+        z-index: 1;
+        margin-left: 2px;
+    }
+
+    /* Microphone Button (for empty input) - WhatsApp Style */
+    .mic-btn {
+        background: #667eea;
+        border: none;
+        color: #fff;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .mic-btn:hover {
+        background: #764ba2;
+        transform: scale(1.05);
+    }
+
+    .mic-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Modal Styling - Enhanced */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        margin: 10% auto;
+        padding: 35px;
+        border-radius: 20px;
+        max-width: 500px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .modal-content img {
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: var(--text-color);
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-close:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: rotate(90deg);
+        color: #667eea;
+    }
+
+    .modal-buttons {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .btn-danger {
+        background: var(--danger-gradient);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(235, 51, 73, 0.4);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(235, 51, 73, 0.5);
+    }
+
+    .btn-secondary {
+        background: rgba(102, 126, 234, 0.1);
+        color: var(--text-color);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 100px);
+            border-radius: 16px;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+        }
+
+        .chat-header-avatar {
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+        }
+
+        .chat-header-info h3 {
+            font-size: 16px;
+        }
+
+        .chat-window {
+            padding: 20px 15px;
+        }
+
+        .chat-input-area {
+            padding: 8px 10px;
+        }
+
+        .pagetitle h1 {
+            font-size: 26px;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+        }
+
+        .input-wrapper {
+            padding: 6px 10px;
+        }
+
+        .attachment-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 22px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chat-container {
+            height: calc(100vh - 80px);
+            border-radius: 12px;
+        }
+
+        .chat-header {
+            padding: 12px 15px;
+        }
+
+        .chat-input-form textarea {
+            font-size: 14px;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .modal-content {
+            margin: 20% auto;
+            padding: 25px;
+        }
+
+        .input-wrapper {
+            padding: 5px 8px;
+        }
+
+        .attachment-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .chat-window {
+        background: linear-gradient(to bottom, rgba(40, 40, 40, 0.5), rgba(40, 40, 40, 0.7)),
+                    url("{% static 'images/estate_logo_faded.png' %}") center center / cover no-repeat;
+    }
+
+    [data-theme="dark"] .chat-input-form textarea {
+        border-color: rgba(162, 155, 254, 0.3);
+    }
+
+    [data-theme="dark"] .file-preview-container {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: rgba(162, 155, 254, 0.3);
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1><i class="bi bi-chat-dots"></i> Chat with {{ client.full_name|default:client.get_full_name|default:client.username }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:chat' %}">Chat List</a></li>
+                <li class="breadcrumb-item active">Conversation</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="chat-container" data-role="{{ conversation_role }}" data-user-id="{{ client.id }}">
+        <div class="chat-header">
+            <div class="chat-header-avatar">
+                {% if client.profile_image %}
+                    <img src="{{ client.profile_image.url }}" alt="{{ client.full_name|default:client.get_full_name|default:client.username }}" loading="lazy">
+                {% else %}
+                    {{ client.full_name|default:client.get_full_name|default:client.username|slice:':1'|upper }}
+                {% endif %}
+            </div>
+            <div class="chat-header-info">
+                <h3>{{ client.full_name }}</h3>
+                <p><i class="bi bi-circle-fill" style="font-size: 8px; color: #38ef7d;"></i> Active now</p>
+            </div>
+        </div>
+
+        <div id="chat-window" class="chat-window" data-last-msg-id="{{ last_message_id|default:0 }}">
+            {% if messages %}
+                {% for msg in messages %}
+                    {% include 'adminSupport/chat_message.html' with msg=msg %}
+                {% endfor %}
+            {% else %}
+                <div class="chat-empty-state">
+                    <i class="bi bi-chat-heart"></i>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="chat-input-area">
+            <div id="file-preview-container" class="file-preview-container">
+                <div id="file-thumbnail-wrapper"></div>
+                <div class="file-details">
+                    <span id="file-details-name" class="file-details-name"></span>
+                    <span id="file-details-size" class="file-details-size"></span>
+                </div>
+                <span id="remove-file" class="remove-file">
+                    <i class="bi bi-x-circle-fill"></i>
+                </span>
+            </div>
+
+            <form id="chat-form" class="chat-input-form" data-recipient-id="{{ client.id }}">
+                {% csrf_token %}
+                <input type="file" id="file-input" name="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.zip">
+
+                <div class="input-wrapper">
+                    <label for="file-input" class="attachment-btn" title="Attach file">
+                        <i class="bi bi-plus-circle"></i>
+                    </label>
+
+                    <textarea name="message_content" id="message-content" placeholder="Type a message" rows="1"></textarea>
+                </div>
+
+                <button type="submit" class="send-btn">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <input type="hidden" id="poll-url" value="{% url 'adminSupport:chat_poll' conversation_role client.id %}">
+    <input type="hidden" id="send-url" value="{% url 'adminSupport:chat_send_message' conversation_role client.id %}">
+    <input type="hidden" id="delete-url" value="{% url 'adminSupport:chat_delete_message' %}">
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatWindow = document.getElementById('chat-window');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-content');
+    const fileInput = document.getElementById('file-input');
+    const filePreviewContainer = document.getElementById('file-preview-container');
+    const fileThumbnailWrapper = document.getElementById('file-thumbnail-wrapper');
+    const fileDetailsName = document.getElementById('file-details-name');
+    const fileDetailsSize = document.getElementById('file-details-size');
+    const removeFileBtn = document.getElementById('remove-file');
+    const pollUrl = document.getElementById('poll-url').value;
+    const sendUrl = document.getElementById('send-url').value;
+    const deleteUrl = document.getElementById('delete-url').value;
+    const csrfToken = chatForm.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    let lastMsgId = Number(chatWindow.dataset.lastMsgId || 0);
+
+    const scrollToBottom = () => {
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    };
+    scrollToBottom();
+
+    const formatFileSize = (bytes) => {
+        if (!bytes) return '0 Bytes';
+        const units = ['Bytes', 'KB', 'MB', 'GB'];
+        const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        const size = bytes / Math.pow(1024, exponent);
+        return `${Math.round(size * 100) / 100} ${units[exponent]}`;
+    };
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        fileThumbnailWrapper.innerHTML = '';
+
+        if (!file) {
+            filePreviewContainer.classList.remove('active');
+            fileDetailsName.textContent = '';
+            fileDetailsSize.textContent = '';
+            return;
+        }
+
+        const fileName = file.name;
+        const fileExt = (fileName.split('.').pop() || '').toLowerCase();
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.className = 'file-thumbnail';
+                img.alt = 'Attachment preview';
+                fileThumbnailWrapper.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'file-icon-thumbnail';
+
+            if (fileExt === 'pdf') {
+                iconDiv.classList.add('pdf');
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-pdf-fill"></i>';
+            } else if (['doc', 'docx'].includes(fileExt)) {
+                iconDiv.classList.add('doc');
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-word-fill"></i>';
+            } else if (['xls', 'xlsx'].includes(fileExt)) {
+                iconDiv.classList.add('xls');
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-excel-fill"></i>';
+            } else if (['zip', 'rar', '7z'].includes(fileExt)) {
+                iconDiv.classList.add('zip');
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-zip-fill"></i>';
+            } else {
+                iconDiv.classList.add('default');
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark-fill"></i>';
+            }
+
+            fileThumbnailWrapper.appendChild(iconDiv);
+        }
+
+        fileDetailsName.textContent = fileName.length > 35 ? `${fileName.substring(0, 32)}...` : fileName;
+        fileDetailsName.title = fileName;
+        fileDetailsSize.textContent = formatFileSize(file.size);
+        filePreviewContainer.classList.add('active');
+    });
+
+    removeFileBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        filePreviewContainer.classList.remove('active');
+        fileThumbnailWrapper.innerHTML = '';
+        fileDetailsName.textContent = '';
+        fileDetailsSize.textContent = '';
+    });
+
+    const renderMessageHtml = (html) => {
+        const template = document.createElement('template');
+        template.innerHTML = html.trim();
+        return Array.from(template.content.childNodes).filter(node => {
+            if (node.nodeName === 'STYLE') {
+                const styleId = 'adminSupport-chat-message-style';
+                if (!document.getElementById(styleId)) {
+                    node.id = styleId;
+                    document.head.appendChild(node);
+                }
+                return false;
+            }
+            return node.nodeType === Node.ELEMENT_NODE;
+        });
+    };
+
+    const appendMessages = (elements) => {
+        elements.forEach((element) => {
+            const msgId = Number(element.getAttribute('data-msg-id'));
+            if (!Number.isNaN(msgId) && !chatWindow.querySelector(`[data-msg-id="${msgId}"]`)) {
+                chatWindow.appendChild(element);
+                lastMsgId = Math.max(lastMsgId, msgId);
+            }
+        });
+        scrollToBottom();
+    };
+
+    const statusIconHtml = (status) => {
+        if (status === 'read') {
+            return '<i class="bi bi-check-all"></i>';
+        }
+        if (status === 'delivered') {
+            return '<i class="bi bi-check-all"></i>';
+        }
+        return '<i class="bi bi-check"></i>';
+    };
+
+    const updateStatuses = (statuses) => {
+        statuses.forEach((status) => {
+            const node = chatWindow.querySelector(`[data-msg-id="${status.id}"] .message-status`);
+            if (node) {
+                node.className = `message-status status-${status.status}`;
+                node.innerHTML = statusIconHtml(status.status);
+            }
+        });
+    };
+
+    const pollMessages = async () => {
+        try {
+            const response = await fetch(`${pollUrl}?last_msg=${lastMsgId}`, { credentials: 'same-origin' });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            if (data.messages_html) {
+                const elements = renderMessageHtml(data.messages_html);
+                appendMessages(elements);
+            }
+            if (Array.isArray(data.updated_statuses)) {
+                updateStatuses(data.updated_statuses);
+            }
+        } catch (error) {
+            console.error('Error polling messages', error);
+        } finally {
+            setTimeout(pollMessages, 1500);
+        }
+    };
+    setTimeout(pollMessages, 1500);
+
+    chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(chatForm);
+        if (!formData.get('message_content') && !formData.get('file')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(sendUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+
+            if (data.success && data.message_html) {
+                const elements = renderMessageHtml(data.message_html);
+                appendMessages(elements);
+                chatForm.reset();
+                messageInput.style.height = 'auto';
+                filePreviewContainer.classList.remove('active');
+                fileThumbnailWrapper.innerHTML = '';
+                fileDetailsName.textContent = '';
+                fileDetailsSize.textContent = '';
+            } else if (data.error) {
+                alert(data.error);
+            }
+        } catch (error) {
+            console.error('Error sending message', error);
+            alert('Error sending message.');
+        }
+    });
+
+    const autoExpand = () => {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = `${messageInput.scrollHeight}px`;
+    };
+
+    messageInput.addEventListener('input', autoExpand);
+    messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    });
+
+    window.deleteMessage = async (messageId) => {
+        if (!confirm('Delete this message?')) {
+            return;
+        }
+
+        const payload = new FormData();
+        payload.append('message_id', messageId);
+
+        try {
+            const response = await fetch(deleteUrl, {
+                method: 'POST',
+                body: payload,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const node = chatWindow.querySelector(`[data-msg-id="${data.removed_id}"]`);
+                if (node) {
+                    node.remove();
+                }
+            } else if (data.error) {
+                alert(data.error);
+            }
+        } catch (error) {
+            console.error('Error deleting message', error);
+            alert('Error deleting message.');
+        }
+    };
+
+    window.replyToMessage = (messageId) => {
+        messageInput.value = `@message-${messageId} `;
+        messageInput.focus();
+        autoExpand();
+    };
+
+    window.openAttachment = (url) => {
+        window.open(url, '_blank');
+    };
+});
+</script>
+
+{% endblock %}
+

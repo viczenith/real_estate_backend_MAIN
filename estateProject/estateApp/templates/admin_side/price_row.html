@@ -1,0 +1,120 @@
+<!-- Estate + Badge -->
+<td>
+    <div class="d-flex align-items-center">
+    {{ row.estate.name }}
+
+    {% if row.presale and row.effective|stringformat:"s" > today %}
+        <span class="badge-gradient-prm ms-2">
+        <div class="d-flex align-items-center mb-1">
+            <i class="bi bi-clock-history me-1 text-light-emphasis fs-6"></i>
+            <strong class="text-light">Price Update</strong>
+        </div>
+        <div class="small text-light-emphasis">
+            New: <span class="text-white fw-semibold">₦{{ row.display_current|intcomma }}</span><br>
+            % Change: <span class="text-white fw-semibold badge-locked">+{{ row.percent_change|floatformat:1 }}%</span><br>
+            Effective: <span class="text-white fw-semibold">{{ row.effective }}</span><br>
+        </div>
+        </span>
+
+    {% elif row.active_promo %}
+        <span class="promo-badge-prm ms-2">
+        <!-- <i class="bi bi-tag-fill me-1"></i> -->
+        {{ row.active_promo.discount }}% OFF
+        </span>
+    {% endif %}
+    </div>
+</td>
+
+<!-- Plot Size -->
+<td>{{ row.plot_unit.plot_size.size }}</td>
+
+<!-- Location -->
+<td>{{ row.estate.location }}</td>
+
+<!-- Presale -->
+<td class="text-end">
+    {% if row.presale %}{{ row.presale|intcomma }}{% endif %}
+</td>
+
+<!-- Previous -->
+<td class="text-end">
+    {% if row.effective|stringformat:"s" > today %}
+        {{ row.presale|intcomma }}
+    {% elif row.previous %}
+        {{ row.previous|intcomma }}
+    {% else %}
+        <span class="text-muted">—</span>
+    {% endif %}
+</td>
+
+<!-- Current (shows previous until effective date) -->
+<td class="text-end fw-bold">
+    {% if row.effective|stringformat:"s" > today %}
+    {{ row.previous|intcomma }}
+    {% else %}
+    {{ row.display_current|intcomma }}
+    {% endif %}
+</td>
+
+<!-- % Change -->
+<td>
+    {% if row.percent_change is not None %}
+    {% if row.percent_change > 0 %}
+        <span class="increase-prm">
+        +{{ row.percent_change|floatformat:1 }}%
+        <i class="bi bi-arrow-up-right trend-indicator-prm"></i>
+        </span>
+    {% elif row.percent_change < 0 %}
+        <span class="decrease-prm">
+        {{ row.percent_change|floatformat:1 }}%
+        <i class="bi bi-arrow-down-left trend-indicator-prm"></i>
+        </span>
+    {% else %}
+        <span class="price-change">0.0%</span>
+    {% endif %}
+    {% else %}
+    <span class="no-presale">-</span>
+    {% endif %}
+</td>
+
+<!-- Over Time % -->
+<td class="text-end">
+    {% if row.overtime is not None %}
+    {{ row.overtime|floatformat:1 }}%
+    {% else %}
+    <span class="price-change">0.0%</span>
+    {% endif %}
+</td>
+
+<!-- Effective Date -->
+<td>{{ row.effective|default:"" }}</td>
+
+<!-- Status Badge -->
+<td>
+    {% if row.id %}
+    <span class="badge-notified-prm status-badge-prm">Active</span>
+    {% else %}
+    <span class="badge-pending-prm status-badge-prm">NoPrice</span>
+    {% endif %}
+</td>
+
+<!-- Actions -->
+<td>
+    {% if row.id %}
+    <button class="btn btn-sm btn-outline-primary action-btn-prm"
+            data-action="edit" data-id="{{ row.id }}">
+        <i class="bi bi-pencil"></i>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary action-btn-prm"
+            data-action="history" data-id="{{ row.id }}">
+        <i class="bi bi-clock-history"></i>
+    </button>
+    {% else %}
+    <button class="btn btn-sm btn-outline-primary action-btn-prm"
+            data-action="add"
+            data-estate="{{ row.estate.id }}"
+            data-unit="{{ row.plot_unit.id }}">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+    {% endif %}
+</td>

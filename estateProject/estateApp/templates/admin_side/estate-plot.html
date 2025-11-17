@@ -1,0 +1,1131 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* Modern Color Palette & Variables */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --info-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+        --input-focus-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Smooth Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.02);
+        }
+    }
+
+    @keyframes checkboxPop {
+        0% {
+            transform: scale(0.8);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* Page Title Styling */
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+    }
+
+    /* Form Container - Premium Design */
+    .form-container {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 50px;
+        box-shadow: var(--card-shadow);
+        animation: fadeInUp 0.8s ease-out;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        position: relative;
+        overflow: visible;
+    }
+
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 24px 24px 0 0;
+    }
+
+    .form-container:hover {
+        box-shadow: var(--card-shadow-hover);
+        transform: translateY(-2px);
+    }
+
+    /* Form Header with Icon */
+    .form-header {
+        text-align: center;
+        margin-bottom: 45px;
+        animation: slideInRight 0.8s ease-out;
+    }
+
+    .form-header-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: var(--primary-gradient);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .form-header-icon i {
+        font-size: 36px;
+        color: white;
+    }
+
+    .form-header h2 {
+        font-weight: 700;
+        font-size: 28px;
+        margin-bottom: 10px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .form-header p {
+        font-size: 15px;
+        color: var(--text-color);
+        opacity: 0.7;
+    }
+
+    /* Section Wrapper with Animation */
+    .form-section {
+        margin-bottom: 35px;
+        animation: slideInRight 0.6s ease-out backwards;
+        background: rgba(102, 126, 234, 0.03);
+        padding: 25px;
+        border-radius: 16px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        background: rgba(102, 126, 234, 0.05);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Form Labels */
+    .form-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-color);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-label i {
+        color: #667eea;
+        font-size: 16px;
+    }
+
+    .required-asterisk {
+        color: #f5576c;
+        margin-left: 4px;
+    }
+
+    /* Enhanced Form Controls */
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        padding: 14px 18px;
+        font-size: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .form-control:hover {
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: var(--input-focus-shadow);
+        outline: none;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    /* Plot Size Items - Card Design */
+    .plot-size-item {
+        background: var(--card-bg);
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .plot-size-item:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+
+    .plot-size-item.active {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.08);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    /* Modern Checkbox Styling */
+    .plot-size-checkbox,
+    .plot-number-checkbox {
+        width: 22px;
+        height: 22px;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        appearance: none;
+        background: var(--card-bg);
+    }
+
+    .plot-size-checkbox:hover,
+    .plot-number-checkbox:hover {
+        border-color: #667eea;
+        transform: scale(1.1);
+    }
+
+    .plot-size-checkbox:checked,
+    .plot-number-checkbox:checked:not(:disabled) {
+        background: var(--primary-gradient);
+        border-color: #667eea;
+        animation: checkboxPop 0.3s ease;
+    }
+
+    .plot-size-checkbox:checked::after,
+    .plot-number-checkbox:checked:not(:disabled)::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .plot-size-checkbox:disabled,
+    .plot-number-checkbox:disabled {
+        background-color: #e0e0e0 !important;
+        border-color: #ccc !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .plot-number-checkbox:checked:disabled {
+        background: linear-gradient(135deg, #ccc, #999) !important;
+    }
+
+    .plot-number-checkbox:checked:disabled::after {
+        content: '✓';
+        color: #666;
+    }
+
+    /* Plot Size Label */
+    .plot-size-label {
+        flex: 1;
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .plot-size-label i {
+        color: #667eea;
+    }
+
+    /* Unit Input Styling */
+    .unit-input {
+        flex: 0 0 150px;
+        border-radius: 10px;
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        padding: 10px 15px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .unit-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .unit-input:disabled {
+        background-color: rgba(0, 0, 0, 0.03);
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Plot Numbers Section */
+    .plot-numbers-container {
+        background: var(--card-bg);
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 12px;
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+        /* Hide scrollbar */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .plot-numbers-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .plot-number-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--card-bg);
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 10px;
+        padding: 10px 15px;
+        margin: 5px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+
+    .plot-number-item:hover:not(.disabled) {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+
+    .plot-number-item.active {
+        border-color: #667eea;
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .plot-number-item.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: rgba(0, 0, 0, 0.03);
+    }
+
+    .plot-number-label {
+        font-weight: 500;
+        font-size: 14px;
+        user-select: none;
+    }
+
+    .plot-number-item.active .plot-number-label {
+        color: white;
+    }
+
+    /* Submit Button - Premium Design */
+    .btn-submit {
+        width: 100%;
+        background: var(--primary-gradient);
+        border: none;
+        padding: 16px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 12px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 35px;
+        animation: slideInRight 0.8s ease-out backwards;
+        animation-delay: 0.5s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-submit:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-submit i {
+        font-size: 18px;
+    }
+
+    /* Alert Messages */
+    .alert {
+        border-radius: 12px;
+        padding: 16px 20px;
+        border: none;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.6s ease-out;
+        margin-bottom: 25px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        color: white;
+    }
+
+    .alert i {
+        font-size: 20px;
+    }
+
+    /* Info Badge */
+    .info-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(67, 233, 123, 0.1);
+        color: #38f9d7;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: 8px;
+    }
+
+    .info-badge i {
+        font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 30px 20px;
+            border-radius: 20px;
+        }
+
+        .form-header h2 {
+            font-size: 24px;
+        }
+
+        .form-header-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .form-header-icon i {
+            font-size: 28px;
+        }
+
+        .plot-size-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .unit-input {
+            width: 100%;
+            flex: 1;
+        }
+
+        .pagetitle h1 {
+            font-size: 26px;
+        }
+
+        .plot-number-item {
+            width: calc(50% - 10px);
+            justify-content: center;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .form-section {
+        background: rgba(162, 155, 254, 0.05);
+        border-color: rgba(162, 155, 254, 0.15);
+    }
+
+    [data-theme="dark"] .form-section:hover {
+        background: rgba(162, 155, 254, 0.08);
+        border-color: rgba(162, 155, 254, 0.25);
+    }
+
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .unit-input {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .form-control:hover,
+    [data-theme="dark"] .unit-input:hover {
+        border-color: rgba(162, 155, 254, 0.4);
+    }
+
+    [data-theme="dark"] .plot-size-item,
+    [data-theme="dark"] .plot-number-item {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .plot-size-item:hover,
+    [data-theme="dark"] .plot-number-item:hover:not(.disabled) {
+        background: rgba(162, 155, 254, 0.1);
+        border-color: #a29bfe;
+    }
+
+    [data-theme="dark"] .plot-numbers-container {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+</style>
+
+<main id="main" class="main">
+
+    <div class="pagetitle">
+        <h1 class="text-color">Add Estate Plot</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Home</a></li>
+                <li class="breadcrumb-item active">Add Estate Plot</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-container card-color text-color">
+                    <!-- Enhanced Form Header -->
+                    <div class="form-header">
+                        <div class="form-header-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h2 class="text-color">Add Estate Plot</h2>
+                        <p>Configure plot sizes and numbers for your estate properties</p>
+                    </div>
+
+                    <!-- EstatePlot Form -->
+                    <form id="addEstatePlotForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Alert Messages -->
+                        {% if messages %}
+                        <div>
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Estate Dropdown Section -->
+                        <div class="form-section">
+                            <label for="estateSelect" class="form-label">
+                                <i class="fas fa-building"></i>
+                                Select Estate
+                                <span class="required-asterisk">*</span>
+                            </label>
+                            <select name="estate" id="estateSelect" class="form-control card-color text-color" required>
+                                <option value="" selected disabled>Choose an Estate</option>
+                                {% for estate in estates %}
+                                <option value="{{ estate.id }}">{{ estate.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="info-badge">
+                                <i class="fas fa-info-circle"></i>
+                                Select the estate to configure plot details
+                            </div>
+                        </div>
+                        
+                        <!-- Plot Sizes and Units Section -->
+                        <div class="form-section">
+                            <label class="form-label">
+                                <i class="fas fa-ruler-combined"></i>
+                                Plot Sizes and Units
+                            </label>
+                            <div id="plotUnitsContainer">
+                                {% for size in plot_sizes %}
+                                <div class="plot-size-item" data-size-id="{{ size.id }}">
+                                    <input type="checkbox" name="plot_sizes[]" value="{{ size.id }}" class="plot-size-checkbox" id="size-{{ size.id }}">
+                                    <label class="plot-size-label" for="size-{{ size.id }}">
+                                        <i class="fas fa-ruler"></i>
+                                        {{ size.size }}
+                                    </label>
+                                    <input type="number" name="plot_units_{{ size.id }}" class="unit-input card-color text-color" placeholder="Enter number of units" min="1" disabled>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="info-badge">
+                                <i class="fas fa-lightbulb"></i>
+                                Select plot sizes and specify the number of units for each
+                            </div>
+                        </div>
+                        
+                        <!-- Plot Numbers Section -->
+                        <div class="form-section">
+                            <label class="form-label">
+                                <i class="fas fa-hashtag"></i>
+                                Plot Numbers
+                            </label>
+                            <div class="plot-numbers-container">
+                                {% for plot in plot_numbers %}
+                                <div class="plot-number-item {% if plot.id in allocated_plot_ids %}disabled{% endif %}" data-plot-id="{{ plot.id }}">
+                                    <input class="plot-number-checkbox" type="checkbox" name="plot_numbers[]" value="{{ plot.id }}" id="plot-{{ plot.id }}"
+                                        {% if plot.id in allocated_plot_ids %} checked disabled {% endif %}>
+                                    <label class="plot-number-label" for="plot-{{ plot.id }}">{{ plot.number }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="info-badge">
+                                <i class="fas fa-check-double"></i>
+                                Select available plot numbers (disabled items are already allocated)
+                            </div>
+                        </div>
+                        
+                        <!-- Response Message Container -->
+                        <div id="plotResponseMessage"></div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save"></i>
+                            Save Estate Plot Configuration
+                        </button>
+                    </form>
+
+                    
+                    <style>
+                        .form-check-input:checked:not(:disabled) {
+                            background-color: #555 !important;
+                            border-color: #555 !important;
+                            
+                        }
+
+                        .form-check-input:disabled {
+                            background-color: #ccc !important;
+                            border-color: #ccc !important;
+                        }
+                        .form-check-input:not(:disabled) + .form-check-label {
+                            font-weight: bold;
+                        }
+                        .form-check-input:disabled {
+                            background-color: #ccc !important;
+                            border-color: #ccc !important;
+                        }
+                        .form-check-input:checked:disabled {
+                            background-color: #ccc !important;
+                            border-color: #ccc !important;
+                        }
+                        
+                    </style>
+
+                    <!-- Include jQuery -->
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+                    <!-- Select2 CSS -->
+                    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+                    <!-- Select2 JS -->
+                    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+                    <style>
+                        /* Custom Select2 Styling to Match Design */
+                        .select2-container--default .select2-selection--single {
+                            border: 2px solid rgba(102, 126, 234, 0.15);
+                            border-radius: 12px;
+                            height: auto;
+                            padding: 10px 18px;
+                            background-color: var(--card-bg);
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                            box-sizing: border-box;
+                        }
+
+                        .select2-container--default .select2-selection--single:hover {
+                            border-color: rgba(102, 126, 234, 0.3);
+                        }
+
+                        .select2-container--default.select2-container--focus .select2-selection--single,
+                        .select2-container--default.select2-container--open .select2-selection--single {
+                            border-color: #667eea;
+                            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+                            outline: none;
+                        }
+
+                        .select2-container--default .select2-selection--single .select2-selection__rendered {
+                            color: var(--text-color);
+                            line-height: 28px;
+                            padding: 0;
+                            font-size: 15px;
+                        }
+
+                        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+                            color: #999;
+                        }
+
+                        .select2-container--default .select2-selection--single .select2-selection__arrow {
+                            height: 48px;
+                            right: 10px;
+                        }
+
+                        .select2-container--default .select2-selection--single .select2-selection__arrow b {
+                            border-color: #667eea transparent transparent transparent;
+                            border-width: 6px 5px 0 5px;
+                            margin-left: -5px;
+                            margin-top: -3px;
+                        }
+
+                        .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+                            border-color: transparent transparent #667eea transparent;
+                            border-width: 0 5px 6px 5px;
+                        }
+
+                        /* Dropdown Styling */
+                        .select2-dropdown {
+                            border: 2px solid #667eea;
+                            border-radius: 12px;
+                            background-color: var(--card-bg);
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                            margin-top: 4px;
+                            width: 100% !important;
+                            max-width: 100% !important;
+                            box-sizing: border-box;
+                            left: 0 !important;
+                            right: 0 !important;
+                            overflow: hidden;
+                        }
+
+                        /* Fix dropdown positioning */
+                        .select2-container {
+                            width: 100% !important;
+                            max-width: 100%;
+                            position: relative;
+                        }
+
+                        .select2-container .select2-dropdown {
+                            width: 100% !important;
+                            max-width: 100%;
+                            overflow-x: hidden;
+                            box-sizing: border-box;
+                        }
+
+                        /* Search field styling with icon */
+                        .select2-container--default .select2-search--dropdown {
+                            padding: 12px;
+                            background-color: var(--card-bg);
+                            position: relative;
+                        }
+
+                        .select2-container--default .select2-search--dropdown::before {
+                            content: "\f002"; /* Font Awesome search icon */
+                            font-family: "Font Awesome 5 Free", "Font Awesome 6 Free";
+                            font-weight: 900;
+                            position: absolute;
+                            left: 27px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            color: #667eea;
+                            pointer-events: none;
+                            z-index: 1;
+                            font-size: 14px;
+                        }
+
+                        .select2-container--default .select2-search--dropdown .select2-search__field {
+                            border: 2px solid rgba(102, 126, 234, 0.2);
+                            border-radius: 8px;
+                            padding: 10px 15px 10px 40px; /* Extra left padding for icon */
+                            background-color: var(--card-bg);
+                            color: var(--text-color);
+                            font-size: 14px;
+                        }
+
+                        .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+                            border-color: #667eea;
+                            outline: none;
+                            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                        }
+
+                        /* Results options styling */
+                        .select2-container--default .select2-results__option {
+                            padding: 12px 18px;
+                            color: var(--text-color);
+                            font-size: 14px;
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                            cursor: pointer;
+                            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                        }
+
+                        .select2-container--default .select2-results__option:last-child {
+                            border-bottom: none;
+                        }
+
+                        /* Enhanced hover effect with white text and gradient */
+                        .select2-container--default .select2-results__option--highlighted[aria-selected],
+                        .select2-container--default .select2-results__option:hover {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white !important;
+                            font-weight: 500;
+                            transform: translateX(4px);
+                            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+                        }
+
+                        .select2-container--default .select2-results__option[aria-selected=true] {
+                            background-color: rgba(102, 126, 234, 0.1);
+                            color: #667eea;
+                            font-weight: 600;
+                        }
+
+                        .select2-container--default .select2-results__option[aria-disabled=true] {
+                            color: #999;
+                            font-style: italic;
+                        }
+
+                        /* Hide scrollbar */
+                        .select2-results {
+                            max-height: 300px;
+                            overflow-y: auto;
+                            scrollbar-width: none; /* Firefox */
+                            -ms-overflow-style: none;  /* IE and Edge */
+                            scroll-behavior: smooth;
+                        }
+
+                        .select2-results::-webkit-scrollbar {
+                            display: none; /* Chrome, Safari, Opera */
+                        }
+
+                        .select2-results__options {
+                            overflow-y: auto;
+                            scrollbar-width: none;
+                            -ms-overflow-style: none;
+                            scroll-behavior: smooth;
+                        }
+
+                        .select2-results__options::-webkit-scrollbar {
+                            display: none;
+                        }
+
+                        /* No Results */
+                        .select2-container--default .select2-results__option--no-results {
+                            color: var(--text-color);
+                            opacity: 0.6;
+                            padding: 20px;
+                            text-align: center;
+                        }
+
+                        /* Dark Mode Adjustments */
+                        [data-theme="dark"] .select2-container--default .select2-selection--single {
+                            border-color: rgba(162, 155, 254, 0.2);
+                            background-color: var(--card-bg);
+                        }
+
+                        [data-theme="dark"] .select2-container--default .select2-selection--single:hover {
+                            border-color: rgba(162, 155, 254, 0.4);
+                        }
+
+                        [data-theme="dark"] .select2-dropdown {
+                            background-color: var(--card-bg);
+                            border-color: #a29bfe;
+                        }
+
+                        [data-theme="dark"] .select2-container--default .select2-search--dropdown .select2-search__field {
+                            background-color: var(--card-bg);
+                            color: var(--text-color);
+                            border-color: rgba(162, 155, 254, 0.3);
+                        }
+
+                        [data-theme="dark"] .select2-container--default .select2-results__option {
+                            color: var(--text-color);
+                            border-bottom-color: rgba(255, 255, 255, 0.05);
+                        }
+
+                        [data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected],
+                        [data-theme="dark"] .select2-container--default .select2-results__option:hover {
+                            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+                            color: white !important;
+                        }
+
+                        /* Mobile responsiveness */
+                        @media (max-width: 768px) {
+                            .select2-container--default .select2-selection--single {
+                                padding: 12px 15px;
+                            }
+
+                            .select2-container--default .select2-results__option {
+                                padding: 14px 16px;
+                                font-size: 15px;
+                            }
+
+                            .select2-results {
+                                max-height: 250px;
+                            }
+                        }
+
+                        @media (max-width: 480px) {
+                            .select2-results {
+                                max-height: 200px;
+                            }
+                        }
+
+                        /* Ensure form section allows overflow for dropdown */
+                        .form-section {
+                            position: relative;
+                            overflow: visible !important;
+                        }
+                    </style>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const estateSelect = document.getElementById('estateSelect');
+                            // Global variables to store current estate plot numbers and other estates’ plot numbers.
+                            let currentEstatePlots = new Set();
+                            let otherEstatePlots = new Set();
+
+                            // Initialize Select2 on estate dropdown with search
+                            $('#estateSelect').select2({
+                                theme: 'default',
+                                width: '100%',
+                                dropdownAutoWidth: false,
+                                allowClear: false,
+                                closeOnSelect: true,
+                                dropdownParent: $('#estateSelect').parent(),
+                                placeholder: 'Search and select an estate',
+                                language: {
+                                    noResults: function() {
+                                        return "No estate found";
+                                    },
+                                    searching: function() {
+                                        return "Searching...";
+                                    }
+                                }
+                            });
+
+                            // Add interactive hover effects for plot size items
+                            document.querySelectorAll('.plot-size-item').forEach(item => {
+                                const checkbox = item.querySelector('.plot-size-checkbox');
+                                checkbox.addEventListener('change', function() {
+                                    if (this.checked) {
+                                        item.classList.add('active');
+                                    } else {
+                                        item.classList.remove('active');
+                                    }
+                                });
+                            });
+
+                            // Add interactive effects for plot number items
+                            document.querySelectorAll('.plot-number-item').forEach(item => {
+                                const checkbox = item.querySelector('.plot-number-checkbox');
+                                checkbox.addEventListener('change', function() {
+                                    if (this.checked) {
+                                        item.classList.add('active');
+                                    } else {
+                                        item.classList.remove('active');
+                                    }
+                                });
+                                
+                                // Make the entire item clickable
+                                item.addEventListener('click', function(e) {
+                                    if (e.target !== checkbox && !checkbox.disabled) {
+                                        checkbox.click();
+                                    }
+                                });
+                            });
+
+                            // Use jQuery .on() for Select2 compatibility
+                            $('#estateSelect').on('change', function() {
+                                const estateId = $(this).val();
+                                if (!estateId) return;
+
+                                fetch(`/get-estate-details/${estateId}/`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        // Reset form state: uncheck all plot sizes and clear unit inputs.
+                                        document.querySelectorAll('.plot-size-checkbox').forEach(cb => {
+                                            cb.checked = false;
+                                            const item = cb.closest('.plot-size-item');
+                                            item.classList.remove('active');
+                                            const unitInput = item.querySelector('.unit-input');
+                                            unitInput.value = '';
+                                            unitInput.disabled = true;
+                                        });
+                                        // Reset plot number checkboxes.
+                                        document.querySelectorAll('.plot-number-checkbox').forEach(cb => {
+                                            cb.checked = false;
+                                            cb.disabled = false;
+                                            const item = cb.closest('.plot-number-item');
+                                            item.classList.remove('active');
+                                            item.classList.remove('disabled');
+                                        });
+
+                                        // Store current estate's plot numbers and other allocated plot numbers.
+                                        currentEstatePlots = new Set(data.plot_numbers.map(Number));
+                                        otherEstatePlots = new Set(data.allocated_plot_ids.map(Number));
+
+                                        // Populate plot sizes and unit values for the current estate.
+                                        data.plot_sizes.forEach(ps => {
+                                            const checkbox = document.querySelector(`.plot-size-checkbox[value="${ps.plot_size__id}"]`);
+                                            if (checkbox) {
+                                                checkbox.checked = true;
+                                                const item = checkbox.closest('.plot-size-item');
+                                                item.classList.add('active');
+                                                const unitInput = item.querySelector('.unit-input');
+                                                unitInput.disabled = false;
+                                                unitInput.value = ps.total_units;
+                                            }
+                                        });
+
+                                        // Handle plot number checkboxes:
+                                        // Enable checkboxes for numbers already assigned to this estate.
+                                        document.querySelectorAll('.plot-number-checkbox').forEach(cb => {
+                                            const plotId = parseInt(cb.value);
+                                            const item = cb.closest('.plot-number-item');
+                                            if (currentEstatePlots.has(plotId)) {
+                                                cb.checked = true;
+                                                cb.disabled = false;
+                                                item.classList.add('active');
+                                                item.classList.remove('disabled');
+                                            } else if (otherEstatePlots.has(plotId)) {
+                                                // Disable if assigned to another estate.
+                                                cb.disabled = true;
+                                                item.classList.add('disabled');
+                                                item.classList.remove('active');
+                                            } else {
+                                                cb.disabled = false;
+                                                item.classList.remove('active');
+                                                item.classList.remove('disabled');
+                                            }
+                                        });
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            });
+
+                            // Form submission handler with enhanced alert icons
+                            document.getElementById('addEstatePlotForm').addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                const formData = new FormData(this);
+
+                                // Submit data to server; let the server return any conflict errors.
+                                fetch("{% url 'add-estate-plot' %}", {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    const alertDiv = document.getElementById('plotResponseMessage');
+                                    if (data.error) {
+                                        alertDiv.innerHTML = `<div class="alert alert-danger">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            ${data.error}
+                                        </div>`;
+                                    } else {
+                                        alertDiv.innerHTML = `<div class="alert alert-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            ${data.message}
+                                        </div>`;
+                                        // Refresh form state after successful update.
+                                        estateSelect.dispatchEvent(new Event('change'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    const alertDiv = document.getElementById('plotResponseMessage');
+                                    alertDiv.innerHTML = `<div class="alert alert-danger">
+                                        <i class="fas fa-times-circle"></i>
+                                        An error occurred. Please try again.
+                                    </div>`;
+                                });
+                            });
+
+                            // Enable/disable unit inputs when a plot size checkbox is toggled.
+                            document.querySelectorAll('.plot-size-checkbox').forEach(cb => {
+                                cb.addEventListener('change', function() {
+                                    const item = this.closest('.plot-size-item');
+                                    const unitInput = item.querySelector('.unit-input');
+                                    unitInput.disabled = !this.checked;
+                                    if (!this.checked) {
+                                        unitInput.value = '';
+                                        item.classList.remove('active');
+                                    } else {
+                                        item.classList.add('active');
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+{% endblock %}
+

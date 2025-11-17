@@ -1,0 +1,1151 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Include Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Include jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<!-- Include intl-tel-input CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css">
+
+<!-- Include intl-tel-input JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+
+<!-- Include Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* ==================== THEME VARIABLES ==================== */
+    :root {
+        --primary: #6C5CE7;
+        --primary-dark: #5649C0;
+        --primary-light: #A29BFE;
+        --secondary: #00b894;
+        --accent: #fd79a8;
+        --success: #00d084;
+        --warning: #fdcb6e;
+        --danger: #ff6b6b;
+        --info: #74b9ff;
+        --background-color: #f5f7fa;
+        --text-color: #2d3436;
+        --card-bg: #ffffff;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+        --input-bg: #ffffff;
+        --input-border: #e0e4e8;
+        --input-focus-border: #6C5CE7;
+        --input-focus-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    [data-theme="dark"] {
+        --background-color: #0f0f1e;
+        --text-color: #e4e6eb;
+        --card-bg: #1a1a2e;
+        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.6);
+        --input-bg: #16213e;
+        --input-border: #2d3561;
+        --input-focus-border: #A29BFE;
+        --input-focus-shadow: 0 0 0 3px rgba(162, 155, 254, 0.2);
+    }
+
+    /* ==================== GLOBAL STYLES ==================== */
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+    }
+
+    .main {
+        padding: 2rem;
+    }
+
+    /* ==================== PAGE TITLE ==================== */
+    .pagetitle {
+        margin-bottom: 2rem;
+        animation: slideInDown 0.6s ease-out;
+    }
+
+    .pagetitle h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item {
+        color: var(--text-color);
+        opacity: 0.7;
+    }
+
+    .breadcrumb-item.active {
+        opacity: 1;
+        font-weight: 600;
+    }
+
+    .breadcrumb-item a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    /* ==================== FORM CONTAINER ==================== */
+    .registration-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .form-header h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .form-header p {
+        color: var(--text-color);
+        opacity: 0.7;
+        font-size: 1rem;
+    }
+
+    .form-container {
+        background: var(--card-bg);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.4s ease;
+        animation: fadeInUp 1s ease-out;
+        border: 1px solid rgba(108, 92, 231, 0.1);
+    }
+
+    .form-container:hover {
+        box-shadow: var(--card-shadow-hover);
+        transform: translateY(-5px);
+    }
+
+    /* ==================== ALERTS ==================== */
+    .alert-container {
+        margin-bottom: 2rem;
+        animation: slideInDown 0.5s ease-out;
+    }
+
+    .alert {
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-weight: 500;
+        animation: bounceIn 0.6s ease-out;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #00d084 0%, #00b894 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 208, 132, 0.3);
+    }
+
+    .alert-success::before {
+        content: '\f058';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        font-size: 1.5rem;
+    }
+
+    /* ==================== FORM GRID ==================== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-grid.full-width {
+        grid-template-columns: 1fr;
+    }
+
+    /* ==================== FORM GROUPS ==================== */
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group label i {
+        color: var(--primary);
+        font-size: 1rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        color: var(--primary);
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        padding-left: 3rem;
+        border-radius: 12px;
+        border: 2px solid var(--input-border);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .form-control:focus {
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
+        transform: translateY(-2px);
+    }
+
+    .form-control:focus + .input-icon {
+        color: var(--primary);
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-color);
+        opacity: 0.5;
+    }
+
+    /* ==================== SELECT DROPDOWN ==================== */
+    select.form-control {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236C5CE7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 3rem;
+    }
+
+    /* ==================== SELECT2 CUSTOMIZATION ==================== */
+    .select2-container--default .select2-selection--single {
+        height: 50px;
+        border: 2px solid var(--input-border);
+        border-radius: 12px;
+        background-color: var(--input-bg);
+        transition: all 0.3s ease;
+    }
+
+    .select2-container--default .select2-selection--single:focus {
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 50px;
+        color: var(--text-color);
+        padding-left: 3rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 50px;
+        right: 1rem;
+    }
+
+    .select2-dropdown {
+        border: 2px solid var(--input-border);
+        border-radius: 12px;
+        background-color: var(--card-bg);
+        box-shadow: var(--card-shadow);
+    }
+
+    .select2-results__option {
+        color: var(--text-color);
+        padding: 0.75rem 1rem;
+    }
+
+    .select2-results__option--highlighted {
+        background-color: var(--primary) !important;
+        color: white !important;
+    }
+
+    /* ==================== INTL TEL INPUT ==================== */
+    .iti {
+        width: 100%;
+    }
+
+    .iti__flag-container {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+    }
+
+    .iti__selected-flag {
+        padding: 0 2rem 0 0.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .iti__selected-flag:hover {
+        background-color: rgba(108, 92, 231, 0.1);
+    }
+
+    #phone {
+        padding-left: 5.5rem !important;
+    }
+
+    /* ==================== PASSWORD FIELD ==================== */
+    .password-field-wrapper {
+        position: relative;
+    }
+
+    .password-badge {
+        position: absolute;
+        right: 4.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--gradient-success);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+        pointer-events: none;
+    }
+
+    .copy-password-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 8px rgba(108, 92, 231, 0.3);
+        z-index: 10;
+    }
+
+    .copy-password-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+    }
+
+    .copy-password-btn:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    .copy-password-btn i {
+        font-size: 1rem;
+    }
+
+    .copy-password-btn.copied {
+        background: var(--success);
+        animation: pulse 0.5s ease;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: translateY(-50%) scale(1);
+        }
+        50% {
+            transform: translateY(-50%) scale(1.1);
+        }
+    }
+
+    /* Adjust password input padding to make room for copy button */
+    #password {
+        padding-right: 10rem !important;
+    }
+
+    /* ==================== ROLE CARDS ==================== */
+    .role-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .role-card {
+        display: none;
+    }
+
+    .role-card-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem 1rem;
+        border: 2px solid var(--input-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--input-bg);
+        text-align: center;
+    }
+
+    .role-card-label:hover {
+        border-color: var(--primary);
+        background: rgba(108, 92, 231, 0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
+    }
+
+    .role-card:checked + .role-card-label {
+        border-color: var(--primary);
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.3);
+    }
+
+    .role-card-label i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+    }
+
+    .role-card:checked + .role-card-label i {
+        color: white;
+    }
+
+    .role-card-label span {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* ==================== DROPDOWN TRANSITION ==================== */
+    .dropdown-container {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: all 0.4s ease;
+        margin-bottom: 0;
+    }
+
+    .dropdown-container.show {
+        max-height: 200px;
+        opacity: 1;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ==================== SUBMIT BUTTON ==================== */
+    .btn-custom {
+        width: 100%;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border-radius: 12px;
+        border: none;
+        background: var(--gradient-primary);
+        color: white;
+        cursor: pointer;
+        transition: all 0.4s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-custom::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-custom:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+    }
+
+    .btn-custom:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-custom i {
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .btn-custom:hover i {
+        transform: translateX(5px);
+    }
+
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes bounceIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.3);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        70% {
+            transform: scale(0.9);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        .main {
+            padding: 1rem;
+        }
+
+        .form-container {
+            padding: 1.5rem;
+        }
+
+        .pagetitle h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .role-selector {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* ==================== TOOLTIP CUSTOMIZATION ==================== */
+    .tooltip-inner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .tooltip-arrow::before {
+        border-top-color: #667eea !important;
+    }
+
+    /* ==================== LOADING ANIMATION ==================== */
+    .form-control.loading {
+        background-image: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.1), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -200% 0;
+        }
+        100% {
+            background-position: 200% 0;
+        }
+    }
+</style>
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Admin User Registration</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Home</a></li>
+          <li class="breadcrumb-item active">Admin User Registration</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="registration-wrapper">
+            
+            <div class="form-header">
+                <h2>Create New User Account</h2>
+                <p>Fill in the details below to register a new user in the system</p>
+            </div>
+    
+            <div class="form-container">
+                <form action="#" method="POST" id="registrationForm">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                        <div class="alert-container">
+                            {% for message in messages %}
+                                <div class="alert alert-success" role="alert">
+                                    {{ message | safe }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                
+                    <!-- Personal Information Section -->
+                    <div class="form-grid">
+                        <!-- Full Name -->
+                        <div class="form-group">
+                            <label for="name">
+                                <i class="fas fa-user"></i> Full Name
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                    placeholder="Victor Godwin" required
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Enter the user's full name">
+                            </div>
+                        </div>
+                
+                        <!-- Email Address -->
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope input-icon"></i>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                    placeholder="victor.godwin@example.com" required
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Enter the user's email address">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <!-- Phone Number -->
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fas fa-phone"></i> Phone Number
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="tel" id="phone" name="phone" class="form-control" 
+                                    placeholder="Enter phone number" required
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Enter the phone number with country code">
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="form-group">
+                            <label for="date_of_birth">
+                                <i class="fas fa-calendar"></i> Date of Birth
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Select the user's date of birth">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Country of Residence -->
+                    <div class="form-grid full-width">
+                        <div class="form-group">
+                            <label for="country">
+                                <i class="fas fa-globe-americas"></i> Country of Residence
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-globe-americas input-icon"></i>
+                                <select class="form-control" id="country" name="country" required
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Select the user's country of residence">
+                                    <option value="">Select Country</option>
+                                    <option value="Nigeria">Nigeria</option>
+                                    <option value="United States">United States</option>
+                                    <option value="United Kingdom">United Kingdom</option>
+                                    <option value="Canada">Canada</option>
+                                    <option value="Australia">Australia</option>
+                                    <option value="South Africa">South Africa</option>
+                                    <option value="Ghana">Ghana</option>
+                                    <option value="Kenya">Kenya</option>
+                                    <option value="India">India</option>
+                                    <option value="Germany">Germany</option>
+                                    <option value="France">France</option>
+                                    <option value="Italy">Italy</option>
+                                    <option value="Spain">Spain</option>
+                                    <option value="Netherlands">Netherlands</option>
+                                    <option value="Belgium">Belgium</option>
+                                    <option value="Switzerland">Switzerland</option>
+                                    <option value="Sweden">Sweden</option>
+                                    <option value="Norway">Norway</option>
+                                    <option value="Denmark">Denmark</option>
+                                    <option value="Finland">Finland</option>
+                                    <option value="Portugal">Portugal</option>
+                                    <option value="Austria">Austria</option>
+                                    <option value="Ireland">Ireland</option>
+                                    <option value="New Zealand">New Zealand</option>
+                                    <option value="Singapore">Singapore</option>
+                                    <option value="Malaysia">Malaysia</option>
+                                    <option value="United Arab Emirates">United Arab Emirates</option>
+                                    <option value="Saudi Arabia">Saudi Arabia</option>
+                                    <option value="Qatar">Qatar</option>
+                                    <option value="Egypt">Egypt</option>
+                                    <option value="Morocco">Morocco</option>
+                                    <option value="Tunisia">Tunisia</option>
+                                    <option value="Algeria">Algeria</option>
+                                    <option value="Ethiopia">Ethiopia</option>
+                                    <option value="Tanzania">Tanzania</option>
+                                    <option value="Uganda">Uganda</option>
+                                    <option value="Rwanda">Rwanda</option>
+                                    <option value="Botswana">Botswana</option>
+                                    <option value="Zimbabwe">Zimbabwe</option>
+                                    <option value="Zambia">Zambia</option>
+                                    <option value="Namibia">Namibia</option>
+                                    <option value="Mozambique">Mozambique</option>
+                                    <option value="Senegal">Senegal</option>
+                                    <option value="Ivory Coast">Ivory Coast</option>
+                                    <option value="Cameroon">Cameroon</option>
+                                    <option value="Angola">Angola</option>
+                                    <option value="Brazil">Brazil</option>
+                                    <option value="Mexico">Mexico</option>
+                                    <option value="Argentina">Argentina</option>
+                                    <option value="Chile">Chile</option>
+                                    <option value="Colombia">Colombia</option>
+                                    <option value="Peru">Peru</option>
+                                    <option value="Venezuela">Venezuela</option>
+                                    <option value="China">China</option>
+                                    <option value="Japan">Japan</option>
+                                    <option value="South Korea">South Korea</option>
+                                    <option value="Thailand">Thailand</option>
+                                    <option value="Vietnam">Vietnam</option>
+                                    <option value="Philippines">Philippines</option>
+                                    <option value="Indonesia">Indonesia</option>
+                                    <option value="Pakistan">Pakistan</option>
+                                    <option value="Bangladesh">Bangladesh</option>
+                                    <option value="Sri Lanka">Sri Lanka</option>
+                                    <option value="Turkey">Turkey</option>
+                                    <option value="Israel">Israel</option>
+                                    <option value="Lebanon">Lebanon</option>
+                                    <option value="Jordan">Jordan</option>
+                                    <option value="Kuwait">Kuwait</option>
+                                    <option value="Bahrain">Bahrain</option>
+                                    <option value="Oman">Oman</option>
+                                    <option value="Poland">Poland</option>
+                                    <option value="Czech Republic">Czech Republic</option>
+                                    <option value="Hungary">Hungary</option>
+                                    <option value="Romania">Romania</option>
+                                    <option value="Greece">Greece</option>
+                                    <option value="Croatia">Croatia</option>
+                                    <option value="Serbia">Serbia</option>
+                                    <option value="Bulgaria">Bulgaria</option>
+                                    <option value="Slovakia">Slovakia</option>
+                                    <option value="Slovenia">Slovenia</option>
+                                    <option value="Lithuania">Lithuania</option>
+                                    <option value="Latvia">Latvia</option>
+                                    <option value="Estonia">Estonia</option>
+                                    <option value="Iceland">Iceland</option>
+                                    <option value="Luxembourg">Luxembourg</option>
+                                    <option value="Malta">Malta</option>
+                                    <option value="Cyprus">Cyprus</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Residential Address -->
+                    <div class="form-grid full-width">
+                        <div class="form-group">
+                            <label for="address">
+                                <i class="fas fa-map-marker-alt"></i> Residential Address
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-map-marker-alt input-icon"></i>
+                                <input type="text" class="form-control" id="address" name="address" 
+                                    placeholder="123 Main Street, City, State" required
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Enter the complete residential address">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-grid full-width">
+                        <div class="form-group">
+                            <label for="password">
+                                <i class="fas fa-key"></i> Generated Password
+                            </label>
+                            <div class="input-wrapper password-field-wrapper">
+                                <i class="fas fa-key input-icon"></i>
+                                <input type="text" class="form-control" id="password" name="password" 
+                                    placeholder="Auto-generated password will appear here" readonly
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Password will be automatically generated based on the user's name">
+                                <span class="password-badge">Auto-Generated</span>
+                                <button type="button" class="copy-password-btn" id="copyPasswordBtn" 
+                                    onclick="copyPassword()" 
+                                    data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Copy password to clipboard">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-user-tag"></i> Select User Role
+                        </label>
+                        <div class="role-selector">
+                            <div>
+                                <input type="radio" class="role-card" id="role-admin" name="role" value="admin" required>
+                                <label for="role-admin" class="role-card-label">
+                                    <i class="fas fa-user-shield"></i>
+                                    <span>Admin</span>
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" class="role-card" id="role-support" name="role" value="support">
+                                <label for="role-support" class="role-card-label">
+                                    <i class="fas fa-headset"></i>
+                                    <span>Admin Support</span>
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" class="role-card" id="role-client" name="role" value="client">
+                                <label for="role-client" class="role-card-label">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Client</span>
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" class="role-card" id="role-marketer" name="role" value="marketer">
+                                <label for="role-marketer" class="role-card-label">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span>Marketer</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Marketer Dropdown (only visible if role is Client) -->
+                    <div class="dropdown-container" id="marketer-dropdown">
+                        <div class="form-group">
+                            <label for="marketer">
+                                <i class="fas fa-user-check"></i> Assign Marketer
+                                <span class="text-danger" id="marketer-required-indicator" hidden>*</span>
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user-check input-icon"></i>
+                                <select class="form-control" id="marketer" name="marketer">
+                                    <option value="">Select a Marketer (Required)</option>
+                                    {% for marketer in marketers %}
+                                        <option value="{{ marketer.id }}">{{ marketer.full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Every client must be assigned to a marketer
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-custom">
+                        <span>Register User</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                
+                </form>
+                
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+        // ==================== COPY PASSWORD FUNCTION ====================
+        function copyPassword() {
+            const passwordField = document.getElementById('password');
+            const copyBtn = document.getElementById('copyPasswordBtn');
+            const passwordValue = passwordField.value;
+
+            if (!passwordValue) {
+                // Show alert if no password is generated
+                alert('Please enter a name to generate a password first!');
+                return;
+            }
+
+            // Copy to clipboard using modern Clipboard API
+            navigator.clipboard.writeText(passwordValue).then(function() {
+                // Success feedback
+                const originalIcon = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                copyBtn.classList.add('copied');
+                
+                // Show success tooltip
+                const tooltip = bootstrap.Tooltip.getInstance(copyBtn);
+                if (tooltip) {
+                    const originalTitle = copyBtn.getAttribute('data-bs-original-title') || 'Copy password to clipboard';
+                    copyBtn.setAttribute('data-bs-original-title', 'Copied!');
+                    tooltip.show();
+                    
+                    setTimeout(() => {
+                        copyBtn.setAttribute('data-bs-original-title', originalTitle);
+                        tooltip.hide();
+                    }, 1500);
+                }
+
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalIcon;
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                passwordField.select();
+                passwordField.setSelectionRange(0, 99999); // For mobile devices
+                
+                try {
+                    document.execCommand('copy');
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    copyBtn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    alert('Failed to copy password. Please copy manually.');
+                }
+            });
+        }
+
+        // ==================== PASSWORD GENERATION ====================
+        document.getElementById('name').addEventListener('input', function () {
+            const name = this.value.trim();
+            const passwordField = document.getElementById('password');
+            
+            if (name.length >= 3) {
+                passwordField.value = generatePassword(name);
+                passwordField.classList.remove('loading');
+            } else {
+                passwordField.value = '';
+            }
+        });
+
+        function generatePassword(name) {
+            const nameParts = name.split(' ').filter(part => part.length > 0);
+            const basePassword = nameParts.join('_').toLowerCase();
+            const randomNum = Math.floor(Math.random() * 1000);
+            return basePassword + randomNum;
+        }
+
+        // ==================== ROLE SELECTION & MARKETER DROPDOWN ====================
+        const roleInputs = document.querySelectorAll('input[name="role"]');
+        const marketerDropdown = document.getElementById('marketer-dropdown');
+
+        const marketerSelect = document.getElementById('marketer');
+        const marketerRequiredIndicator = document.getElementById('marketer-required-indicator');
+
+        function updateMarketerVisibility(selectedRole) {
+            const isClient = selectedRole === 'client';
+            marketerDropdown.classList.toggle('show', isClient);
+            marketerSelect.toggleAttribute('required', isClient);
+            marketerRequiredIndicator.hidden = !isClient;
+            if (!isClient) {
+                marketerSelect.value = '';
+            }
+        }
+
+        roleInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                updateMarketerVisibility(this.value);
+            });
+        });
+
+        const preselectedRole = document.querySelector('input[name="role"]:checked');
+        if (preselectedRole) {
+            updateMarketerVisibility(preselectedRole.value);
+        }
+
+        // ==================== INITIALIZE SELECT2 ====================
+        $(document).ready(function() {
+            // Initialize Select2 for marketer dropdown
+            $('#marketer').select2({
+                placeholder: "Search and select a marketer",
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Initialize Select2 for country dropdown
+            $('#country').select2({
+                placeholder: "Search and select a country",
+                allowClear: true,
+                width: '100%'
+            });
+        });
+
+        // ==================== INITIALIZE INTL-TEL-INPUT ====================
+        $(document).ready(function() {
+            var phoneInput = document.querySelector("#phone");
+            var iti = window.intlTelInput(phoneInput, {
+                separateDialCode: true,
+                nationalMode: false,
+                preferredCountries: ["ng", "us", "gb", "ca"],
+                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+            });
+
+            // Store the full international number in a hidden field on form submit
+            document.getElementById('registrationForm').addEventListener('submit', function() {
+                phoneInput.value = iti.getNumber();
+            });
+        });
+
+        // ==================== INITIALIZE TOOLTIPS ====================
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // ==================== FORM VALIDATION ENHANCEMENTS ====================
+        const form = document.getElementById('registrationForm');
+        
+        form.addEventListener('submit', function(e) {
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!input.value) {
+                    isValid = false;
+                    input.style.borderColor = 'var(--danger)';
+                } else {
+                    input.style.borderColor = 'var(--input-border)';
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+            }
+        });
+
+        // ==================== INPUT ANIMATION ====================
+        const inputs = document.querySelectorAll('.form-control');
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.01)';
+            });
+
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  </main>
+
+{% endblock %}

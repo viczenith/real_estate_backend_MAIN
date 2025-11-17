@@ -1,0 +1,13 @@
+{% extends "notifications/emails/base.html" %}
+
+{% block content %}
+<div class="notification-type payment">Payment Update</div>
+<h3>Hello {{ user.first_name }},</h3>
+<p>We wanted to inform you about recent payment activity:</p>
+<div class="payment-details">
+    {{ message|safe }}
+</div>
+<a href="" class="button" style="background: var(--success); color: white;">
+    View Payment Details
+</a>
+{% endblock %}

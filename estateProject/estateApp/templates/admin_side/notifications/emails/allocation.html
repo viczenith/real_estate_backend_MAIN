@@ -1,0 +1,13 @@
+{% extends "admin_side/notifications/emails/base.html" %}
+
+{% block content %}
+    <h2 style="color: #ff771d;">Plot Allocation Update</h2>
+    <p>Dear {{ user.first_name }},</p>
+    {{ message|safe }}
+    <div style="margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+        <h3>Allocation Details:</h3>
+        <p>Plot Number: {{ related_object.plot_number }}</p>
+        <p>Location: {{ related_object.estate.location }}</p>
+    </div>
+    <a href="" class="button">View Plot Details</a>
+{% endblock %}

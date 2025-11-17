@@ -1,0 +1,659 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Auto Special Days{% endblock %}
+
+{% block content %}
+<!-- Content Header -->
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-star me-2"></i>Auto Special Days</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Admin Support</a></li>
+                    <li class="breadcrumb-item active">Auto Special Days</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary">
+                <i class="fas fa-download me-2"></i>Export Data
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-question-circle me-2"></i>Help
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Beautiful Calendar & Add Form -->
+<div class="row mb-4">
+    <!-- Beautiful Calendar Section -->
+    <div class="col-lg-8">
+        <div class="special-days-calendar animate__animated animate__fadeInUp">
+            <!-- Calendar Header -->
+            <div class="calendar-header-section">
+                <div>
+                    <h5 class="mb-1">
+                        <i class="fas fa-star me-2"></i>
+                        Nigerian & Global Special Days
+                    </h5>
+                    <p class="mb-0 opacity-75">Discover holidays and special occasions</p>
+                </div>
+                <div class="calendar-month-nav">
+                    <button class="calendar-nav-btn" onclick="previousMonth()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div id="currentMonthYear" class="calendar-month-display">October 2025</div>
+                    <button class="calendar-nav-btn" onclick="nextMonth()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Loading State -->
+            <div id="calendarLoading" class="calendar-loading" style="display: none;">
+                <div>
+                    <div class="calendar-spinner"></div>
+                    <p class="mt-3 mb-0">Loading special days...</p>
+                </div>
+            </div>
+
+            <!-- Calendar Content -->
+            <div id="specialDaysCalendar">
+                <!-- Beautiful Calendar will be rendered here -->
+            </div>
+
+            <!-- Calendar Legend -->
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-dot event-nigerian"></div>
+                    <span>Nigerian Holidays</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Campaign Statistics (Nigeria only) -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Campaign Overview
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="display-6 text-primary" id="totalSpecialDays">0</div>
+                    <div class="text-muted">Special Days This Year</div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="fas fa-flag text-danger me-1"></i>Nigerian</span>
+                    <span class="fw-bold text-danger" id="nigerianCount">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<style>
+/* Modern Beautiful Calendar Styles */
+.special-days-calendar {
+    width: 100%;
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.calendar-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.calendar-month-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.calendar-nav-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.calendar-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.calendar-month-display {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 1rem;
+    min-width: 150px;
+    text-align: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    background: transparent;
+    border-radius: 0;
+}
+
+.calendar-weekday-header {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 1rem 0.5rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 0.75rem;
+    backdrop-filter: blur(10px);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.calendar-day-cell {
+    background: rgba(255, 255, 255, 0.95);
+    min-height: 90px;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 2px solid transparent;
+}
+
+.calendar-day-cell:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(102, 126, 234, 0.3), 0 10px 10px -5px rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+.calendar-day-cell.other-month {
+    background: rgba(255, 255, 255, 0.4);
+    color: rgba(0, 0, 0, 0.4);
+}
+
+.calendar-day-cell.today {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.4);
+    animation: pulse 2s infinite;
+}
+
+.calendar-day-cell.has-events {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.calendar-day-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-events-container {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.calendar-event-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: bounce 1s infinite;
+}
+
+.event-nigerian {
+    background: #dc2626;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+}
+
+.event-global {
+    background: #2563eb;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+}
+
+.event-custom {
+    background: #7c3aed;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+}
+
+.calendar-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    color: white;
+}
+
+.calendar-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+    40%, 43% { transform: translateY(-8px); }
+    70% { transform: translateY(-4px); }
+    90% { transform: translateY(-2px); }
+}
+
+.text-purple {
+    color: #7c3aed !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .special-days-calendar {
+        padding: 1rem;
+    }
+    
+    .calendar-day-cell {
+        min-height: 70px;
+        padding: 0.5rem;
+    }
+    
+    .calendar-month-nav {
+        padding: 0.5rem 1rem;
+    }
+    
+    .calendar-month-display {
+        font-size: 1rem;
+        min-width: 120px;
+    }
+    
+    .calendar-legend {
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Beautiful Calendar System with Live API Integration
+class SpecialDaysCalendar {
+    constructor() {
+        this.currentDate = new Date();
+        this.currentMonth = this.currentDate.getMonth();
+        this.currentYear = this.currentDate.getFullYear();
+        // Map of 'YYYY-MM-DD' -> Array of events
+        this.holidaysData = new Map();
+        this.customEvents = [];
+        this.API_SPECIAL_DAYS = "{% url 'adminSupport:api_special_days' %}";
+        
+        this.init();
+    }
+    
+    async init() {
+        this.showLoading();
+        await this.loadHolidaysData();
+        this.renderCalendar();
+        this.updateMonthYearDisplay();
+        this.updateStats();
+        this.hideLoading();
+        this.setupEventListeners();
+        this.scheduleMonthAutoAdvance();
+    }
+    
+    showLoading() {
+        document.getElementById('calendarLoading').style.display = 'flex';
+        document.getElementById('specialDaysCalendar').style.display = 'none';
+    }
+    
+    hideLoading() {
+        document.getElementById('calendarLoading').style.display = 'none';
+        document.getElementById('specialDaysCalendar').style.display = 'block';
+    }
+    
+    async loadHolidaysData() {
+        // Reset map for the selected month
+        this.holidaysData.clear();
+        const y = this.currentYear;
+        const m = this.currentMonth + 1; // 1-based
+        let loadedFromBackend = false;
+        try {
+            // Preferred: use backend which merges accurate Nigerian holidays + DB specials + global
+            const resp = await fetch(`${this.API_SPECIAL_DAYS}?year=${y}&month=${m}`);
+            if (!resp.ok) throw new Error('backend failed');
+            const data = await resp.json();
+            const events = Array.isArray(data.events) ? data.events : [];
+            events.forEach(ev => {
+                const dateStr = (ev.start || '').slice(0, 10);
+                if (!dateStr) return;
+                const type = (ev.extendedProps && (ev.extendedProps.countryCode === 'NG' || ev.extendedProps.source === 'nigerian')) ? 'nigerian' : (ev.extendedProps && ev.extendedProps.source === 'global' ? 'global' : 'custom');
+                if (type !== 'nigerian') return; // ONLY NIGERIA
+                const entry = {
+                    name: ev.extendedProps?.name || ev.title || 'Event',
+                    type,
+                    emoji: type === 'nigerian' ? '🇳🇬' : (type === 'global' ? '🌍' : '🎊'),
+                    description: ev.title || '',
+                    extendedProps: ev.extendedProps || {}
+                };
+                if (!this.holidaysData.has(dateStr)) this.holidaysData.set(dateStr, []);
+                this.holidaysData.get(dateStr).push(entry);
+            });
+            loadedFromBackend = true;
+        } catch (e) {
+            console.warn('api_special_days failed, falling back to public API:', e);
+        }
+
+        if (!loadedFromBackend) {
+            try {
+                // Fallback to Nager API for Nigerian holidays (year-wide), filter to current month
+                const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/NG`);
+                if (response.ok) {
+                    const holidays = await response.json();
+                    holidays.forEach(holiday => {
+                        const d = holiday.date; // YYYY-MM-DD
+                        const dt = new Date(d + 'T00:00:00');
+                        if (dt.getFullYear() === y && (dt.getMonth() + 1) === m) {
+                            if (!this.holidaysData.has(d)) this.holidaysData.set(d, []);
+                            this.holidaysData.get(d).push({
+                                name: holiday.localName || holiday.name,
+                                type: 'nigerian',
+                                emoji: this.getHolidayEmoji(holiday.name),
+                                description: holiday.name,
+                                extendedProps: { countryCode: 'NG' }
+                            });
+                        }
+                    });
+                } else {
+                    throw new Error('Nager API failed');
+                }
+            } catch (error) {
+                console.warn('Nager fallback failed, using static fallback list:', error);
+                this.loadFallbackHolidays();
+            }
+        }
+
+        // Nigeria only: skip loading custom or global extras
+    }
+    
+    loadFallbackHolidays() {
+        const fallbackHolidays = [
+            {date: `${this.currentYear}-01-01`, name: "New Year's Day", emoji: "🎉"},
+            {date: `${this.currentYear}-06-12`, name: "Democracy Day", emoji: "🇳🇬"},
+            {date: `${this.currentYear}-10-01`, name: "Independence Day", emoji: "🎆"},
+            {date: `${this.currentYear}-12-25`, name: "Christmas Day", emoji: "🎄"},
+            {date: `${this.currentYear}-12-26`, name: "Boxing Day", emoji: "🎁"},
+            {date: `${this.currentYear}-05-01`, name: "Workers' Day", emoji: "⚒️"},
+            {date: `${this.currentYear}-03-29`, name: "Good Friday", emoji: "✟"},
+            {date: `${this.currentYear}-03-31`, name: "Easter Monday", emoji: "🐰"}
+        ];
+        
+        fallbackHolidays.forEach(holiday => {
+            const dt = new Date(holiday.date + 'T00:00:00');
+            if (dt.getMonth() !== this.currentMonth || dt.getFullYear() !== this.currentYear) return;
+            if (!this.holidaysData.has(holiday.date)) this.holidaysData.set(holiday.date, []);
+            this.holidaysData.get(holiday.date).push({
+                name: holiday.name,
+                type: 'nigerian',
+                emoji: holiday.emoji,
+                description: holiday.name,
+                extendedProps: { countryCode: 'NG' }
+            });
+        });
+    }
+    
+    // Nigeria only: custom events disabled
+    
+    getHolidayEmoji(holidayName) {
+        const emojiMap = {
+            'new year': '🎉',
+            'christmas': '🎄',
+            'easter': '🐰',
+            'independence': '🇳🇬',
+            'democracy': '🗳️',
+            'workers': '⚒️',
+            'boxing': '🎁',
+            'good friday': '✟'
+        };
+        
+        const name = holidayName.toLowerCase();
+        for (const [key, emoji] of Object.entries(emojiMap)) {
+            if (name.includes(key)) return emoji;
+        }
+        return '🎊';
+    }
+    
+    renderCalendar() {
+        const calendar = document.getElementById('specialDaysCalendar');
+        if (!calendar) return;
+        
+        const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+        
+        let html = `
+            <div class="calendar-grid">
+                ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    .map(day => `<div class="calendar-weekday-header">${day.substring(0, 3)}</div>`)
+                    .join('')}
+        `;
+        
+        const today = new Date();
+        const currentDate = new Date(startDate);
+        
+        for (let week = 0; week < 6; week++) {
+            for (let day = 0; day < 7; day++) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const isCurrentMonth = currentDate.getMonth() === this.currentMonth;
+                const isToday = currentDate.toDateString() === today.toDateString();
+                
+                const dayEvents = this.getEventsForDate(dateStr);
+                
+                let cellClass = 'calendar-day-cell';
+                if (!isCurrentMonth) cellClass += ' other-month';
+                if (isToday) cellClass += ' today';
+                if (dayEvents.length > 0) cellClass += ' has-events';
+                
+                const eventsHtml = this.renderDayEvents(dayEvents);
+                const hasNG = dayEvents.some(e => e.type === 'nigerian');
+                
+                html += `
+                    <div class="${cellClass}" data-date="${dateStr}" onclick="calendar.selectDate('${dateStr}')">
+                        <div class="calendar-day-number">${currentDate.getDate()} ${hasNG ? '<span title="Nigeria special day">🇳🇬</span>' : ''}</div>
+                        <div class="calendar-events-container">
+                            ${eventsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+        
+        html += '</div>';
+        calendar.innerHTML = html;
+    }
+    
+    getEventsForDate(dateStr) {
+        return this.holidaysData.get(dateStr) || [];
+    }
+    
+    renderDayEvents(events) {
+        if (events.length === 0) return '';
+        
+        return events.slice(0, 3).map(event => {
+            const typeClass = event.type === 'nigerian' ? 'event-nigerian' : 
+                              event.type === 'global' ? 'event-global' : 'event-custom';
+            const title = `${event.emoji || ''} ${event.name}`.trim();
+            return `<div class="calendar-event-dot ${typeClass}" title="${title}"></div>`;
+        }).join('');
+    }
+    
+    updateMonthYearDisplay() {
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        
+        const display = document.getElementById('currentMonthYear');
+        if (display) {
+            display.textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+        }
+    }
+    
+    updateStats() {
+        // Count NG events across days (array-based)
+        let ngEvents = 0;
+        this.holidaysData.forEach(arr => {
+            if (Array.isArray(arr)) ngEvents += arr.filter(e => e.type === 'nigerian').length;
+        });
+        document.getElementById('totalSpecialDays').textContent = this.holidaysData.size; // days with NG events
+        document.getElementById('nigerianCount').textContent = ngEvents;
+    }
+    
+    async previousMonth() {
+        this.currentMonth--;
+        if (this.currentMonth < 0) {
+            this.currentMonth = 11;
+            this.currentYear--;
+        }
+        await this.loadHolidaysData();
+        this.renderCalendar();
+        this.updateMonthYearDisplay();
+        this.updateStats();
+    }
+    
+    async nextMonth() {
+        this.currentMonth++;
+        if (this.currentMonth > 11) {
+            this.currentMonth = 0;
+            this.currentYear++;
+        }
+        await this.loadHolidaysData();
+        this.renderCalendar();
+        this.updateMonthYearDisplay();
+        this.updateStats();
+    }
+    
+    selectDate(dateStr) {
+        const dateInput = document.getElementById('eventDate');
+        if (dateInput) {
+            dateInput.value = dateStr;
+        }
+        
+        const events = this.getEventsForDate(dateStr);
+        if (events.length > 0) {
+            this.showEventDetails(dateStr, events);
+        }
+    }
+    
+    showEventDetails(dateStr, events) {
+        const eventNames = events.map(e => `${e.emoji} ${e.name}`).join(', ');
+        alert(`Events on ${new Date(dateStr).toLocaleDateString()}:\n\n${eventNames}`);
+    }
+    
+    setupEventListeners() { /* Nigeria-only view, no add form */ }
+    
+    handleFormSubmit(e) { /* disabled */ }
+
+    // Auto-advance calendar at month boundary to keep view in sync
+    scheduleMonthAutoAdvance() {
+        const now = new Date();
+        const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 1, 0, 0); // 00:01 next month
+        const delay = Math.max(5000, nextMonthStart.getTime() - now.getTime());
+        setTimeout(async () => {
+            const sys = new Date();
+            this.currentYear = sys.getFullYear();
+            this.currentMonth = sys.getMonth();
+            await this.loadHolidaysData();
+            this.renderCalendar();
+            this.updateMonthYearDisplay();
+            this.updateStats();
+            this.scheduleMonthAutoAdvance();
+        }, delay);
+    }
+}
+
+// Global instance
+let calendar;
+
+// Global functions for navigation
+function previousMonth() {
+    if (calendar) calendar.previousMonth();
+}
+
+function nextMonth() {
+    if (calendar) calendar.nextMonth();
+}
+
+// Initialize the Beautiful Calendar System
+document.addEventListener('DOMContentLoaded', function() {
+    calendar = new SpecialDaysCalendar();
+});
+</script>
+{% endblock %}

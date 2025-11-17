@@ -1,0 +1,2569 @@
+{% load static humanize %}
+{% now "Y-m-d" as today %}
+
+<style>
+    .card-prm {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        transition: .2s;
+        border: none;
+    }
+
+    .card-prm:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .promo-banner-prm {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: #fff;
+        padding: .75rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+    .promo-banner-prm i { margin-right: .5rem; }
+    .badge-notified-prm { background: rgba(40,167,69,.15); color: #28a745; }
+    .badge-pending-prm   { background: rgba(255,193,7,.15); color: #ffc107; }
+    .badge-promo-prm     { background: rgba(243,156,18,.15); color: #e67e22; }
+    .badge-noprize-prm   { background: rgba(108,117,125,.15); color: #6c757d; }
+    .increase-prm { color: #28a745; font-weight:600; }
+    .decrease-prm { color: #dc3545; font-weight:600; }
+    .trend-indicator-prm { margin-left:4px; }
+    .modal-prm { z-index:1070!important; }
+    .modal-backdrop-prm { z-index:1060!important; }
+    .btn-promo-prm {
+        background-color: #f39c12; color:#fff; border:none;
+    }
+    .btn-promo-prm:hover { background-color:#e67e22; }
+    .action-btn-prm {
+        width:30px; height:30px;
+        display:inline-flex; align-items:center; justify-content:center;
+        border-radius:50%; margin:0 2px;
+    }
+    .status-badge-prm {
+        padding:.4em .8em; border-radius:20px;
+        font-weight:500; font-size:.85rem;
+    }
+    .history-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .history-item {
+        border-left: 3px solid #0d6efd;
+        padding-left: 10px;
+        margin-bottom: 15px;
+    }
+    .history-price { font-weight: 600; }
+    .history-date  { font-size: 0.85rem; color: #6c757d; }
+    .nav-tabs .nav-link { color: #495057; font-weight: 500; }
+    .nav-tabs .nav-link.active { color: #0d6efd; font-weight: 600; }
+    .chart-container { 
+        height: 400px; 
+        margin-top: 20px; 
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+    .price-change { font-weight: 600; }
+    .no-presale { color: #6c757d; font-style: italic; }
+    .table th { font-weight: 600; background-color: #f8f9fa; }
+    .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.05); }
+    .value-change-badge {
+        padding: 0.25em 0.6em; border-radius: 10px;
+        font-size: 0.75rem; font-weight: 500;
+    }
+    .promo-badge-prm {
+        display: inline-block;
+        border-radius: 9999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #FFC107 0%, #FF8C00 100%);
+        color: #212529;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .promo-badge-prm:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .history-item.promo-event {
+        border-left: 3px solid #e67e22;
+        background-color: rgba(230, 126, 34, 0.05);
+    }
+
+    .history-item.promo-event .history-price {
+        font-weight: 700;
+        color: #e67e22;
+    }
+
+    .badge-gradient-prm {
+        display: inline-block;
+        padding: .6rem .8rem;
+        font-size: 0.78rem;
+        background: linear-gradient(135deg, #00c853, #64dd17);
+        color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 200, 83, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 150px;
+        max-width: 220px;
+        line-height: 1.3;
+        /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); */
+        transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .badge-gradient-prm:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .badge-gradient-prm .text-light-emphasis {
+        color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .badge-gradient-prm .text-white {
+        color: #fff !important;
+    }
+    .badge-gradient-prm .fw-semibold {
+        font-weight: 600;
+    }
+
+    /* Bulk Update Modal Styles */
+    #prmBulkUpdateModal .modal-xl {
+        max-width: 1200px;
+    }
+    #prmBulkUpdateModal .table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #prmBulkUpdateModal .bulk-new-price {
+        font-weight: 600;
+        border: 2px solid #e9ecef;
+        transition: all 0.2s;
+    }
+    #prmBulkUpdateModal .bulk-new-price:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    #prmBulkUpdateModal .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+    #prmBulkUpdateModal .bulk-plot-checkbox {
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+    }
+    #bulkSelectAll {
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Enhanced percentage display */
+    #prmBulkUpdateModal td span[class*="change-percent"],
+    #prmBulkUpdateModal td span[class*="total-percent"] {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        min-width: 60px;
+        text-align: center;
+    }
+    #prmBulkUpdateModal .increase-prm {
+        color: #ffffff !important;
+        background-color: #28a745;
+        animation: pulseGreen 0.5s ease;
+    }
+    #prmBulkUpdateModal .decrease-prm {
+        color: #ffffff !important;
+        background-color: #dc3545;
+        animation: pulseRed 0.5s ease;
+    }
+    
+    @keyframes pulseGreen {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); background-color: #20c997; }
+    }
+    
+    @keyframes pulseRed {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); background-color: #e63757; }
+    }
+
+
+</style>
+
+<div class="container py-4">
+    <div class="promo-banner-prm mb-4">
+        <i class="bi bi-megaphone"></i>
+        {% if current_promos %}
+            {% for promo in current_promos %}
+            <div class="mb-2" style="text-align: start;">
+                <strong><i class="bi bi-megaphone-fill"></i> {{ promo.name }}</strong> – {{ promo.discount }}% off on
+                {% for estate in promo.estates.all %}
+                <strong>{{ estate.name }}</strong>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                until {{ promo.end|date:"M d, Y" }}.
+            </div>
+            {% endfor %}
+        {% else %}
+            No active promo.
+        {% endif %}
+    </div>
+
+
+    <div class="card-prm">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0">Property Value Management</h5>
+            <div>
+                <button id="prmAddRegBtn" class="btn btn-primary btn-sm me-1">
+                    <i class="bi bi-plus-circle"></i> Set Presale Prize Only
+                </button>
+                <button id="prmBulkUpdateBtn" class="btn btn-success btn-sm me-1">
+                    <i class="bi bi-pencil-square"></i> Bulk Price Update
+                </button>
+                <button id="prmCreatePromoBtn" class="btn btn-promo-prm btn-sm me-1">
+                    <i class="bi bi-tag"></i> Create Promo
+                </button>
+                <button id="prmNotifyClientsBtn" class="btn btn-info btn-sm">
+                    <i class="bi bi-megaphone"></i> Send Notification
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Estate</th>
+                            <th>Plot</th>
+                            <th>Location</th>
+                            <th class="text-end">Presale (₦)</th>
+                            <th class="text-end">Previous (₦)</th>
+                            <th class="text-end">Currrent (₦)</th>
+                            <th>% Change</th>
+                            <th>Over Time %</th>
+                            <th>Effective Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prmPropertyTable">
+                        {% for row in rows %}
+                            <tr id="row-{{ row.estate.id }}-{{ row.plot_unit.id }}" data-id="{{ row.id }}">
+                            <!-- Estate + Badge -->
+                            <td>
+                                <div class="d-flex align-items-center">
+                                {{ row.estate.name }}
+
+                                {% if row.presale and row.effective|stringformat:"s" > today %}
+                                    <span class="badge-gradient-prm ms-2">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="bi bi-clock-history me-1 text-light-emphasis fs-6"></i>
+                                        <strong class="text-light">Price Update</strong>
+                                    </div>
+                                    <div class="small text-light-emphasis">
+                                        New: <span class="text-white fw-semibold">₦{{ row.display_current|intcomma }}</span><br>
+                                        % Change: <span class="text-white fw-semibold badge-locked">+{{ row.percent_change|floatformat:1 }}%</span><br>
+                                        Effective: <span class="text-white fw-semibold">{{ row.effective }}</span><br>
+                                    </div>
+                                    </span>
+
+                                {% elif row.active_promo %}
+                                    <span class="promo-badge-prm ms-2">
+                                    <!-- <i class="bi bi-tag-fill me-1"></i> -->
+                                    {{ row.active_promo.discount }}% OFF
+                                    </span>
+                                {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- Plot Size -->
+                            <td>{{ row.plot_unit.plot_size.size }}</td>
+
+                            <!-- Location -->
+                            <td>{{ row.estate.location }}</td>
+
+                            <!-- Presale -->
+                            <td class="text-end">
+                                {% if row.presale %}{{ row.presale|intcomma }}{% endif %}
+                            </td>
+
+                            <!-- Previous -->
+                            <!-- <td class="text-end">
+                                {% if row.previous %}{{ row.previous|intcomma }}{% endif %}
+                            </td> -->
+                            <td class="text-end">
+                                {% if row.effective|stringformat:"s" > today %}
+                                    {{ row.presale|intcomma }}
+                                {% elif row.previous %}
+                                    {{ row.previous|intcomma }}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Current (shows previous until effective date) -->
+                            <td class="text-end fw-bold">
+                                {% if row.effective|stringformat:"s" > today %}
+                                {{ row.previous|intcomma }}
+                                {% else %}
+                                {{ row.display_current|intcomma }}
+                                {% endif %}
+                            </td>
+
+                            <!-- % Change -->
+                            <td>
+                                {% if row.percent_change is not None %}
+                                {% if row.percent_change > 0 %}
+                                    <span class="increase-prm">
+                                    +{{ row.percent_change|floatformat:1 }}%
+                                    <i class="bi bi-arrow-up-right trend-indicator-prm"></i>
+                                    </span>
+                                {% elif row.percent_change < 0 %}
+                                    <span class="decrease-prm">
+                                    {{ row.percent_change|floatformat:1 }}%
+                                    <i class="bi bi-arrow-down-left trend-indicator-prm"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="price-change">0.0%</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="no-presale">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Over Time % -->
+                            <td class="text-end">
+                                {% if row.overtime is not None %}
+                                {{ row.overtime|floatformat:1 }}%
+                                {% else %}
+                                <span class="price-change">0.0%</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Effective Date -->
+                            <td>{{ row.effective|default:"" }}</td>
+
+                            <!-- Status Badge -->
+                            <td>
+                                {% if row.id %}
+                                <span class="badge-notified-prm status-badge-prm">Active</span>
+                                {% else %}
+                                <span class="badge-pending-prm status-badge-prm">NoPrice</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td>
+                                {% if row.id %}
+                                <button class="btn btn-sm btn-outline-primary action-btn-prm"
+                                        data-action="edit" data-id="{{ row.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary action-btn-prm"
+                                        data-action="history" data-id="{{ row.id }}">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-primary action-btn-prm"
+                                        data-action="add"
+                                        data-estate="{{ row.estate.id }}"
+                                        data-unit="{{ row.plot_unit.id }}">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                            <td colspan="12" class="text-center text-muted">
+                                No properties to display.
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PRESALE MODAL -->
+<div class="modal fade modal-prm" id="prmValueModal" tabindex="-1" aria-labelledby="prmValueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="prmValueModalLabel">Set Presale Price</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prmRegForm">
+                    <input type="hidden" id="prmPropertyId">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Estate</label>
+                            <select id="prmEstateSelect" class="form-select" required>
+                                <option value="">Select Estate</option>
+                                {% for e in estates %}
+                                <option value="{{ e.id }}">{{ e.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label>Plot Size</label>
+                            <select id="prmPlotSizeSelect" class="form-select" required>
+                                <option value="">Select Plot</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Location</label>
+                            <input id="prmLocation" type="text" class="form-control" readonly required>
+                        </div>
+                        <div class="col">
+                            <label>Effective Date</label>
+                            <input id="prmEffectiveDate" type="date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Presale Price (₦)</label>
+                        <input id="prmPresalePrice" type="number" class="form-control" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Notes</label>
+                        <textarea id="prmNotes" class="form-control" rows="3" placeholder="Add notes about this presale..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input id="prmNotifyChk" class="form-check-input" type="checkbox" checked>
+                        <label class="form-check-label" for="prmNotifyChk">Notify clients about this presale</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="prmSaveRegBtn" class="btn btn-primary">Save Presale</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal fade modal-prm" id="prmEditModal" tabindex="-1" aria-labelledby="prmEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="prmEditModalLabel">Update Property Price</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prmEditForm">
+                    <input type="hidden" id="prmEditPropertyId">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Estate</label>
+                            <input id="prmEditEstate" type="text" class="form-control" readonly>
+                        </div>
+                        <div class="col">
+                            <label>Plot Size</label>
+                            <input id="prmEditPlotSize" type="text" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Location</label>
+                            <input id="prmEditLocation" type="text" class="form-control" readonly>
+                        </div>
+                        <div class="col">
+                            <label>Effective Date</label>
+                            <input id="prmEditEffectiveDate" type="date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Presale Price (₦)</label>
+                            <input id="prmEditPresalePrice" type="text" class="form-control" readonly>
+                        </div>
+                        <div class="col">
+                            <label>Previous Price (₦)</label>
+                            <input id="prmEditPrevPrice" type="text" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>New Current Price (₦)</label>
+                        <input id="prmEditCurrentPrice" type="number" class="form-control" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Price Change Calculation</label>
+                        <div class="card p-3 bg-light">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Previous Price:</span>
+                                <span id="prevPriceCalc" class="fw-bold">₦0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>New Price:</span>
+                                <span id="newPriceCalc" class="fw-bold">₦0</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Change:</span>
+                                <span id="changeCalc" class="price-change">0.00%</span>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span>Cumulative Change:</span>
+                                <span id="cumulativeCalc" class="price-change">0.00%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Notes</label>
+                        <textarea id="prmEditNotes" class="form-control" rows="3" placeholder="Add notes about this price change..."></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input id="prmEditNotifyChk" class="form-check-input" type="checkbox" checked>
+                        <label class="form-check-label" for="prmEditNotifyChk">Notify clients & marketer about this change</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="prmSaveEditBtn" class="btn btn-success">Update Price</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal fade modal-prm" id="prmHistoryModal" tabindex="-1" aria-labelledby="prmHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <!-- <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="prmHistoryModalLabel">Price History</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div> -->
+
+            <!-- Add promo indicator to modal header -->
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="prmHistoryModalLabel">Price History</h5>
+                <span id="historyPromoBadge" class="badge bg-warning ms-2 d-none">Includes Promos</span>
+            </div>
+
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 id="historyEstateName" class="mb-0">Estate</h4>
+                        <div class="text-muted" id="historyPlotSize">PlotSize - Location</div>
+                    </div>
+                    <div class="text-end">
+                        <div>Presale Price: <span class="fw-bold" id="historyPresale">₦0</span></div>
+                        <div>Current Price: <span class="fw-bold" id="historyCurrent">₦0</span></div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="historyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-tab-pane" type="button" role="tab">History List</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tab-pane" type="button" role="tab">Price Chart</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis-tab-pane" type="button" role="tab">Analysis</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="historyTabContent">
+                    <div class="tab-pane fade show active" id="list-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="history-container" id="historyList">
+                            <!-- populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="chart-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="chart-container">
+                            <canvas id="priceHistoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="analysis-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Price Performance</h5>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Presale Price:</span>
+                                            <span class="fw-bold" id="analysisPresale">₦0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Current Price:</span>
+                                            <span class="fw-bold" id="analysisCurrent">₦0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Current Increment:</span>
+                                            <span class="text-success fw-bold" id="analysisCurrentChange">+0.00%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Commulative Increase:</span>
+                                            <span class="text-success fw-bold" id="analysisTotalChange">+0.00%</span>
+                                        </div>                                        
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Annual Growth</h5>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Year 1:</span>
+                                            <span class="text-success fw-bold" id="analysisYear1">+0.00%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Projected Year 2:</span>
+                                            <span class="text-success fw-bold" id="analysisYear2">+0.00%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Market Comparison</h5>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Local Average:</span>
+                                            <span class="fw-bold" id="localAvg">+0.00%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Regional Average:</span>
+                                            <span class="fw-bold" id="regionalAvg">+0.00%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>Competitor:</span>
+                                            <span class="fw-bold" id="competitorAvg">+0.00%</span>
+                                        </div>
+                                        <div class="mt-3">
+                                            <span class="badge bg-success value-change-badge" id="marketBadge">Outperforming Market</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROMO MODAL -->
+<div class="modal fade modal-prm" id="prmPromoModal" tabindex="-1" aria-labelledby="prmPromoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title" id="prmPromoModalLabel">
+                    {% if current_promo %}Edit Promotional Offer{% else %}Create Promotional Offer{% endif %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prmPromoForm">
+                    <input type="hidden" id="prmPromoId" value="{% if current_promo %}{{ current_promo.id }}{% endif %}">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Promo Name</label>
+                            <input id="prmPromoName" class="form-control" required
+                                value="{% if current_promo %}{{ current_promo.name }}{% endif %}">
+                        </div>
+                        <div class="col">
+                            <label>Discount (%)</label>
+                            <input id="prmPromoDiscount" type="number" class="form-control" min="1" max="100" required
+                                value="{% if current_promo %}{{ current_promo.discount }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Start</label>
+                            <input id="prmPromoStart" type="date" class="form-control" required
+                                value="{% if current_promo %}{{ current_promo.start|date:'Y-m-d' }}{% endif %}">
+                        </div>
+                        <div class="col">
+                            <label>End</label>
+                            <input id="prmPromoEnd" type="date" class="form-control" required
+                                value="{% if current_promo %}{{ current_promo.end|date:'Y-m-d' }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Applicable Estates</label>
+                        <select id="prmPromoEstates" class="form-select" multiple required>
+                            {% for estate in estates %}
+                                <option value="{{ estate.id }}"
+                                    {% if current_promo and estate in current_promo.estates.all %}selected{% endif %}>
+                                    {{ estate.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Description</label>
+                        <textarea id="prmPromoDesc" class="form-control" rows="3">{% if current_promo %}{{ current_promo.description }}{% endif %}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="prmSavePromoBtn" class="btn btn-promo-prm">
+                    {% if current_promo %}Update Promo{% else %}Create Promo{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BULK PRICE UPDATE MODAL -->
+<div class="modal fade modal-prm" id="prmBulkUpdateModal" tabindex="-1" aria-labelledby="prmBulkUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="prmBulkUpdateModalLabel">Bulk Price Update Review</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prmBulkUpdateForm">
+                    <!-- Estate Selection -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Select Estate</label>
+                            <select id="prmBulkEstateSelect" class="form-select" required>
+                                <option value="">Choose Estate...</option>
+                                {% for estate in estates %}
+                                <option value="{{ estate.id }}">{{ estate.name }} - {{ estate.location }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Effective Date</label>
+                            <input id="prmBulkEffectiveDate" type="date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Estate Info Display -->
+                    <div id="bulkEstateInfo" class="alert alert-info d-none mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong id="bulkEstateNameDisplay"></strong>
+                                <div class="text-muted small" id="bulkEstateLocationDisplay"></div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">Total Plots: <span id="bulkTotalPlots" class="fw-bold">0</span></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plot Sizes Price Update Table -->
+                    <div id="bulkPriceContainer" class="d-none">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover table-bordered">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th style="width: 5%;">
+                                            <input type="checkbox" id="bulkSelectAll" class="form-check-input">
+                                        </th>
+                                        <th style="width: 15%;">Plot Size</th>
+                                        <th style="width: 10%;">Status</th>
+                                        <th style="width: 15%;">Presale (₦)</th>
+                                        <th style="width: 15%;">Previous (₦)</th>
+                                        <th style="width: 20%;">New Current (₦)</th>
+                                        <th style="width: 10%;">% Change</th>
+                                        <th style="width: 10%;">Total %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bulkPlotTableBody">
+                                    <!-- Plot rows will be inserted here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Price Change Calculator Summary -->
+                        <div class="card mt-4 bg-light">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="bi bi-calculator"></i> Price Change Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="text-center p-3 bg-white rounded shadow-sm">
+                                            <small class="text-muted d-block">Selected Plots</small>
+                                            <h5 id="bulkSelectedCount" class="mb-0 text-primary">0</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center p-3 bg-white rounded shadow-sm">
+                                            <small class="text-muted d-block">Avg % Change</small>
+                                            <h5 id="bulkAvgChange" class="mb-0">0%</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center p-3 bg-white rounded shadow-sm">
+                                            <small class="text-muted d-block">Total Increase</small>
+                                            <h5 id="bulkTotalIncrease" class="mb-0 text-success">₦0</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center p-3 bg-white rounded shadow-sm">
+                                            <small class="text-muted d-block">Total Decrease</small>
+                                            <h5 id="bulkTotalDecrease" class="mb-0 text-danger">₦0</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="mb-3 mt-4">
+                            <label class="form-label fw-bold">Notes</label>
+                            <textarea id="prmBulkNotes" class="form-control" rows="3" placeholder="Add notes about these price changes..."></textarea>
+                        </div>
+
+                        <!-- Notify Checkbox -->
+                        <div class="form-check">
+                            <input id="prmBulkNotifyChk" class="form-check-input" type="checkbox" checked>
+                            <label class="form-check-label fw-bold" for="prmBulkNotifyChk">
+                                Notify clients & marketers about these price changes
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button id="prmSaveBulkBtn" class="btn btn-success" disabled>
+                    <i class="bi bi-check-circle"></i> Update Selected Prices
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Notification Modal -->
+<div class="modal fade" id="prmNotifyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Send Notification</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="prmNotifyForm">
+          <div class="mb-3">
+            <label for="prmNotifyType" class="form-label">Notification Type</label>
+            <select id="prmNotifyType" class="form-select" required>
+              <option value="price_update">Value Update</option>
+              <option value="promotion">Promo Offer</option>
+              <option value="new_launch">New Launch</option>
+              <option value="client_update">Clients</option>
+              <option value="marketer_update">Marketers</option>
+              <option value="general_notification">General</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="prmNotifySubject" class="form-label">Subject</label>
+            <input type="text" id="prmNotifySubject" class="form-control" placeholder="Enter subject" required>
+          </div>
+          <div class="mb-3">
+            <label for="prmNotifyMessage" class="form-label">Message</label>
+            <textarea id="prmNotifyMessage" class="form-control" rows="5" placeholder="Enter your message" required></textarea>
+          </div>
+          <div class="mb-3" id="notifyEstatesField">
+            <label for="prmNotifyEstates" class="form-label">Select Estates</label>
+            <select id="prmNotifyEstates" class="form-select" multiple>
+              {% for e in estates %}
+                <option value="{{ e.id }}">{{ e.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="prmNotifyEmail" checked>
+            <label class="form-check-label" for="prmNotifyEmail">Send via Email</label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="prmNotifySMS">
+            <label class="form-check-label" for="prmNotifySMS">Send via SMS</label>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="prmNotifyInApp" checked>
+            <label class="form-check-label" for="prmNotifyInApp">Send via In-App</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="prmSendNotifyBtn">Send Notification</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered text-center">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Success</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="successModalMessage" class="fw-bold text-success"></p>
+        <p id="successModalDetail" class="text-muted mb-0"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered text-center">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Error</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="errorModalMessage" class="fw-bold text-danger"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- SUCCESS MODAL -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+            </div>
+            <div class="modal-body text-center">
+                <p id="successModalMessage">Property price saved successfully!</p>
+                <p id="successModalDetail" class="text-muted mb-0"></p>
+                <button type="button" class="btn btn-sm btn-success mt-2" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let dispatchPollTimer = null;
+
+    function clearDispatchPolling() {
+        if (dispatchPollTimer) {
+            clearInterval(dispatchPollTimer);
+            dispatchPollTimer = null;
+        }
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(c => {
+                const [k,v] = c.trim().split('=');
+                if (k === name) cookieValue = decodeURIComponent(v);
+            });
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Bootstrap modal instances
+        const prmValueModal   = new bootstrap.Modal('#prmValueModal');
+        const prmEditModal    = new bootstrap.Modal('#prmEditModal');
+        const prmHistoryModal = new bootstrap.Modal('#prmHistoryModal');
+        const prmNotifyModal  = new bootstrap.Modal('#prmNotifyModal');
+        const prmBulkUpdateModal = new bootstrap.Modal('#prmBulkUpdateModal');
+        const successModalEl  = document.getElementById('successModal');
+        const successModal    = new bootstrap.Modal(successModalEl);
+        const successMessageEl = document.getElementById('successModalMessage');
+        const successDetailEl  = document.getElementById('successModalDetail');
+
+        successModalEl.addEventListener('hidden.bs.modal', clearDispatchPolling);
+        
+
+        // cache your promo modal elements up top
+        const promoModal       = new bootstrap.Modal('#prmPromoModal');
+        const promoIdInput     = document.getElementById('prmPromoId');
+        const promoNameInput   = document.getElementById('prmPromoName');
+        const promoDiscount    = document.getElementById('prmPromoDiscount');
+        const promoStart       = document.getElementById('prmPromoStart');
+        const promoEnd         = document.getElementById('prmPromoEnd');
+        const promoDesc        = document.getElementById('prmPromoDesc');
+        const promoEstates     = document.getElementById('prmPromoEstates');
+        const promoTitle       = document.getElementById('prmPromoModalLabel');
+
+        // Set Presale Price
+        const setPresaleBtn = document.getElementById('prmAddRegBtn');
+        if (!setPresaleBtn) {
+            console.error('⚠️ #prmAddRegBtn not found');
+        } else {
+            setPresaleBtn.addEventListener('click', () => {
+            resetValueModal();
+            prmValueModal.show();
+            });
+        }
+
+        // Bulk Price Update Button
+        document.getElementById('prmBulkUpdateBtn').addEventListener('click', () => {
+            openBulkUpdateModal();
+        });
+
+        // 1) Open “Create Promotional Offer” modal, fully reset form:
+        document.getElementById('prmCreatePromoBtn').addEventListener('click', () => {
+        const today = new Date().toISOString().slice(0,10);
+
+        promoIdInput.value     = '';
+        promoNameInput.value   = '';
+        promoDiscount.value    = '';
+        promoStart.value       = today;
+        promoEnd.value         = today;
+        promoDesc.value        = '';
+
+        // clear ALL selected estates
+        Array.from(promoEstates.options).forEach(opt => opt.selected = false);
+
+        promoTitle.textContent = 'Create Promotional Offer';
+        promoModal.show();
+        });
+
+
+        // Prefill fields if a single estate is selected
+        promoEstates.addEventListener('change', () => {
+            const selected = Array.from(promoEstates.selectedOptions).map(opt => opt.value);
+            if (selected.length === 1) {
+                fetch(`/api/promo/estate/${selected[0]}/active/`, {
+                    headers: { 'X-CSRFToken': csrftoken }
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'ok' && res.data) {
+                        const p = res.data;
+                        promoIdInput.value   = '';
+                        promoNameInput.value = p.name;
+                        promoDiscount.value  = p.discount;
+                        promoStart.value     = p.start.slice(0,10);
+                        promoEnd.value       = p.end.slice(0,10);
+                        promoDesc.value      = p.description || '';
+                        promoTitle.textContent = 'Edit Promotional Offer';
+                    } else {
+                        // Clear form if no promo found
+                        promoNameInput.value = '';
+                        promoDiscount.value  = '';
+                        promoDesc.value      = '';
+                        const today = new Date().toISOString().slice(0,10);
+                        promoStart.value     = today;
+                        promoEnd.value       = today;
+                        promoTitle.textContent = 'Create Promotional Offer';
+                    }
+                })
+                .catch(() => {
+                    // Fallback: clear
+                    promoNameInput.value = '';
+                    promoDiscount.value  = '';
+                    promoDesc.value      = '';
+                    const today = new Date().toISOString().slice(0,10);
+                    promoStart.value     = today;
+                    promoEnd.value       = today;
+                    promoTitle.textContent = 'Create Promotional Offer';
+                });
+            }
+        });
+                
+        // document.getElementById('prmCreatePromoBtn').onclick = () => prmPromoModal.show();
+        document.getElementById('prmCreatePromoBtn').onclick = () => promoModal.show();
+        document.getElementById('prmNotifyClientsBtn').onclick = () => prmNotifyModal.show();
+        document.getElementById('prmSendNotifyBtn').addEventListener('click', sendNotification);
+
+        // Initialize notification type handling
+        initNotificationTypeHandling();
+
+        // Initialize price chart
+        initPriceChart();
+
+        // Event handlers
+        document.getElementById('prmEstateSelect').addEventListener('change', handleEstateChange);
+        document.getElementById('prmPlotSizeSelect').addEventListener('change', handlePlotSizeChange);
+        document.getElementById('prmEditCurrentPrice').addEventListener('input', calculatePriceChange);
+        document.getElementById('prmSaveRegBtn').addEventListener('click', savePresalePrice);
+        document.getElementById('prmSaveEditBtn').addEventListener('click', saveEditPrice);
+        // prmSavePromoBtn listener will be added after savePromo function is defined
+        document.getElementById('prmSendNotifyBtn').addEventListener('click', sendNotification);
+        
+        // Action button handlers
+        document.querySelector('#prmPropertyTable').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const action = btn.getAttribute('data-action');
+            const id = btn.getAttribute('data-id');
+            const estateId = btn.getAttribute('data-estate');
+            const unitId = btn.getAttribute('data-unit');
+            
+            if (action === 'edit') {
+                prmEditModal.show();
+                openEditModal(id);
+            } 
+            else if (action === 'history') {
+                openHistoryModal(id);
+            }
+            else if (action === 'add') {
+                openAddModal(estateId, unitId);
+            }
+        });
+
+        // Initialize with today's date
+        const today = new Date().toISOString().slice(0,10);
+        document.getElementById('prmEffectiveDate').value = today;
+        document.getElementById('prmEditEffectiveDate').value = today;
+
+        // Helper functions
+        function initNotificationTypeHandling() {
+            const notifyTypeSelect = document.getElementById('prmNotifyType');
+            const estatesField = document.getElementById('notifyEstatesField');
+            
+            // Initial state
+            toggleEstatesVisibility(notifyTypeSelect.value, estatesField);
+            
+            // Add change listener
+            notifyTypeSelect.addEventListener('change', () => {
+                toggleEstatesVisibility(notifyTypeSelect.value, estatesField);
+            });
+        }
+        
+        function toggleEstatesVisibility(type, element) {
+            const hideTypes = [
+                'client_update', 
+                'marketer_update', 
+                'general_notification'
+            ];
+            
+            if (hideTypes.includes(type)) {
+                element.classList.add('d-none');
+            } else {
+                element.classList.remove('d-none');
+            }
+        }
+
+        // Helper functions
+        function resetValueModal() {
+            document.getElementById('prmPropertyId').value = '';
+            document.getElementById('prmEstateSelect').value = '';
+            document.getElementById('prmPlotSizeSelect').innerHTML = '<option value="">Select Plot</option>';
+            document.getElementById('prmLocation').value = '';
+            document.getElementById('prmPresalePrice').value = '';
+            document.getElementById('prmNotes').value = '';
+            document.getElementById('prmNotifyChk').checked = true;
+            document.getElementById('prmValueModalLabel').textContent = "Set Presale Price";
+        }
+
+        function resetEditModal() {
+            document.getElementById('prmEditPropertyId').value = '';
+            document.getElementById('prmEditEstate').value = '';
+            document.getElementById('prmEditPlotSize').value = '';
+            document.getElementById('prmEditLocation').value = '';
+            document.getElementById('prmEditPresalePrice').value = '';
+            document.getElementById('prmEditPrevPrice').value = '';
+            document.getElementById('prmEditCurrentPrice').value = '';
+            document.getElementById('prmEditNotes').value = '';
+            document.getElementById('prmEditNotifyChk').checked = true;
+            document.getElementById('prmEditModalLabel').textContent = "Update Property Price";
+        }
+
+        function formatNumber(n) {
+            return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function parseFormattedNumber(str) {
+            return parseFloat(str.replace(/,/g, '')) || 0;
+        }
+
+        function calculatePriceChange() {
+            const prev = parseFormattedNumber(document.getElementById('prmEditPrevPrice').value);
+            const current = parseFloat(document.getElementById('prmEditCurrentPrice').value) || 0;
+            const presale = parseFormattedNumber(document.getElementById('prmEditPresalePrice').value);
+            
+            if (!prev || !presale) return;
+            
+            const change = ((current - prev) / prev) * 100;
+            const cumulative = ((current - presale) / presale) * 100;
+            
+            document.getElementById('newPriceCalc').textContent = '₦' + formatNumber(current);
+            document.getElementById('changeCalc').textContent = (change > 0 ? '+' : '') + change.toFixed(2) + '%';
+            document.getElementById('cumulativeCalc').textContent = (cumulative > 0 ? '+' : '') + cumulative.toFixed(2) + '%';
+            
+            document.getElementById('changeCalc').className = 'price-change ' + 
+                (change > 0 ? 'increase-prm' : change < 0 ? 'decrease-prm' : '');
+                
+            document.getElementById('cumulativeCalc').className = 'price-change ' + 
+                (cumulative > 0 ? 'increase-prm' : cumulative < 0 ? 'decrease-prm' : '');
+        }
+
+        function handleEstateChange() {
+            const estateId = this.value;
+            const plotSel  = document.getElementById('prmPlotSizeSelect');
+            const locInput = document.getElementById('prmLocation');
+
+            // reset dependent fields
+            plotSel.innerHTML = '<option value="">Loading…</option>';
+            locInput.value    = '';
+            document.getElementById('prmPresalePrice').value  = '';
+            document.getElementById('prmEffectiveDate').value = new Date().toISOString().slice(0,10);
+            document.getElementById('prmNotes').value         = '';
+
+            if (!estateId) {
+                plotSel.innerHTML = '<option value="">Select Plot</option>';
+                return;
+            }
+
+            fetch(`/api/estate/${estateId}/plot-sizes/`, {
+                headers: { 'X-CSRFToken': csrftoken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                // populate plot dropdown
+                plotSel.innerHTML = '<option value="">Select Plot</option>';
+                data.plot_units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.text  = `${u.size} (${u.available} avail)`;
+                plotSel.add(opt);
+                });
+                // set location
+                locInput.value = data.location || '';
+            })
+            .catch(() => {
+                plotSel.innerHTML = '<option value="">Error loading plots</option>';
+            });
+            }
+
+        function handlePlotSizeChange() {
+            const estateId = document.getElementById('prmEstateSelect').value;
+            const unitId   = this.value;
+            if (!estateId || !unitId) return;
+
+            fetch(`/api/estate/${estateId}/plot-sizes/?plot_unit_id=${unitId}`, {
+                headers: { 'X-CSRFToken': csrftoken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.existing_price) {
+                const ep = data.existing_price;
+                document.getElementById('prmPresalePrice').value      = ep.presale;
+                document.getElementById('prmEffectiveDate').value     = ep.effective;
+                document.getElementById('prmNotes').value             = ep.notes;
+                document.getElementById('prmValueModalLabel').textContent = "Update Presale Price";
+                } else {
+                // new entry: clear fields & reset label
+                document.getElementById('prmPresalePrice').value      = '';
+                document.getElementById('prmEffectiveDate').value     = new Date().toISOString().slice(0,10);
+                document.getElementById('prmNotes').value             = '';
+                document.getElementById('prmValueModalLabel').textContent = "Set Presale Price";
+                }
+            })
+            .catch(() => {
+                // silently fail
+            });
+        }
+
+        function openAddModal(estateId, unitId) {
+            resetValueModal();
+            document.getElementById('prmEstateSelect').value = estateId;
+            const event = new Event('change');
+            document.getElementById('prmEstateSelect').dispatchEvent(event);
+            
+            setTimeout(() => {
+                document.getElementById('prmPlotSizeSelect').value = unitId;
+                const unitEvent = new Event('change');
+                document.getElementById('prmPlotSizeSelect').dispatchEvent(unitEvent);
+            }, 300);
+            
+            prmValueModal.show();
+        }
+
+        function openEditModal(id) {
+            resetEditModal();
+            document.getElementById('prmEditPropertyId').value = id;
+            
+            // Set skeleton data immediately
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (row) {
+                const cells = row.cells;
+                document.getElementById('prmEditEstate').value = cells[0].textContent.trim();
+                document.getElementById('prmEditPlotSize').value = cells[1].textContent;
+                document.getElementById('prmEditLocation').value = cells[2].textContent;
+                document.getElementById('prmEditPresalePrice').value = cells[3].textContent.trim() || '0';
+                document.getElementById('prmEditPrevPrice').value = cells[4].textContent.trim() || '0';
+                document.getElementById('prmEditCurrentPrice').value = cells[5].textContent.trim().replace(/,/g, '') || '0';
+                
+                // Calculate immediately with current values
+                calculatePriceChange();
+            }
+
+            // Then fetch updated data from server
+            fetch(`/api/property-price/${id}/`, {
+                headers: {'X-CSRFToken': csrftoken}
+            })
+            .then(r => r.json())
+            .then(pp => {
+                document.getElementById('prmEditEstate').value = pp.estate.name;
+                document.getElementById('prmEditPlotSize').value = pp.plot_unit.plot_size.size;
+                document.getElementById('prmEditLocation').value = pp.estate.location;
+                document.getElementById('prmEditPresalePrice').value = formatNumber(pp.presale);
+                document.getElementById('prmEditPrevPrice').value = formatNumber(pp.previous);
+                document.getElementById('prmEditCurrentPrice').value = pp.current;
+                document.getElementById('prmEditEffectiveDate').value = pp.effective.split('T')[0];
+                document.getElementById('prmEditNotes').value = pp.notes || '';
+                
+                // Update calculations with fresh data
+                document.getElementById('prevPriceCalc').textContent = '₦' + formatNumber(pp.previous);
+                document.getElementById('newPriceCalc').textContent = '₦' + formatNumber(pp.current);
+                calculatePriceChange();
+            })
+            .catch(error => {
+                console.error('Error loading property data:', error);
+                // Keep showing the modal with skeleton data
+            });
+        }
+
+        function openHistoryModal(id) {
+            fetch(`/api/property-price/${id}/history/`, {
+                headers: { 'X-CSRFToken': csrftoken }
+            })
+            .then(r => r.json())
+            .then(json => {
+                const list = document.getElementById('historyList');
+                list.innerHTML = '';
+                const labels = [];
+                const values = [];
+
+                // Reverse the history array to show latest first
+                [...json.history].reverse().forEach(h => {
+                    // Highlight promo events
+                    const isPromo = h.is_promo || h.notes.includes('PROMO');
+                    const promoClass = isPromo ? 'promo-event' : '';
+                    const icon = isPromo ? '<i class="bi bi-tag-fill me-1"></i>' : '';
+                    
+                    list.insertAdjacentHTML('beforeend', `
+                        <div class="history-item ${promoClass}">
+                            <div class="d-flex justify-content-between">
+                                <div class="history-price">${icon}₦${formatNumber(h.current)}</div>
+                                <div class="history-date">${new Date(h.effective).toLocaleDateString()}</div>
+                            </div>
+                            <div class="${h.current > h.previous ? 'text-success' : 'text-danger'}">
+                                ${((h.current - h.previous) / h.previous * 100).toFixed(1)}%
+                                ${h.current > h.previous ? ' increase' : ' decrease'}
+                            </div>
+                            <div class="text-muted mt-1">${h.notes}</div>
+                        </div>
+                    `);
+                });
+
+                // For chart - use all points in original order
+                json.history.forEach(h => {
+                    labels.push(new Date(h.effective).toLocaleDateString('en-US', { month:'short', year:'numeric' }));
+                    values.push(h.current);
+                });
+
+                // 2) Header info
+                const row = document.querySelector(`tr[data-id="${id}"]`);
+                document.getElementById('historyEstateName').textContent =
+                row.cells[0].innerText.trim();
+                document.getElementById('historyPlotSize').textContent =
+                `${row.cells[1].innerText} - ${row.cells[2].innerText}`;
+
+                // 3) Presale & Current
+                const presaleVal = values[0] || 0;
+                const latestVal  = values[values.length - 1] || 0;
+                document.getElementById('historyPresale').textContent =
+                '₦' + formatNumber(presaleVal);
+                document.getElementById('historyCurrent').textContent =
+                '₦' + formatNumber(latestVal);
+
+                // 4) Chart update
+                window.historyChart.data.labels   = [...labels].reverse();
+                window.historyChart.data.datasets[0].data = [...values].reverse();
+                window.historyChart.update();
+
+                // Update chart rendering to show promo periods
+                function renderPromoOverlay(chart, promos) {
+                    const overlay = document.getElementById('promoOverlay');
+                    overlay.innerHTML = '';
+                    
+                    promos.forEach(promo => {
+                        const startX = chart.scales.x.getPixelForValue(new Date(promo.start));
+                        const endX = chart.scales.x.getPixelForValue(new Date(promo.end));
+                        
+                        const rect = document.createElement('div');
+                        rect.className = 'promo-overlay-rect';
+                        rect.style.position = 'absolute';
+                        rect.style.left = `${startX}px`;
+                        rect.style.width = `${endX - startX}px`;
+                        rect.style.top = '0';
+                        rect.style.height = '100%';
+                        rect.style.background = 'rgba(230, 126, 34, 0.1)';
+                        rect.style.borderLeft = '2px dashed #e67e22';
+                        rect.style.borderRight = '2px dashed #e67e22';
+                        rect.style.pointerEvents = 'none';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'promo-overlay-label';
+                        label.style.position = 'absolute';
+                        label.style.left = `${startX + 5}px`;
+                        label.style.top = '5px';
+                        label.style.background = 'rgba(230, 126, 34, 0.7)';
+                        label.style.color = 'white';
+                        label.style.padding = '2px 5px';
+                        label.style.borderRadius = '3px';
+                        label.style.fontSize = '0.7rem';
+                        label.textContent = `${promo.discount}% OFF`;
+                        
+                        overlay.appendChild(rect);
+                        overlay.appendChild(label);
+                    });
+                }
+
+                // 5) Price Performance from server fields
+                document.getElementById('analysisPresale').textContent =
+                '₦' + formatNumber(presaleVal);
+                document.getElementById('analysisCurrent').textContent =
+                '₦' + formatNumber(latestVal);
+
+                document.getElementById('analysisCurrentChange').textContent =
+                (json.current_change > 0 ? '+' : '') +
+                json.current_change.toFixed(1) + '%';
+                document.getElementById('analysisTotalChange').textContent =
+                (json.total_change   > 0 ? '+' : '') +
+                json.total_change.toFixed(1)   + '%';
+
+                // 6) Promo badge (guarded)
+                const badge = document.getElementById('promoBadge');
+                if (badge) {
+                if (json.promo_applied) {
+                    badge.textContent = `${json.promo_discount}% OFF until ${
+                    new Date(json.promo_expires).toLocaleDateString()
+                    }`;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+                }
+
+                // 7) Finally show it
+                prmHistoryModal.show();
+            })
+            .catch(err => {
+                console.error('Error loading history:', err);
+                alert('Failed to load price history.');
+            });
+        }
+
+        function savePresalePrice() {
+            const estateId = document.getElementById('prmEstateSelect').value;
+            const unitId = document.getElementById('prmPlotSizeSelect').value;
+            const presale = document.getElementById('prmPresalePrice').value;
+            const effective = document.getElementById('prmEffectiveDate').value;
+            const notes = document.getElementById('prmNotes').value;
+            
+            if (!estateId || !unitId || !presale || !effective) {
+                return alert('Please fill all required fields');
+            }
+
+            const body = {
+                estate_id: estateId,
+                plot_unit_id: unitId,
+                presale: presale,
+                effective: effective,
+                notes: notes
+            };
+
+            fetch('/api/property-price/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(body)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    const rowKey = data.row_key || `${estateId}-${unitId}`;
+                    refreshRow(rowKey);
+                    prmValueModal.hide();
+                    
+                    // Show success message
+                    document.getElementById('successModalMessage').textContent = 
+                        'Presale price saved successfully!';
+                    successModal.show();
+                } else {
+                    alert('Failed to save: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving presale price');
+            });
+        }
+
+        function saveEditPrice() {
+            const id = document.getElementById('prmEditPropertyId').value;
+            const current = document.getElementById('prmEditCurrentPrice').value;
+            const effective = document.getElementById('prmEditEffectiveDate').value;
+            const notes = document.getElementById('prmEditNotes').value;
+            const notify = document.getElementById('prmEditNotifyChk').checked;
+            
+            if (!id || !current || !effective) {
+                return alert('Please fill all required fields');
+            }
+
+            const body = {
+                current: current,
+                effective: effective,
+                notes: notes,
+                notify: notify
+            };
+
+            fetch(`/api/property-price/${id}/edit/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(body)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    const rowKey = data.row_key;
+                    refreshRow(rowKey);
+                    prmEditModal.hide();
+                    
+                    // Show success message with notification status
+                    let message = 'Property price updated successfully!';
+                    if (data.notification_sent) {
+                        message += '\n✅ Notifications sent to clients and marketers.';
+                    }
+                    
+                    document.getElementById('successModalMessage').textContent = message;
+                    successModal.show();
+                } else {
+                    alert('Failed to update: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating property price');
+            });
+        }
+
+     
+        function savePromo() {
+            console.log('🔥 savePromo called!'); // Debug log
+            
+            // Validate fields
+            const name = promoNameInput.value.trim();
+            const discount = Number(promoDiscount.value);
+            const start = promoStart.value;
+            const end = promoEnd.value;
+            const selectedEstates = Array.from(promoEstates.selectedOptions)
+                .map(o => Number(o.value));
+
+            console.log('Promo data:', { name, discount, start, end, selectedEstates });
+
+            // Validation checks
+            if (!name) {
+                alert('Please enter promo name!');
+                return;
+            }
+            if (!discount || discount < 1 || discount > 100) {
+                alert('Please enter a valid discount (1-100%)!');
+                return;
+            }
+            if (!start || !end) {
+                alert('Please select start and end dates!');
+                return;
+            }
+            if (new Date(start) > new Date(end)) {
+                alert('End date must be after start date!');
+                return;
+            }
+            if (!selectedEstates.length) {
+                alert('Select at least one estate for this promo!');
+                return;
+            }
+
+            // Build request body
+            const body = {
+                name: name,
+                discount: discount,
+                start: start,
+                end: end,
+                estates: selectedEstates,
+                description: promoDesc.value.trim(),
+            };
+
+            const method = promoIdInput.value ? 'PUT' : 'POST';
+            const url = promoIdInput.value
+                ? `/api/promo/${promoIdInput.value}/update/`
+                : '/api/promo/create/';
+
+            console.log('Sending request:', { method, url, body });
+
+            // Disable button during request
+            const saveBtn = document.getElementById('prmSavePromoBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(body)
+            })
+            .then(async r => {
+                console.log('Response status:', r.status);
+                const data = await r.json();
+                console.log('Response data:', data);
+                
+                if (!r.ok) {
+                    throw new Error(data.message || `Server error: ${r.status}`);
+                }
+                return data;
+            })
+            .then(data => {
+                console.log('✅ Promo saved successfully!');
+                promoModal.hide();
+                
+                // Show success message
+                document.getElementById('successModalMessage').textContent = 
+                    promoIdInput.value ? 'Promo updated successfully!' : 'Promo created successfully!';
+                successModal.show();
+                
+                // Reload page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            })
+            .catch(e => {
+                console.error('❌ Promo error:', e);
+                alert('Error saving promo: ' + e.message);
+            })
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
+            });
+        }
+
+        document.getElementById('prmSavePromoBtn').addEventListener('click', savePromo);
+
+        // sendNotification
+        // function sendNotification() {
+        //     const subject = document.getElementById('prmNotifySubject').value;
+        //     const message = document.getElementById('prmNotifyMessage').value;
+        //     const notifyType = document.getElementById('prmNotifyType').value;
+        //     const estateIds = Array.from(
+        //         document.getElementById('prmNotifyEstates').selectedOptions
+        //     ).map(opt => opt.value);
+        //     const sendEmail = document.getElementById('prmNotifyEmail').checked;
+        //     const sendSMS = document.getElementById('prmNotifySMS').checked;
+        //     const sendInApp = document.getElementById('prmNotifyInApp').checked;
+
+        //     if (!subject || !message) {
+        //         alert('Please fill in subject and message');
+        //         return;
+        //     }
+
+        //     const body = {
+        //         subject,
+        //         message,
+        //         type: notifyType,
+        //         send_email: sendEmail,
+        //         send_sms: sendSMS,
+        //         send_inapp: sendInApp
+        //     };
+
+        //     // Only include estates if notification type requires it
+        //     const showEstates = !['client_update', 'marketer_update', 'general_notification'].includes(notifyType);
+        //     if (showEstates) {
+        //         body.estate_ids = estateIds;
+        //     }
+
+        //     fetch('/api/notify-clients/', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'X-CSRFToken': csrftoken
+        //         },
+        //         body: JSON.stringify(body)
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         if (data.status === 'success') {
+        //             prmNotifyModal.hide();
+        //             document.getElementById('successModalMessage').textContent = 
+        //                 `Notifications sent to ${data.recipients} recipients!`;
+        //             successModal.show();
+        //         } else {
+        //             alert('Failed to send: ' + (data.message || 'Unknown error'));
+        //         }
+        //     })
+        //     .catch(error => {
+        //         console.error('Error:', error);
+        //         alert('Error sending notifications');
+        //     });
+        // }
+
+        function refreshRow(rowKey) {
+            fetch(`/api/property-row/${rowKey}/`, {
+                headers: {'X-CSRFToken': csrftoken}
+            })
+            .then(r => r.json())
+            .then(data => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = data.html;
+                newRow.id = `row-${rowKey}`;
+                
+                const existingRow = document.getElementById(`row-${rowKey}`);
+                if (existingRow) {
+                    existingRow.replaceWith(newRow);
+                } else {
+                    document.getElementById('prmPropertyTable').appendChild(newRow);
+                }
+            });
+        }
+
+        function initPriceChart() {
+            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+            
+            // Create gradient for the line
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.4)');
+            gradient.addColorStop(0.5, 'rgba(102, 126, 234, 0.2)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
+            
+            window.historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Property Value',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointHoverBackgroundColor: '#764ba2',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        segment: {
+                            borderColor: ctx => {
+                                // Color segments based on trend
+                                const current = ctx.p1.parsed.y;
+                                const previous = ctx.p0.parsed.y;
+                                return current >= previous ? '#28a745' : '#dc3545';
+                            }
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                padding: 15,
+                                font: {
+                                    size: 13,
+                                    weight: '600',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#495057',
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#667eea',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold',
+                                family: "'Segoe UI', sans-serif"
+                            },
+                            bodyFont: {
+                                size: 13,
+                                family: "'Segoe UI', sans-serif"
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '₦' + context.parsed.y.toLocaleString('en-US', {
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0
+                                        });
+                                    }
+                                    return label;
+                                },
+                                afterLabel: function(context) {
+                                    // Show percentage change from previous point
+                                    const index = context.dataIndex;
+                                    if (index > 0) {
+                                        const current = context.parsed.y;
+                                        const previous = context.chart.data.datasets[0].data[index - 1];
+                                        const change = ((current - previous) / previous * 100).toFixed(1);
+                                        const arrow = change >= 0 ? '↑' : '↓';
+                                        const color = change >= 0 ? '🟢' : '🔴';
+                                        return `${color} ${Math.abs(change)}% ${arrow} from previous`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grace: '5%',
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.06)',
+                                drawBorder: false,
+                                lineWidth: 1
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                padding: 10,
+                                font: {
+                                    size: 12,
+                                    weight: '600',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#6c757d',
+                                callback: function(value) {
+                                    if (value >= 1000000) {
+                                        return '₦' + (value / 1000000).toFixed(1) + 'M';
+                                    } else if (value >= 1000) {
+                                        return '₦' + (value / 1000).toFixed(0) + 'K';
+                                    }
+                                    return '₦' + value.toLocaleString();
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Property Value (₦)',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#495057',
+                                padding: {
+                                    top: 10,
+                                    bottom: 0
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                padding: 10,
+                                font: {
+                                    size: 12,
+                                    weight: '600',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#6c757d',
+                                maxRotation: 45,
+                                minRotation: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#495057',
+                                padding: {
+                                    top: 10,
+                                    bottom: 0
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // BULK PRICE UPDATE FUNCTIONS
+        // ============================================================
+        
+        function openBulkUpdateModal() {
+            // Reset form
+            document.getElementById('prmBulkEstateSelect').value = '';
+            document.getElementById('prmBulkEffectiveDate').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('prmBulkNotes').value = '';
+            document.getElementById('prmBulkNotifyChk').checked = true;
+            document.getElementById('bulkEstateInfo').classList.add('d-none');
+            document.getElementById('bulkPriceContainer').classList.add('d-none');
+            document.getElementById('prmSaveBulkBtn').disabled = true;
+            
+            prmBulkUpdateModal.show();
+        }
+
+        // Estate selection handler
+        document.getElementById('prmBulkEstateSelect').addEventListener('change', function() {
+            const estateId = this.value;
+            
+            if (!estateId) {
+                document.getElementById('bulkEstateInfo').classList.add('d-none');
+                document.getElementById('bulkPriceContainer').classList.add('d-none');
+                return;
+            }
+
+            // Show loading state
+            const tbody = document.getElementById('bulkPlotTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Loading plot sizes...</td></tr>';
+            document.getElementById('bulkPriceContainer').classList.remove('d-none');
+
+            // Fetch estate data with all plot sizes and current prices
+            fetch(`/api/estate/${estateId}/bulk-price-data/`, {
+                headers: { 'X-CSRFToken': csrftoken }
+            })
+            .then(r => r.json())
+            .then(data => {
+                // Display estate info
+                document.getElementById('bulkEstateNameDisplay').textContent = data.estate.name;
+                document.getElementById('bulkEstateLocationDisplay').textContent = data.estate.location;
+                document.getElementById('bulkTotalPlots').textContent = data.plot_units.length;
+                document.getElementById('bulkEstateInfo').classList.remove('d-none');
+
+                // Populate table with plot sizes
+                tbody.innerHTML = '';
+                data.plot_units.forEach((unit, index) => {
+                    const presale = unit.presale || 0;
+                    const previous = unit.previous || 0;
+                    const current = unit.current || previous;
+                    const isAvailable = unit.available > 0;
+                    const hasPresale = presale > 0;
+                    const isSoldOut = unit.available === 0;
+                    
+                    // Determine if price input should be disabled
+                    const isPriceDisabled = !hasPresale || isSoldOut;
+                    
+                    // Create tooltip message
+                    let tooltipMsg = '';
+                    if (!hasPresale) {
+                        tooltipMsg = 'Set presale price first from "Set Presale Price" modal';
+                    } else if (isSoldOut) {
+                        tooltipMsg = 'Plot is sold out - price cannot be updated';
+                    }
+                    
+                    const row = `
+                        <tr data-unit-id="${unit.id}" data-presale="${presale}" data-previous="${previous}">
+                            <td>
+                                <input type="checkbox" class="form-check-input bulk-plot-checkbox" 
+                                       data-unit-id="${unit.id}" ${isAvailable && hasPresale ? 'checked' : ''} 
+                                       ${isPriceDisabled ? 'disabled' : ''}>
+                            </td>
+                            <td>
+                                <strong>${unit.size}</strong>
+                                <br><small class="text-muted">${unit.available} available / ${unit.total} total</small>
+                                ${tooltipMsg ? `<br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${tooltipMsg}</small>` : ''}
+                            </td>
+                            <td>
+                                <span class="badge ${isAvailable ? 'bg-success' : 'bg-secondary'}">
+                                    ${isAvailable ? 'Available' : 'Sold Out'}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm bg-light" 
+                                       value="₦${formatNumber(presale)}" disabled>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm bg-light" 
+                                       value="₦${formatNumber(previous)}" disabled>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm bulk-new-price" 
+                                       data-unit-id="${unit.id}" value="${current}" min="0" step="1000"
+                                       ${isPriceDisabled ? 'disabled' : ''}>
+                            </td>
+                            <td>
+                                <span class="change-percent-${unit.id}">0%</span>
+                            </td>
+                            <td>
+                                <span class="total-percent-${unit.id}">0%</span>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+
+                // Initialize calculations
+                calculateAllChanges();
+                updateBulkSummary();
+
+                // Add event listeners to new price inputs (multiple events for better responsiveness)
+                document.querySelectorAll('.bulk-new-price').forEach(input => {
+                    // Create handler function
+                    const handlePriceChange = function() {
+                        const unitId = this.getAttribute('data-unit-id');
+                        console.log(`Price changed for unit ${unitId}, new value: ${this.value}`);
+                        calculateRowChange(unitId);
+                        updateBulkSummary();
+                    };
+                    
+                    // Listen to multiple events
+                    input.addEventListener('input', handlePriceChange);
+                    input.addEventListener('change', handlePriceChange);
+                    input.addEventListener('keyup', handlePriceChange);
+                    
+                    // Also trigger on blur for better UX
+                    input.addEventListener('blur', handlePriceChange);
+                });
+
+                console.log(`✅ Event listeners attached to ${document.querySelectorAll('.bulk-new-price').length} price inputs`);
+
+                // Verify spans exist
+                console.log('Verifying percentage spans...');
+                data.plot_units.forEach(unit => {
+                    const changeSpan = document.querySelector(`.change-percent-${unit.id}`);
+                    const totalSpan = document.querySelector(`.total-percent-${unit.id}`);
+                    console.log(`  Unit ${unit.id}: changeSpan=${!!changeSpan}, totalSpan=${!!totalSpan}`);
+                });
+                console.log('✅ Verification complete');
+
+                // Add event listeners to checkboxes
+                document.querySelectorAll('.bulk-plot-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        updateBulkSummary();
+                        updateSelectAllState();
+                    });
+                });
+
+                // Select All checkbox handler
+                document.getElementById('bulkSelectAll').addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.bulk-plot-checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                    updateBulkSummary();
+                });
+            })
+            .catch(error => {
+                console.error('Error loading estate data:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading data. Please try again.</td></tr>';
+            });
+        });
+
+        function calculateRowChange(unitId) {
+            const row = document.querySelector(`tr[data-unit-id="${unitId}"]`);
+            if (!row) {
+                console.error(`Row not found for unit ${unitId}`);
+                return;
+            }
+            
+            const presale = parseFloat(row.getAttribute('data-presale')) || 0;
+            const previous = parseFloat(row.getAttribute('data-previous')) || 0;
+            const newPriceInput = document.querySelector(`.bulk-new-price[data-unit-id="${unitId}"]`);
+            const newPrice = parseFloat(newPriceInput.value) || 0;
+
+            console.log(`Calculating changes for unit ${unitId}: presale=${presale}, previous=${previous}, new=${newPrice}`);
+
+            // Calculate % change from previous
+            let changePercent = 0;
+            if (previous > 0) {
+                changePercent = ((newPrice - previous) / previous * 100);
+            }
+            
+            const changeSpan = document.querySelector(`.change-percent-${unitId}`);
+            if (changeSpan) {
+                changeSpan.textContent = (changePercent > 0 ? '+' : '') + changePercent.toFixed(1) + '%';
+                // Remove existing color classes
+                changeSpan.classList.remove('increase-prm', 'decrease-prm');
+                // Add appropriate color class
+                if (changePercent > 0) {
+                    changeSpan.classList.add('increase-prm');
+                } else if (changePercent < 0) {
+                    changeSpan.classList.add('decrease-prm');
+                }
+                console.log(`  % Change: ${changePercent.toFixed(1)}% - Updated span text and class`);
+            } else {
+                console.error(`  ❌ changeSpan not found for unit ${unitId}`);
+            }
+
+            // Calculate total % change from presale
+            let totalPercent = 0;
+            if (presale > 0) {
+                totalPercent = ((newPrice - presale) / presale * 100);
+            }
+            
+            const totalSpan = document.querySelector(`.total-percent-${unitId}`);
+            if (totalSpan) {
+                totalSpan.textContent = (totalPercent > 0 ? '+' : '') + totalPercent.toFixed(1) + '%';
+                // Remove existing color classes
+                totalSpan.classList.remove('increase-prm', 'decrease-prm');
+                // Add appropriate color class
+                if (totalPercent > 0) {
+                    totalSpan.classList.add('increase-prm');
+                } else if (totalPercent < 0) {
+                    totalSpan.classList.add('decrease-prm');
+                }
+                console.log(`  Total %: ${totalPercent.toFixed(1)}% - Updated span text and class`);
+            } else {
+                console.error(`  ❌ totalSpan not found for unit ${unitId}`);
+            }
+
+            // Add visual feedback to the input
+            if (newPrice !== previous) {
+                newPriceInput.style.borderColor = changePercent > 0 ? '#28a745' : '#dc3545';
+                newPriceInput.style.borderWidth = '2px';
+            } else {
+                newPriceInput.style.borderColor = '';
+                newPriceInput.style.borderWidth = '';
+            }
+        }
+
+        function calculateAllChanges() {
+            document.querySelectorAll('.bulk-new-price').forEach(input => {
+                const unitId = input.getAttribute('data-unit-id');
+                calculateRowChange(unitId);
+            });
+        }
+
+        function updateBulkSummary() {
+            const selectedCheckboxes = document.querySelectorAll('.bulk-plot-checkbox:checked');
+            const selectedCount = selectedCheckboxes.length;
+            
+            let totalChange = 0;
+            let totalIncrease = 0;
+            let totalDecrease = 0;
+            let validChanges = 0;
+
+            selectedCheckboxes.forEach(checkbox => {
+                const unitId = checkbox.getAttribute('data-unit-id');
+                const row = document.querySelector(`tr[data-unit-id="${unitId}"]`);
+                const previous = parseFloat(row.getAttribute('data-previous')) || 0;
+                const newPrice = parseFloat(document.querySelector(`.bulk-new-price[data-unit-id="${unitId}"]`).value) || 0;
+
+                if (previous > 0) {
+                    const change = ((newPrice - previous) / previous * 100);
+                    totalChange += change;
+                    validChanges++;
+
+                    const diff = newPrice - previous;
+                    if (diff > 0) {
+                        totalIncrease += diff;
+                    } else if (diff < 0) {
+                        totalDecrease += Math.abs(diff);
+                    }
+                }
+            });
+
+            // Update summary display
+            document.getElementById('bulkSelectedCount').textContent = selectedCount;
+            
+            const avgChange = validChanges > 0 ? (totalChange / validChanges) : 0;
+            const avgSpan = document.getElementById('bulkAvgChange');
+            avgSpan.textContent = (avgChange > 0 ? '+' : '') + avgChange.toFixed(1) + '%';
+            avgSpan.className = avgChange > 0 ? 'text-success' : avgChange < 0 ? 'text-danger' : '';
+
+            document.getElementById('bulkTotalIncrease').textContent = '₦' + formatNumber(totalIncrease);
+            document.getElementById('bulkTotalDecrease').textContent = '₦' + formatNumber(totalDecrease);
+
+            // Enable/disable save button
+            document.getElementById('prmSaveBulkBtn').disabled = selectedCount === 0;
+        }
+
+        function updateSelectAllState() {
+            const allCheckboxes = document.querySelectorAll('.bulk-plot-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.bulk-plot-checkbox:checked');
+            const selectAllCheckbox = document.getElementById('bulkSelectAll');
+            
+            if (allCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === allCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+
+        // Save bulk price updates
+        document.getElementById('prmSaveBulkBtn').addEventListener('click', function() {
+            const estateId = document.getElementById('prmBulkEstateSelect').value;
+            const effectiveDate = document.getElementById('prmBulkEffectiveDate').value;
+            const notes = document.getElementById('prmBulkNotes').value;
+            const notify = document.getElementById('prmBulkNotifyChk').checked;
+
+            if (!estateId || !effectiveDate) {
+                return alert('Please select estate and effective date');
+            }
+
+            // Collect selected plots with new prices
+            const updates = [];
+            document.querySelectorAll('.bulk-plot-checkbox:checked').forEach(checkbox => {
+                const unitId = checkbox.getAttribute('data-unit-id');
+                const newPrice = parseFloat(document.querySelector(`.bulk-new-price[data-unit-id="${unitId}"]`).value) || 0;
+                
+                if (newPrice > 0) {
+                    updates.push({
+                        plot_unit_id: unitId,
+                        new_price: newPrice
+                    });
+                }
+            });
+
+            if (updates.length === 0) {
+                return alert('Please select at least one plot to update');
+            }
+
+            // Disable button and show loading
+            const saveBtn = document.getElementById('prmSaveBulkBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+
+            // Send bulk update request
+            fetch('/api/property-price/bulk-update/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    estate_id: estateId,
+                    effective: effectiveDate,
+                    notes: notes,
+                    notify: notify,
+                    updates: updates
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    prmBulkUpdateModal.hide();
+                    
+                    // Refresh affected rows
+                    data.updated_rows.forEach(rowKey => {
+                        refreshRow(rowKey);
+                    });
+
+                    // Show success message with notification info
+                    let successMsg = `Successfully updated ${data.updated_count} plot price(s)!`;
+                    if (data.notification_sent && notify) {
+                        successMsg += '\n\n✅ Notifications sent to clients and marketers.';
+                    }
+                    
+                    document.getElementById('successModalMessage').textContent = successMsg;
+                    successModal.show();
+                } else {
+                    alert('Failed to update: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating prices');
+            })
+            .finally(() => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
+            });
+        });
+    });
+
+
+    function sendNotification() {
+    const subject    = document.getElementById('prmNotifySubject').value.trim();
+    const message    = document.getElementById('prmNotifyMessage').value.trim();
+    const notifyType = document.getElementById('prmNotifyType').value;
+    const estateIds  = Array.from(document.getElementById('prmNotifyEstates').selectedOptions).map(o => o.value);
+    const sendEmail  = document.getElementById('prmNotifyEmail').checked;
+    const sendSMS    = document.getElementById('prmNotifySMS').checked;
+    const sendInApp  = document.getElementById('prmNotifyInApp').checked;
+
+    if (!subject || !message) {
+        return showError('Please fill in subject and message');
+    }
+
+    const payload = { subject, message, type: notifyType, send_email: sendEmail, send_sms: sendSMS, send_inapp: sendInApp };
+    const hide = ['client_update','marketer_update','general_notification'];
+    if (!hide.includes(notifyType)) payload.estate_ids = estateIds;
+
+    const notifyBtn = document.getElementById('prmSendNotifyBtn');
+    const originalBtnHtml = notifyBtn.innerHTML;
+    notifyBtn.disabled = true;
+    notifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
+
+    const successModalEl = document.getElementById('successModal');
+    const successModal = bootstrap.Modal.getOrCreateInstance(successModalEl);
+    const successMessageEl = document.getElementById('successModalMessage');
+    const successDetailEl = document.getElementById('successModalDetail');
+
+    fetch("{% url 'notify_clients_marketer' %}", {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRFToken':csrftoken},
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+        const payload = isJson ? await response.json() : await response.text();
+
+        if (!response.ok) {
+            const detail = isJson
+                ? payload.message || payload.detail || payload.error || JSON.stringify(payload)
+                : payload;
+            throw new Error(detail || `Request failed (${response.status})`);
+        }
+
+        if (!isJson) {
+            throw new Error('Unexpected response from server.');
+        }
+
+        return payload;
+    })
+    .then(data => {
+        if (data.status === 'success' || data.status === 'queued') {
+        bootstrap.Modal.getInstance(document.getElementById('prmNotifyModal')).hide();
+
+        successMessageEl.textContent = '';
+        successDetailEl.innerHTML = '';
+        clearDispatchPolling();
+
+        if (data.status === 'queued' && data.dispatch) {
+            const totalRecipients = data.dispatch.total_recipients || data.recipients;
+            successMessageEl.innerHTML = renderHeadline(
+            `🚀 Queue started for <strong>${formatNumber(totalRecipients)}</strong> users.`,
+            'In progress',
+            'bg-primary text-white'
+            );
+            successDetailEl.innerHTML = renderDispatchDetail(data.dispatch);
+            startDispatchPolling(data.dispatch.id);
+        } else {
+            const deliveredText = data.recipients ? `${formatNumber(data.recipients)} users.` : 'No queue';
+            successMessageEl.innerHTML = data.recipients
+            ? renderHeadline(
+                `✅ Notifications sent to <strong>${deliveredText.replace('.', '')}</strong>`,
+                'Queue cleared',
+                'bg-success text-white'
+            )
+            : renderHeadline(
+                '✅ Notifications sent <strong>— No queue</strong>',
+                'Queue empty',
+                'bg-secondary text-white'
+            );
+            successDetailEl.innerHTML = data.recipients ? '' : '<span>No queue</span>';
+        }
+
+        successModal.show();
+        } else {
+        showError(data.message || 'Something went wrong.');
+        }
+    })
+    .catch(err => {
+        console.error('Notification request failed:', err);
+        showError(err?.message || 'Unable to send notifications. Please try again.');
+    })
+    .finally(() => {
+        notifyBtn.disabled = false;
+        notifyBtn.innerHTML = originalBtnHtml;
+    });
+    }
+
+    function renderHeadline(message, badgeLabel = null, badgeClass = 'bg-primary text-white') {
+    const badge = badgeLabel
+        ? `<span class="badge rounded-pill ${badgeClass}">${badgeLabel}</span>`
+        : '';
+
+    return `
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center gap-2 text-center">
+            <span>${message}</span>
+            ${badge}
+        </div>
+    `;
+    }
+
+    function renderDispatchDetail(dispatch) {
+    if (!dispatch) {
+        return '<span>No queue</span>';
+    }
+
+    const totalRecipients = dispatch.total_recipients || 0;
+    const processedRecipients = dispatch.processed_recipients || 0;
+    const remainingRecipients = dispatch.remaining_recipients ?? Math.max(totalRecipients - processedRecipients, 0);
+
+    const totalBatches = dispatch.total_batches || 0;
+    const processedBatches = dispatch.processed_batches || 0;
+    const remainingBatches = dispatch.remaining_batches ?? Math.max(totalBatches - processedBatches, 0);
+
+    const progressPercent = dispatch.progress_percent ?? (
+        totalRecipients > 0
+            ? Math.round((processedRecipients / totalRecipients) * 10000) / 100
+            : (processedRecipients > 0 ? 100 : 0)
+    );
+
+    const formattedProcessed = `${formatNumber(processedRecipients)} / ${formatNumber(totalRecipients)}`;
+    const formattedBatches = `${formatNumber(processedBatches)} / ${formatNumber(totalBatches)}`;
+
+    return `
+        <div class="text-start">
+            <div class="small text-muted mb-1">Recipients processed</div>
+            <div class="fw-semibold">${formattedProcessed}</div>
+            <div class="progress my-2" style="height: 6px;">
+                <div class="progress-bar" role="progressbar" style="width: ${Math.min(progressPercent, 100)}%;" aria-valuenow="${progressPercent}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex justify-content-between small">
+                <span>${formatNumber(processedRecipients)} processed</span>
+                <span>${formatNumber(remainingRecipients)} remaining</span>
+            </div>
+            <hr class="my-2">
+            <div class="small text-muted mb-1">Batches processed</div>
+            <div>${formattedBatches}</div>
+            <div class="d-flex justify-content-between small">
+                <span>${formatNumber(processedBatches)} processed</span>
+                <span>${formatNumber(remainingBatches)} remaining</span>
+            </div>
+            <div class="small mt-2"><strong>Status:</strong> ${dispatch.status || 'queued'}</div>
+        </div>
+    `;
+    }
+
+    function startDispatchPolling(dispatchId) {
+    clearDispatchPolling();
+
+    const successMessageEl = document.getElementById('successModalMessage');
+    const successDetailEl = document.getElementById('successModalDetail');
+
+    const poll = () => {
+        fetch(`/api/notification-dispatch/${dispatchId}/status/`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(payload => {
+        if (!payload.ok) {
+            return;
+        }
+
+        const dispatch = payload.dispatch;
+        successDetailEl.innerHTML = renderDispatchDetail(dispatch);
+
+        if (dispatch.status === 'completed' || dispatch.status === 'failed') {
+            if (dispatch.status === 'completed') {
+            successMessageEl.innerHTML = renderHeadline(
+                '✅ Queue completed',
+                'All recipients processed',
+                'bg-success text-white'
+            );
+            } else {
+            successMessageEl.innerHTML = renderHeadline(
+                '❌ Queue failed',
+                dispatch.last_error ? 'Check error details below' : 'Encountered an error',
+                'bg-danger text-white'
+            );
+            if (dispatch.last_error) {
+                successDetailEl.innerHTML += `<div class="alert alert-danger mt-3" role="alert">${dispatch.last_error}</div>`;
+            }
+            }
+            clearDispatchPolling();
+        }
+        })
+        .catch(() => {
+        clearDispatchPolling();
+        });
+    };
+
+    poll();
+    dispatchPollTimer = setInterval(poll, 3000);
+    }
+
+    function showError(msg) {
+    document.getElementById('errorModalMessage').textContent = `❌ ${msg}`;
+    new bootstrap.Modal(document.getElementById('errorModal')).show();
+    }
+
+    // function showFeedbackModal(message, isSuccess) {
+    //     const header = document.getElementById('prmFeedbackHeader');
+    //     const title = document.getElementById('prmFeedbackLabel');
+    //     const body = document.getElementById('prmFeedbackMessage');
+
+    //     body.textContent = message;
+    //     header.classList.remove('bg-success', 'bg-danger');
+    //     header.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
+    //     title.textContent = isSuccess ? 'Success' : 'Error';
+
+    //     new bootstrap.Modal(document.getElementById('prmFeedbackModal')).show();
+    // }
+
+
+</script>

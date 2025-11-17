@@ -1,0 +1,713 @@
+
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #00c9a7;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            --hover-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            --transition-speed: 0.5s;
+        }
+        
+        /* * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+         */
+        /* body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: var(--dark-color);
+            overflow-x: hidden;
+        } */
+        
+        /* .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        } */
+        
+        /* Section Header */
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            padding-bottom: 25px;
+        }
+        
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 3.2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 10px rgba(106, 17, 203, 0.15);
+        }
+        
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: #6c757d;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        /* Swiper Container */
+        .swiper-container {
+            position: relative;
+            padding: 30px 0 80px;
+            overflow: hidden;
+        }
+        
+        /* Estate Card */
+        .estate-card {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-speed) cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+            position: relative;
+            transform: scale(0.95);
+            opacity: 0.9;
+            border: none;
+        }
+        
+        .swiper-slide-active .estate-card {
+            transform: scale(1);
+            opacity: 1;
+            box-shadow: var(--hover-shadow);
+            z-index: 10;
+        }
+        
+        .estate-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .card-image {
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1s ease;
+        }
+        
+        .estate-card:hover .card-image img {
+            transform: scale(1.1);
+        }
+        
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent 60%);
+            display: flex;
+            align-items: flex-end;
+            padding: 25px;
+        }
+        
+        .badge-new {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0, 201, 167, 0.4);
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+        
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-item i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-right: 10px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .info-text {
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-top: 3px;
+            font-size: 1.05rem;
+        }
+        
+        .card-description {
+            color: #6c757d;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .price-tag {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            background: rgba(106, 17, 203, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+        }
+        
+        .btn-explore {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-explore i {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-explore:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+        }
+        
+        .btn-explore:hover i {
+            transform: translateX(5px);
+        }
+        
+        /* Swiper navigation */
+        .swiper-button-next, .swiper-button-prev {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .swiper-button-next::after, .swiper-button-prev::after {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .swiper-button-next:hover, .swiper-button-prev:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: var(--primary-color);
+            box-shadow: 0 15px 35px rgba(106, 17, 203, 0.4);
+        }
+        
+        .swiper-button-next:hover::after, .swiper-button-prev:hover::after {
+            color: white;
+        }
+        
+        .swiper-pagination {
+            bottom: 20px !important;
+        }
+        
+        .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background: #d1d1d1;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background: var(--primary-color);
+            width: 35px;
+            border-radius: 8px;
+            transform: scale(1.1);
+        }
+        
+        /* Decorative elements */
+        .decorative-element {
+            position: absolute;
+            z-index: -1;
+        }
+        
+        .element-1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.08) 0%, rgba(37, 117, 252, 0.08) 100%);
+            top: 10%;
+            right: -100px;
+            border-radius: 50%;
+        }
+        
+        .element-2 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(0, 201, 167, 0.1) 0%, rgba(0, 201, 167, 0.05) 100%);
+            bottom: 10%;
+            left: -80px;
+            border-radius: 50%;
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 201, 167, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 201, 167, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 201, 167, 0); }
+        }
+        
+        .animate-card {
+            animation: cardEntrance 0.8s ease-out forwards;
+        }
+        
+        @keyframes cardEntrance {
+            from { 
+                opacity: 0; 
+                transform: translateY(50px) rotate(5deg); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) rotate(0); 
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .section-title {
+                font-size: 2.8rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .section-title {
+                font-size: 2.4rem;
+            }
+            
+            .card-image {
+                height: 240px;
+            }
+            
+            .card-title {
+                font-size: 1.6rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .section-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .swiper-button-next, .swiper-button-prev {
+                display: none;
+            }
+            
+            .card-image {
+                height: 200px;
+            }
+            
+            .card-title {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 30px 15px;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .price-tag {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+
+    <div class="container">
+        <!-- Decorative background elements -->
+        <div class="decorative-element element-1"></div>
+        <div class="decorative-element element-2"></div>
+        
+        <!-- Estate Launches Section -->
+        <section class="py-5">
+            <div class="section-header">
+                <h2 class="section-title">New Estate Launches</h2>
+                <p class="section-subtitle">Discover our exclusive collection of newly launched premium properties</p>
+            </div>
+            
+            <div class="swiper-container">
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper">
+                        <!-- Estate 1 -->
+                        <div class="swiper-slide">
+                            <div class="estate-card animate__animated animate__fadeInUp">
+                                <div class="card-image">
+                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Oceanview Residences">
+                                    <div class="image-overlay">
+                                        <h3 class="card-title">Oceanview Residences</h3>
+                                    </div>
+                                    <span class="badge-new">NEW LAUNCH</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div class="info-text">Location</div>
+                                                <div class="info-value">Victoria Island, Lagos</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <div class="info-text">Added</div>
+                                                <div class="info-value">2023-10-15</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="card-description">
+                                        Luxury beachfront condos with panoramic ocean views. Featuring state-of-the-art amenities and smart home technology.
+                                    </p>
+                                    <div class="card-footer">
+                                        <div class="price-tag">₦120M - ₦450M</div>
+                                        <button class="btn-explore">
+                                            Explore <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Estate 2 -->
+                        <div class="swiper-slide">
+                            <div class="estate-card animate__animated animate__fadeInUp">
+                                <div class="card-image">
+                                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Greenfield Estates">
+                                    <div class="image-overlay">
+                                        <h3 class="card-title">Greenfield Estates</h3>
+                                    </div>
+                                    <span class="badge-new">JUST ADDED</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div class="info-text">Location</div>
+                                                <div class="info-value">Lekki Phase 1, Lagos</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <div class="info-text">Added</div>
+                                                <div class="info-value">2023-11-02</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="card-description">
+                                        Exclusive gated community with eco-friendly designs. Spacious villas surrounded by lush greenery and recreational facilities.
+                                    </p>
+                                    <div class="card-footer">
+                                        <div class="price-tag">₦85M - ₦320M</div>
+                                        <button class="btn-explore">
+                                            Explore <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Estate 3 -->
+                        <div class="swiper-slide">
+                            <div class="estate-card animate__animated animate__fadeInUp">
+                                <div class="card-image">
+                                    <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1171&q=80" alt="Royal Gardens">
+                                    <div class="image-overlay">
+                                        <h3 class="card-title">Royal Gardens</h3>
+                                    </div>
+                                    <span class="badge-new">PREMIUM</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div class="info-text">Location</div>
+                                                <div class="info-value">Banana Island, Lagos</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <div class="info-text">Added</div>
+                                                <div class="info-value">2023-09-28</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="card-description">
+                                        Ultra-luxury waterfront residences with private docks. Featuring bespoke interiors and 24/7 concierge service.
+                                    </p>
+                                    <div class="card-footer">
+                                        <div class="price-tag">₦250M - ₦1.2B</div>
+                                        <button class="btn-explore">
+                                            Explore <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Estate 4 -->
+                        <div class="swiper-slide">
+                            <div class="estate-card animate__animated animate__fadeInUp">
+                                <div class="card-image">
+                                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1175&q=80" alt="Metropolitan Towers">
+                                    <div class="image-overlay">
+                                        <h3 class="card-title">Metropolitan Towers</h3>
+                                    </div>
+                                    <span class="badge-new">NEW LAUNCH</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div class="info-text">Location</div>
+                                                <div class="info-value">Ikoyi, Lagos</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <div class="info-text">Added</div>
+                                                <div class="info-value">2023-10-22</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="card-description">
+                                        Modern high-rise apartments in the heart of the business district. Panoramic city views and premium amenities.
+                                    </p>
+                                    <div class="card-footer">
+                                        <div class="price-tag">₦65M - ₦180M</div>
+                                        <button class="btn-explore">
+                                            Explore <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Estate 5 -->
+                        <div class="swiper-slide">
+                            <div class="estate-card animate__animated animate__fadeInUp">
+                                <div class="card-image">
+                                    <img src="https://images.unsplash.com/photo-1575517111839-3a3843ee7f5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Pinecrest Villas">
+                                    <div class="image-overlay">
+                                        <h3 class="card-title">Pinecrest Villas</h3>
+                                    </div>
+                                    <span class="badge-new">JUST ADDED</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-info">
+                                        <div class="info-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <div>
+                                                <div class="info-text">Location</div>
+                                                <div class="info-value">Abuja Central</div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <div>
+                                                <div class="info-text">Added</div>
+                                                <div class="info-value">2023-11-10</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="card-description">
+                                        Contemporary Mediterranean-style villas with private gardens. Exclusive community with clubhouse and wellness center.
+                                    </p>
+                                    <div class="card-footer">
+                                        <div class="price-tag">₦150M - ₦380M</div>
+                                        <button class="btn-explore">
+                                            Explore <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Buttons -->
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Swiper with advanced transitions
+            const swiper = new Swiper('.mySwiper', {
+                slidesPerView: 1,
+                spaceBetween: 30,
+                loop: true,
+                centeredSlides: true,
+                autoplay: {
+                    delay: 6500,
+                    disableOnInteraction: false,
+                },
+                speed: 1000,
+                effect: 'coverflow',
+                coverflowEffect: {
+                    rotate: 0,
+                    stretch: 0,
+                    depth: 100,
+                    modifier: 2.5,
+                    slideShadows: true,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 1,
+                    },
+                    768: {
+                        slidesPerView: 2,
+                        coverflowEffect: {
+                            rotate: 0,
+                            stretch: 0,
+                            depth: 100,
+                            modifier: 2.5,
+                        }
+                    },
+                    1024: {
+                        slidesPerView: 3,
+                        coverflowEffect: {
+                            rotate: 0,
+                            stretch: 0,
+                            depth: 100,
+                            modifier: 2.5,
+                        }
+                    }
+                }
+            });
+
+            // Add hover animation to cards
+            document.querySelectorAll('.estate-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.classList.add('animate__pulse');
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.classList.remove('animate__pulse');
+                });
+            });
+
+            // Add parallax effect to decorative elements
+            window.addEventListener('mousemove', (e) => {
+                const element1 = document.querySelector('.element-1');
+                const element2 = document.querySelector('.element-2');
+                
+                const moveX = (e.clientX - window.innerWidth / 2) / 50;
+                const moveY = (e.clientY - window.innerHeight / 2) / 50;
+                
+                if (element1) {
+                    element1.style.transform = `translate(${moveX * 0.5}px, ${moveY * 0.5}px)`;
+                }
+                
+                if (element2) {
+                    element2.style.transform = `translate(${-moveX * 0.7}px, ${-moveY * 0.7}px)`;
+                }
+            });
+        });
+    </script>

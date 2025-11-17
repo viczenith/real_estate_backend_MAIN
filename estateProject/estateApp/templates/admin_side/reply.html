@@ -1,0 +1,15 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+<h3>Reply to {{ message.sender.username }}</h3>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group mb-3">
+        <label for="reply-content">Reply</label>
+        <textarea class="form-control" id="reply-content" name="reply_content" rows="5" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Reply</button>
+</form>
+
+{% endblock %}

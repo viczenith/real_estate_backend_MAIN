@@ -1,0 +1,953 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Modern Color Palette & Variables */
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+    --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Smooth Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Page Title */
+  .pagetitle {
+    animation: fadeInUp 0.6s ease-out;
+    margin-bottom: 30px;
+  }
+
+  .pagetitle h1 {
+    font-size: 32px;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border: none;
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+  }
+
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .card-body {
+    padding: 25px;
+  }
+
+  /* Stats Cards */
+  .stats-card {
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .stats-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .card-title {
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .card-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    transition: var(--transition);
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-icon i {
+    font-size: 28px;
+  }
+
+  .card-icon:hover {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  /* Progress Bars */
+  .progress {
+    height: 6px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  /* Badge Styles */
+  .badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .badge.bg-success {
+    background: var(--success-gradient) !important;
+    box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+  }
+
+  .badge.bg-warning {
+    background: var(--warning-gradient) !important;
+    box-shadow: 0 4px 15px rgba(242, 153, 74, 0.3);
+  }
+
+  .badge.bg-primary {
+    background: var(--primary-gradient) !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  /* Buttons */
+  .btn {
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 14px;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-color);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-outline:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: #667eea;
+    transform: translateY(-2px);
+  }
+
+  .btn i {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Floating Action Button */
+  .fab-menu {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+  }
+
+  .fab-toggle {
+    display: none;
+  }
+
+  .fab-button {
+    width: 60px;
+    height: 60px;
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    z-index: 10;
+  }
+
+  .fab-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+  }
+
+  .fab-button i {
+    font-size: 28px;
+    transition: transform 0.4s ease;
+  }
+
+  .fab-toggle:checked+.fab-button i {
+    transform: rotate(135deg);
+  }
+
+  .fab-actions {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-bottom: 75px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .fab-toggle:checked~.fab-actions {
+    pointer-events: auto;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .fab-action {
+    width: 48px;
+    height: 48px;
+    background: var(--card-bg);
+    color: #667eea;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+  }
+
+  .fab-action:hover {
+    transform: translateX(-8px) scale(1.1);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+    background: var(--primary-gradient);
+    color: white;
+  }
+
+  .fab-action i {
+    font-size: 20px;
+  }
+
+  .fab-action::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: 60px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+  }
+
+  .fab-action:hover::after {
+    opacity: 1;
+  }
+
+  /* Accordion */
+  .accordion-item {
+    background: var(--card-bg);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: 16px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .accordion-item:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .accordion-button {
+    background: transparent;
+    color: var(--text-color);
+    font-weight: 600;
+    padding: 20px 25px;
+    border: none;
+    transition: var(--transition);
+  }
+
+  .accordion-button:not(.collapsed) {
+    background: rgba(102, 126, 234, 0.05);
+    color: #667eea;
+    box-shadow: none;
+  }
+
+  .accordion-button:focus {
+    box-shadow: none;
+    border: none;
+  }
+
+  .accordion-button::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23667eea'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    transition: transform 0.3s ease;
+  }
+
+  .accordion-button:not(.collapsed)::after {
+    transform: rotate(-180deg);
+  }
+
+  .accordion-icon {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    font-size: 20px;
+  }
+
+  .accordion-body {
+    padding: 25px;
+    background: rgba(102, 126, 234, 0.02);
+  }
+
+  /* Table Styles */
+  .table {
+    margin-bottom: 0;
+  }
+
+  .table thead {
+    background: rgba(102, 126, 234, 0.05);
+  }
+
+  .table thead th {
+    border: none;
+    padding: 15px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    transition: var(--transition);
+  }
+
+  .table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.03);
+    transform: scale(1.01);
+  }
+
+  .table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    border: none;
+    color: var(--text-color);
+  }
+
+  /* Dropdown */
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    padding: 8px;
+    margin-top: 8px;
+    background: var(--card-bg);
+  }
+
+  .dropdown-item {
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: var(--transition);
+    color: var(--text-color);
+  }
+
+  .dropdown-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    transform: translateX(5px);
+  }
+
+  /* Chart Container */
+  #reportsChart {
+    min-height: 350px;
+  }
+
+  .apexcharts-canvas {
+    margin: 0 auto;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .pagetitle h1 {
+      font-size: 24px;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .stats-card {
+      margin-bottom: 15px;
+    }
+
+    .fab-menu {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .fab-button {
+      width: 50px;
+      height: 50px;
+    }
+
+    .fab-button i {
+      font-size: 22px;
+    }
+
+    .fab-action {
+      width: 40px;
+      height: 40px;
+    }
+
+    .accordion-button {
+      padding: 15px 20px;
+    }
+
+    .table thead th,
+    .table tbody td {
+      padding: 12px;
+      font-size: 13px;
+    }
+  }
+
+  /* Dark Mode Enhancements */
+  [data-theme="dark"] .card {
+    border-color: rgba(162, 155, 254, 0.2);
+  }
+
+  [data-theme="dark"] .accordion-item {
+    border-color: rgba(162, 155, 254, 0.2);
+  }
+
+  [data-theme="dark"] .table tbody tr {
+    border-bottom-color: rgba(162, 155, 254, 0.1);
+  }
+
+  [data-theme="dark"] .btn-outline {
+    border-color: rgba(162, 155, 254, 0.3);
+  }
+
+  [data-theme="dark"] .btn-outline:hover {
+    background: rgba(162, 155, 254, 0.1);
+  }
+
+  [data-theme="dark"] .fab-action {
+    border-color: rgba(162, 155, 254, 0.3);
+  }
+
+  /* Utility Classes */
+  .text-gradient {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1><i class="ri-dashboard-line"></i> Dashboard Overview</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}"><i class="ri-home-4-line"></i> Home</a>
+            </li>
+            <li class="breadcrumb-item active">Dashboard</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <section class="section dashboard">
+    <div class="row">
+      <!-- Stats Cards -->
+      <div class="col-lg-12">
+        <div class="row">
+
+          <!-- Total Clients Card -->
+          <div class="col-xxl-3 col-md-6">
+            <div class="card stats-card animate-fade-in" data-tilt data-tilt-scale="1.03" data-tilt-glare="true">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h5 class="card-title text-lg">Total Clients</h5>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0 font-bold text-3xl">{{ total_clients|default:"0" }}</h2>
+                    </div>
+                  </div>
+                  <div class="card-icon rounded-xl bg-primary bg-opacity-10 p-3 text-primary">
+                    <i class="ri-group-line text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Marketers Card -->
+          <div class="col-xxl-3 col-md-6">
+            <div class="card stats-card animate-fade-in" data-tilt data-tilt-scale="1.03" data-tilt-glare="true"
+              style="animation-delay: 100ms">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h5 class="card-title text-lg">Total Marketers</h5>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0 font-bold text-3xl">{{ total_marketers|default:"0" }}</h2>
+                    </div>
+                  </div>
+                  <div class="card-icon rounded-xl bg-success bg-opacity-10 p-3 text-success">
+                    <i class="ri-team-line text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Allocations Card -->
+          <div class="col-xxl-3 col-md-6">
+            <div class="card stats-card animate-fade-in" data-tilt data-tilt-scale="1.03" data-tilt-glare="true"
+              style="animation-delay: 200ms">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h5 class="card-title text-lg">Total Allocations</h5>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0 font-bold text-3xl">{{ total_allocations|default:"0" }}</h2>
+                    </div>
+                  </div>
+                  <div class="card-icon rounded-xl bg-info bg-opacity-10 p-3 text-info">
+                    <i class="ri-checkbox-circle-line text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Allocations Card -->
+          <div class="col-xxl-3 col-md-6">
+            <div class="card stats-card animate-fade-in" data-tilt data-tilt-scale="1.03" data-tilt-glare="true"
+              style="animation-delay: 300ms">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h5 class="card-title text-lg">Pending Allocations</h5>
+                    <div class="d-flex align-items-center">
+                      <h2 class="mb-0 font-bold text-3xl">{{ pending_allocations|default:"0" }}</h2>
+                    </div>
+                  </div>
+                  <div class="card-icon rounded-xl bg-warning bg-opacity-10 p-3 text-warning">
+                    <i class="ri-time-line text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estate Allocation Trends Chart -->
+      <div class="col-md">
+        <div class="card animate-fade-in" style="animation-delay: 400ms">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0 text-lg font-semibold">Estate Allocation Trends</h5>
+            </div>
+            <div id="reportsChart" class="apex-chart"></div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Estate Allocation Report -->
+      <div class="col-12">
+        <div class="card animate-fade-in" style="animation-delay: 600ms">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0 text-lg font-semibold">Estate Allocation Report</h5>
+            </div>
+
+            <div class="accordion allocation-table" id="estateAccordion">
+              {% for estate in estates %}
+              <div class="accordion-item allocation-table mb-3 border-0 rounded-xl overflow-hidden">
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                  <button class="accordion-button allocation-table collapsed hover:bg-gray-50 transition-colors"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="accordion-icon bg-primary bg-opacity-10 p-2 rounded-lg text-primary">
+                        <i class="ri-community-line"></i>
+                      </div>
+                      <div>
+                        <h6 class="mb-0 font-medium">{{ estate.name }}</h6>
+                        <small class="text-gray-500">{{ estate.location }} • {{ estate.estate_size }} plots</small>
+                      </div>
+                    </div>
+                  </button>
+                </h2>
+                <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
+                  aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#estateAccordion">
+                  <div class="accordion-body pt-4">
+                    <div class="table-responsive">
+                      <table class="table text-lg">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th class="text-gray-500 font-medium">Plot Size</th>
+                            <th class="text-gray-500 font-medium">Total Units</th>
+                            <th class="text-gray-500 font-medium">Allocated</th>
+                            <th class="text-gray-500 font-medium">Reserved</th>
+                            <th class="text-gray-500 font-medium">Available</th>
+                            <th class="text-gray-500 font-medium">% Sold</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for plot in estate.estate_plots.all %}
+                          {% for size_unit in plot.plotsizeunits.all %}
+                          <tr class="hover:bg-gray-50 transition-colors">
+                            <td>{{ size_unit.plot_size.size }}</td>
+                            <td>{{ size_unit.total_units }}</td>
+                            <td><span class="badge bg-success">{{ size_unit.allocated }}</span></td>
+                            <td><span class="badge bg-warning">{{ size_unit.reserved }}</span></td>
+                            <td><span class="badge bg-primary">{{ size_unit.available_units }}</span></td>
+                            <td>
+                              <div class="d-flex align-items-center gap-2">
+                                <div class="progress w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                  <div class="progress-bar bg-success h-full rounded-full"
+                                    style="width: {% widthratio size_unit.allocated size_unit.total_units 100 %}%;">
+                                  </div>
+                                </div>
+                                <small class="text-sm">{% widthratio size_unit.allocated size_unit.total_units 100 %}%</small>
+                              </div>
+                            </td>
+                          </tr>
+                          {% empty %}
+                          <tr>
+                            <td colspan="6" class="text-center py-4 text-gray-500">No plots configured for this estate
+                            </td>
+                          </tr>
+                          {% endfor %}
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Initialize ApexCharts with theme support
+  document.addEventListener("DOMContentLoaded", () => {
+    const chartData = {{ chart_data|safe }};
+
+    const chartOptions = {
+    series: [{
+      name: 'Total Allocations',
+      data: chartData.total
+    }],
+    chart: {
+      height: 350,
+      type: 'area',
+      toolbar: {
+        show: true,
+        tools: {
+          download: true,
+          selection: true,
+          zoom: true,
+          zoomin: true,
+          zoomout: true,
+          pan: true,
+          reset: true
+        }
+      },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150
+        },
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      foreColor: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary')
+    },
+    colors: [getComputedStyle(document.documentElement).getPropertyValue('--primary')],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.3,
+        stops: [0, 90, 100]
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    markers: {
+      size: 5,
+      colors: [getComputedStyle(document.documentElement).getPropertyValue('--primary')],
+      strokeColors: '#fff',
+      strokeWidth: 2,
+      hover: {
+        size: 7
+      }
+    },
+    xaxis: {
+      type: 'category',
+      categories: chartData.estates,
+      labels: {
+        style: {
+          colors: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+          fontSize: '12px'
+        }
+      }
+    },
+    yaxis: {
+      labels: {
+        formatter: function (val) {
+          return val + " plots"
+        },
+        style: {
+          colors: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+          fontSize: '12px'
+        }
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return val + " plots allocated"
+        }
+      },
+      theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
+    },
+    grid: {
+      borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color'),
+      strokeDashArray: 5
+    }
+  };
+
+  const chart = new ApexCharts(document.querySelector("#reportsChart"), chartOptions);
+  chart.render();
+
+  // Update chart when theme changes
+  document.getElementById('theme-switch').addEventListener('change', function () {
+    chart.updateOptions({
+      tooltip: {
+        theme: this.checked ? 'dark' : 'light'
+      },
+      foreColor: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary'),
+      colors: [getComputedStyle(document.documentElement).getPropertyValue('--primary')],
+      grid: {
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border-color')
+      }
+    });
+  });
+
+  // Initialize tilt effect on cards
+  VanillaTilt.init(document.querySelectorAll("[data-tilt]"), {
+    max: 5,
+    speed: 300,
+    glare: true,
+    "max-glare": 0.1,
+    gyroscope: true
+  });
+
+  // Update chart data periodically
+  function updateChart() {
+    fetch("{% url 'estate_allocation_data' %}")
+      .then(response => response.json())
+      .then(data => {
+        chart.updateOptions({
+          xaxis: { categories: data.estates },
+          series: [{
+            data: data.total
+          }]
+        });
+      });
+  }
+
+  // Initialize update interval (every 5 minutes)
+  setInterval(updateChart, 300000);
+  });
+</script>
+
+{% endblock %}

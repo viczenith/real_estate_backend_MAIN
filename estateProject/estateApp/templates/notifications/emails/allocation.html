@@ -1,0 +1,13 @@
+{% extends "notifications/emails/base.html" %}
+
+{% block content %}
+<div class="notification-type allocation">Plot Allocation</div>
+<h3 style="margin-top:0;">Dear {{ user.first_name }},</h3>
+<p>Your plot allocation details are as follows:</p>
+<div style="background:#fff; border:1px solid #ddd; padding:20px; border-radius:8px; margin:20px 0;">
+    <h4 style="margin-top:0;">{{ related_object.plot_size }}</h4>
+    <p>Plot Number: <strong>{{ related_object.plot_number }}</strong></p>
+    <p>Location: {{ related_object.estate.location }}</p>
+</div>
+<a href="{{ related_object.get_absolute_url }}" class="button" style="background:#28a745;">View Allocation</a>
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends 'marketer_base.html' %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Notifications</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+        <li class="breadcrumb-item active">Notifications</li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <!-- Card header with title and actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">Your Notifications</h5>
+            </div>
+            
+            <!-- Stats Summary -->
+            <div class="row mb-4">
+              <div class="col-md-3">
+                <div class="card stat-card bg-info text-white">
+                  <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="text-white-50 mb-1">UNREAD</h6>
+                        <h4 class="mb-0">{{ unread_list|length }}</h4>
+                      </div>
+                      <i class="bi bi-envelope fs-1 opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card stat-card bg-success text-white">
+                  <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="text-white-50 mb-1">READ</h6>
+                        <h4 class="mb-0">{{ read_list|length }}</h4>
+                      </div>
+                      <i class="bi bi-envelope-open fs-1 opacity-50"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Notification List -->
+            <div class="notification-list">
+              {% if unread_list %}
+                <div class="mb-4">
+                  <h5 class="border-bottom pb-2 mb-3">Unread Notifications</h5>
+                  {% for un in unread_list %}
+                    <div class="notification-card unread mb-3" data-id="{{ un.id }}">
+                      <div class="d-flex align-items-start">
+                        <div class="notification-icon me-3">
+                          <i class="bi bi-bell-fill"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <a href="{% url 'notification_detail' un.id %}" class="text-decoration-none">
+                              <h6 class="mb-0">{{ un.notification.title }}</h6>
+                            </a>
+                            <div class="d-flex">
+                              <span class="badge bg-danger me-2">New</span>
+                              <span class="badge bg-info">{{ un.notification.get_notification_type_display }}</span>
+                            </div>
+                          </div>
+                          <p class="mb-1 text-muted">{{ un.notification.message|truncatechars:120 }}</p>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                              <i class="bi bi-clock me-1"></i>
+                              {{ un.notification.created_at|date:"M d, Y H:i" }}
+                            </small>
+                            <div>
+                              <a href="{% url 'mark_notification_read' un.id %}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-check-circle me-1"></i> Mark as read
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
+              {% if read_list %}
+                <div>
+                  <h5 class="border-bottom pb-2 mb-3">Read Notifications</h5>
+                  {% for un in read_list %}
+                    <div class="notification-card read mb-3" data-id="{{ un.id }}">
+                      <div class="d-flex align-items-start">
+                        <div class="notification-icon me-3">
+                          <i class="bi bi-bell"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <a href="{% url 'notification_detail' un.id %}" class="text-decoration-none">
+                              <h6 class="mb-0">{{ un.notification.title }}</h6>
+                            </a>
+                            <span class="badge bg-secondary">{{ un.notification.get_notification_type_display }}</span>
+                          </div>
+                          <p class="mb-1 text-muted">{{ un.notification.message|truncatechars:120 }}</p>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                              <i class="bi bi-clock me-1"></i>
+                              {{ un.notification.created_at|date:"M d, Y H:i" }}
+                            </small>
+                            <div>
+                              <!-- <button class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Delete
+                              </button> -->
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
+              {% if not unread_list and not read_list %}
+                <div class="text-center py-5">
+                  <div class="empty-state">
+                    <i class="bi bi-bell-slash display-1 text-muted"></i>
+                    <h4 class="mt-4">No notifications yet</h4>
+                    <p class="text-muted">We'll notify you when something new arrives.</p>
+                    <button class="btn btn-primary mt-2">
+                      <i class="bi bi-arrow-repeat me-1"></i> Refresh
+                    </button>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  .notification-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+  }
+  
+  .notification-card.unread {
+    border-left: 4px solid #2ecc71;
+    background-color: rgba(46, 204, 113, 0.05);
+  }
+  
+  .notification-card.read {
+    opacity: 0.85;
+  }
+  
+  .notification-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  .notification-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  .unread .notification-icon {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+  }
+  
+  .read .notification-icon {
+    background: rgba(149, 165, 166, 0.15);
+    color: #95a5a6;
+  }
+  
+  .stat-card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+    border-radius: 20px;
+  }
+  
+  .notification-list h5 {
+    font-weight: 600;
+    color: #34495e;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.notification-card');
+    
+    cards.forEach((card, index) => {
+      setTimeout(() => {
+        card.style.opacity = 0;
+        card.style.transform = 'translateY(20px)';
+        card.style.display = 'block';
+        
+        setTimeout(() => {
+          card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          card.style.opacity = 1;
+          card.style.transform = 'translateY(0)';
+        }, 10);
+      }, index * 50);
+    });
+    
+    // Add click animation
+    cards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        if(e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+          this.style.transform = 'scale(0.98)';
+          setTimeout(() => {
+            this.style.transform = '';
+          }, 200);
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock %}

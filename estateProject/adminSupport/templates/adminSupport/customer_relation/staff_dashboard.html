@@ -1,0 +1,2233 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Staff Management & Messaging{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1><i class="fas fa-users-cog me-2"></i>Staff Management & Messaging</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminsupport:support_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Staff Management</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+            <i class="fas fa-user-plus me-2"></i>Add Staff
+        </button>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importStaffModal">
+            <i class="fas fa-file-upload me-2"></i>Import CSV/Excel
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#composeStaffMessageModal">
+            <i class="fas fa-envelope me-2"></i>Message Staff
+        </button>
+    </div>
+</div>
+
+<!-- Staff Statistics -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card animate__animated animate__fadeInUp">
+            <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 id="totalStaff">0</h3>
+            <p>Total Staff</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="stats-icon bg-success bg-opacity-10 text-success">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <h3 id="activeStaff">0</h3>
+            <p>Active Staff</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card animate__animated animate__fadeInUp animate__delay-2s">
+            <div class="stats-icon bg-info bg-opacity-10 text-info">
+                <i class="fas fa-envelope-open"></i>
+            </div>
+            <h3 id="messagesDelivered">0</h3>
+            <p>Messages Delivered</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card animate__animated animate__fadeInUp animate__delay-3s">
+            <div class="stats-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 id="messagesFailed">0</h3>
+            <p>Failed Messages</p>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Management -->
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; border-radius: 0.75rem 0.75rem 0 0;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Staff Directory
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" id="staffSearch" placeholder="Search staff..." style="width: 200px;">
+                        <select class="form-select form-select-sm" id="filterRole" style="width: 150px;">
+                            <option value="">All Roles</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Agent">Agent</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Support">Support</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                        <button class="btn btn-sm btn-light" onclick="refreshStaffList()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="staffTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">
+                                    <i class="fas fa-user me-2 text-primary"></i>Name
+                                </th>
+                                <th>
+                                    <i class="fas fa-user-tag me-2 text-info"></i>Role
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar me-2 text-success"></i>Employment Date
+                                </th>
+                                <th>
+                                    <i class="fas fa-envelope me-2 text-warning"></i>Contact
+                                </th>
+                                <th>
+                                    <i class="fas fa-birthday-cake me-2 text-warning"></i>Date of Birth
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-tools me-2 text-muted"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            <!-- Rows will be loaded dynamically -->
+                            <tr class="no-staff-message" style="display: none;">
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-users fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                                        <h6 class="text-muted mb-2">No Staff Members</h6>
+                                        <p class="text-muted small mb-0">Add your first staff member to get started</p>
+                                        <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                                            <i class="fas fa-user-plus me-2"></i>Add Staff
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Staff Modal -->
+<div class="modal fade" id="importStaffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #6b7280 0%, #374151 100%); color: white; border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="fas fa-file-upload me-3" style="font-size: 1.5rem;"></i>
+                    Import Staff (CSV/Excel)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="importStaffForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Upload File *</label>
+                        <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center bg-light" style="cursor: pointer;">
+                            <div class="mb-2"><i class="fas fa-cloud-upload-alt fa-2x text-secondary"></i></div>
+                            <div class="fw-semibold">Drag & drop CSV/Excel here, or click to browse</div>
+                            <div class="text-muted small">Accepted: .csv, .xlsx, .xlsm</div>
+                        </div>
+                        <input type="file" id="fileInput" class="form-control mt-2" name="file" accept=".csv,.xlsx,.xlsm" required style="display:none;" />
+                        <div id="fileInfo" class="mt-2 small text-muted"></div>
+                        <div class="form-text">Headers: full_name, email, phone, job (role), address, date_of_birth, employment_date</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark">
+                        <i class="fas fa-file-upload me-2"></i>Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Former Staff Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header" style="background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%); color: white; border-radius: 0.75rem 0.75rem 0 0;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-times me-2"></i>Former Staff Directory
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" id="formerStaffSearch" placeholder="Search former staff..." style="width: 200px;">
+                        <select class="form-select form-select-sm" id="filterReason" style="width: 150px;">
+                            <option value="">All Reasons</option>
+                            <option value="retired">Retired</option>
+                            <option value="resigned">Resigned</option>
+                            <option value="absconded">Absconded</option>
+                            <option value="sacked">Sacked</option>
+                            <option value="fired">Fired</option>
+                            <option value="terminated">Terminated</option>
+                        </select>
+                        <button class="btn btn-sm btn-light" onclick="refreshFormerStaffList()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="formerStaffTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">
+                                    <i class="fas fa-user me-2 text-primary"></i>Name
+                                </th>
+                                <th>
+                                    <i class="fas fa-user-tag me-2 text-info"></i>Role
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar me-2 text-success"></i>Employment Period
+                                </th>
+                                <th>
+                                    <i class="fas fa-envelope me-2 text-warning"></i>Contact
+                                </th>
+                                <th>
+                                    <i class="fas fa-exclamation-circle me-2 text-danger"></i>Reason
+                                </th>
+                                <th class="text-center">
+                                    <i class="fas fa-tools me-2 text-muted"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="formerStaffTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fas fa-user-times fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                                        <h6 class="text-muted mb-2">No Former Staff</h6>
+                                        <p class="text-muted small mb-0">Former staff members will appear here when removed</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i id="addStaffModalIcon" class="fas fa-user-plus me-3" style="font-size: 1.5rem;"></i>
+                    <span id="addStaffModalTitleText">Add New Staff Member</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addStaffForm">
+                <input type="hidden" name="staff_id" id="staffIdField">
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Full Name *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" name="full_name" required placeholder="Enter full name">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Role/Position *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                    <select class="form-select" name="role" required>
+                                        <option value="">Select Role/Position</option>
+                                        <optgroup label="Executive & Management">
+                                            <option>Managing Director (MD)</option>
+                                            <option>Chief Executive Officer (CEO)</option>
+                                            <option>General Manager</option>
+                                            <option>Head of Operations</option>
+                                            <option>Head of Sales</option>
+                                            <option>Head of Marketing</option>
+                                            <option>Head of Legal</option>
+                                            <option>HR Manager</option>
+                                            <option>Finance Manager</option>
+                                            <option>Branch Manager</option>
+                                        </optgroup>
+                                        <optgroup label="Sales & Agency">
+                                            <option>Senior Real Estate Agent</option>
+                                            <option>Real Estate Agent</option>
+                                            <option>Sales Executive</option>
+                                            <option>Business Development Executive</option>
+                                            <option>Leasing Officer</option>
+                                            <option>Client Relationship Officer</option>
+                                        </optgroup>
+                                        <optgroup label="Marketing & Communications">
+                                            <option>Marketing Executive</option>
+                                            <option>Digital Marketing Specialist</option>
+                                            <option>Content Creator</option>
+                                            <option>Brand/PR Officer</option>
+                                        </optgroup>
+                                        <optgroup label="Operations & Admin">
+                                            <option>Operations Officer</option>
+                                            <option>Administrative Officer</option>
+                                            <option>Front Desk/Receptionist</option>
+                                            <option>Customer Support Officer</option>
+                                        </optgroup>
+                                        <optgroup label="Legal & Compliance">
+                                            <option>Legal Officer</option>
+                                            <option>Compliance Officer</option>
+                                            <option>Documentation Officer</option>
+                                        </optgroup>
+                                        <optgroup label="Finance & Accounts">
+                                            <option>Accountant</option>
+                                            <option>Finance Officer</option>
+                                            <option>Cashier</option>
+                                        </optgroup>
+                                        <optgroup label="Technical & Site">
+                                            <option>Estate Surveyor/Valuer</option>
+                                            <option>Site Supervisor</option>
+                                            <option>Facility Manager</option>
+                                            <option>Project Coordinator</option>
+                                            <option>Architect</option>
+                                            <option>Engineer</option>
+                                        </optgroup>
+                                        <optgroup label="IT & Support">
+                                            <option>IT Support</option>
+                                            <option>System Administrator</option>
+                                        </optgroup>
+                                        <optgroup label="Security & Field">
+                                            <option>Security</option>
+                                            <option>Field Officer</option>
+                                            <option>Driver</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Employment Date *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                    <input type="date" class="form-control" name="employment_date" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Address *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <textarea class="form-control" name="address" rows="3" placeholder="Enter full address" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Phone Number *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="tel" class="form-control" name="phone_number" placeholder="+234-XXX-XXX-XXXX" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Email Address *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" name="email" placeholder="staff@company.com" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">WhatsApp Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fab fa-whatsapp"></i></span>
+                                    <input type="tel" class="form-control" name="whatsapp" placeholder="+234-XXX-XXX-XXXX">
+                                </div>
+                                <div class="form-text">Optional - Leave blank if same as phone number</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Date of Birth *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-birthday-cake"></i></span>
+                                    <input type="date" class="form-control" name="date_of_birth" required>
+                                </div>
+                                <div class="form-text">Used for birthday reminders and staff analytics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="addStaffSubmitBtn">
+                        <i class="fas fa-user-plus me-2"></i>Add Staff Member
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Auto Message Template Modal -->
+<div class="modal fade" id="composeStaffMessageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="fas fa-envelope me-3" style="font-size: 1.5rem;"></i>
+                    Create Auto Message Template
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="composeStaffMessageForm">
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Template Name *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                    <input type="text" class="form-control" name="templateName" placeholder="e.g., Monthly Update" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Audience Selection *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-users"></i></span>
+                                    <select class="form-select" name="audienceType" id="audienceType" required>
+                                        <option value="">Select Audience</option>
+                                        <option value="all_staff">All Staff</option>
+                                        <option value="individuals">Specific Individuals</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="individualStaffSelection" style="display: none;">
+                                <label class="form-label fw-semibold">Search & Select Staff</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="staffSearchBox" placeholder="Search staff by name or role...">
+                                </div>
+                                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;" id="staffSelectionContainer">
+                                    <div class="text-muted text-center py-2">
+                                        <i class="fas fa-search me-2"></i>Start typing to search for staff members
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">Selected: <span id="selectedStaffCount">0</span> staff members</small>
+                                    <div id="selectedStaffList" class="mt-1"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Target Channels *</label>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="channels" value="email" id="channelEmail">
+                                            <label class="form-check-label" for="channelEmail">
+                                                <i class="fas fa-envelope me-1 text-primary"></i>Email
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="channels" value="sms" id="channelSMS">
+                                            <label class="form-check-label" for="channelSMS">
+                                                <i class="fas fa-sms me-1 text-success"></i>SMS
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="channels" value="whatsapp" id="channelWhatsApp">
+                                            <label class="form-check-label" for="channelWhatsApp">
+                                                <i class="fab fa-whatsapp me-1 text-success"></i>WhatsApp
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-check form-switch mb-3" id="immediateSendToggleWrapper">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sendImmediatelyToggle">
+                                <label class="form-check-label fw-semibold" for="sendImmediatelyToggle">
+                                    Send Immediately (hide schedule fields)
+                                </label>
+                                <div class="form-text">
+                                    Turn off to configure a trigger date, time, and repeat schedule.
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="staffTriggerSchedule">
+                                <label class="form-label fw-semibold">Trigger Schedule *</label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label small">Date</label>
+                                        <input type="date" class="form-control" name="triggerDate">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Time</label>
+                                        <input type="time" class="form-control" name="triggerTime">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="staffRepeatSchedule">
+                                <label class="form-label">Repeat Schedule</label>
+                                <select class="form-select" name="repeatSchedule">
+                                    <option value="">Do not repeat</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Message Subject</label>
+                                <input type="text" class="form-control" name="messageSubject" placeholder="Message subject line">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Message Content *</label>
+                                <textarea class="form-control" name="messageContent" rows="8" required placeholder="Your message content here...
+
+Available variables:
+{name} - Staff member's name
+{role} - Staff member's role
+{email} - Staff member's email
+{phone} - Staff member's phone"></textarea>
+                                <div class="form-text">
+                                    Use variables like {name}, {role} for personalization
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="saveAsTemplate" id="saveAsTemplate" checked>
+                                <label class="form-check-label" for="saveAsTemplate">
+                                    Save as reusable template
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="border rounded p-3 bg-light">
+                                <h6><i class="fas fa-eye me-2"></i>Message Preview</h6>
+                                <div id="staffMessagePreview" class="bg-white p-3 border rounded" style="min-height: 100px;">
+                                    <p class="text-muted">Message preview will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="previewStaffMessage()">
+                        <i class="fas fa-eye me-2"></i>Preview
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="sendImmediateStaffMessage()">
+                        <i class="fas fa-paper-plane me-2"></i>Send Now
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-clock me-2"></i>Schedule Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Staff Confirmation Modal -->
+<div class="modal fade" id="removeStaffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="fas fa-user-times me-3" style="font-size: 1.5rem;"></i>
+                    Remove Staff Member
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="removeStaffForm">
+                <input type="hidden" name="staffId" id="removeStaffId">
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning d-flex align-items-center mb-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <div>
+                            <strong>Are you sure you want to remove staff member:</strong>
+                            <div class="mt-1" id="removeStaffName">Staff Name</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select Reason(s) for Removal *</label>
+                        <div class="form-text mb-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            You can select multiple reasons if applicable
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="retired" id="reasonRetired">
+                                    <label class="form-check-label" for="reasonRetired">
+                                        <i class="fas fa-user-clock me-1 text-info"></i>Retired
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="resigned" id="reasonResigned">
+                                    <label class="form-check-label" for="reasonResigned">
+                                        <i class="fas fa-handshake me-1 text-success"></i>Resigned
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="absconded" id="reasonAbsconded">
+                                    <label class="form-check-label" for="reasonAbsconded">
+                                        <i class="fas fa-user-slash me-1 text-warning"></i>Absconded
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="sacked" id="reasonSacked">
+                                    <label class="form-check-label" for="reasonSacked">
+                                        <i class="fas fa-user-minus me-1 text-danger"></i>Sacked
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="fired" id="reasonFired">
+                                    <label class="form-check-label" for="reasonFired">
+                                        <i class="fas fa-fire me-1 text-danger"></i>Fired
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="terminated" id="reasonTerminated">
+                                    <label class="form-check-label" for="reasonTerminated">
+                                        <i class="fas fa-ban me-1 text-dark"></i>Terminated
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="dismissed" id="reasonDismissed">
+                                    <label class="form-check-label" for="reasonDismissed">
+                                        <i class="fas fa-times-circle me-1 text-danger"></i>Dismissed
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="removalReason" value="contract_ended" id="reasonContractEnded">
+                                    <label class="form-check-label" for="reasonContractEnded">
+                                        <i class="fas fa-calendar-times me-1 text-secondary"></i>Contract Ended
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes (Optional)</label>
+                        <textarea class="form-control" name="removalNotes" rows="3" placeholder="Any additional notes about the removal..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-user-times me-2"></i>Remove Staff
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.availableStaff = Array.isArray(window.availableStaff) ? window.availableStaff : [];
+window.selectedStaff = Array.isArray(window.selectedStaff) ? window.selectedStaff : [];
+window._loadingStaffSelection = false;
+
+function escapeHtml(value) {
+    if (value == null) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+$(document).ready(function() {
+    loadStaffStats();
+    loadStaffDirectory();
+    loadFormerStaffDirectory();
+    initializeCharts();
+    
+    // Initialize event handlers
+    $('#audienceType').on('change', handleAudienceTypeChange);
+    $('#staffSearchBox').on('input', searchStaff);
+    $('#sendImmediatelyToggle').on('change', handleImmediateToggleChange);
+    $('#addStaffForm').on('submit', handleAddStaff);
+    $('#importStaffForm').on('submit', handleImportStaff);
+    // Drag & Drop handlers for Import Staff
+    initImportDragAndDrop();
+    $('#composeStaffMessageForm').on('submit', handleScheduleMessage);
+    $('input[name="messageSubject"], textarea[name="messageContent"]').on('input', previewStaffMessage);
+});
+
+function loadStaffStats() {
+    fetch('{% url "adminsupport:api_staff_stats" %}')
+        .then(r => r.json())
+        .then(d => {
+            $('#totalStaff').text(d.total ?? 0);
+            $('#activeStaff').text(d.active ?? 0);
+            $('#messagesDelivered').text(d.messages_delivered ?? 0);
+            $('#messagesFailed').text(d.messages_failed ?? 0);
+        })
+        .catch(() => {});
+}
+
+function loadMessages() {
+    $('#messagesContainer').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading messages...</p>
+        </div>
+    `);
+    
+    setTimeout(function() {
+        const sampleMessages = [
+            {
+                id: 1,
+                type: 'email',
+                subject: 'Welcome to our platform!',
+                recipients: ['john@example.com', 'jane@example.com'],
+                status: 'sent',
+                priority: 'normal',
+                sent_at: '2025-01-09T08:30:00Z',
+                content: 'Welcome to our real estate platform...'
+            },
+            {
+                id: 2,
+                type: 'sms',
+                subject: 'Property viewing reminder',
+                recipients: ['+1234567890'],
+                status: 'pending',
+                priority: 'high',
+                scheduled_for: '2025-01-09T14:00:00Z',
+                content: 'Reminder: Property viewing at 2 PM today...'
+            },
+            {
+                id: 3,
+                type: 'notification',
+                subject: 'New property match',
+                recipients: ['client1', 'client2'],
+                status: 'failed',
+                priority: 'normal',
+                sent_at: '2025-01-08T16:45:00Z',
+                content: 'We found new properties matching your criteria...'
+            }
+        ];
+        
+        displayMessages(sampleMessages);
+    }, 1500);
+}
+
+function displayMessages(messages) {
+    let html = '';
+    
+    if (messages.length === 0) {
+        html = `
+            <div class="text-center py-4">
+                <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                <h5>No Messages Found</h5>
+                <p class="text-muted">Send your first message to get started.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#composeModal">
+                    <i class="fas fa-plus me-2"></i>Compose Message
+                </button>
+            </div>
+        `;
+    } else {
+        messages.forEach(function(message) {
+            const typeIcons = {
+                'email': 'envelope',
+                'sms': 'sms',
+                'notification': 'bell'
+            };
+            const statusColors = {
+                'sent': 'success',
+                'pending': 'warning',
+                'failed': 'danger'
+            };
+            const priorityColors = {
+                'normal': 'secondary',
+                'high': 'warning',
+                'urgent': 'danger'
+            };
+            
+            const typeIcon = typeIcons[message.type] || 'envelope';
+            const statusColor = statusColors[message.status] || 'secondary';
+            const priorityColor = priorityColors[message.priority] || 'secondary';
+            
+            const timeText = message.status === 'pending' ? 
+                `Scheduled: ${new Date(message.scheduled_for).toLocaleString()}` :
+                `Sent: ${new Date(message.sent_at).toLocaleString()}`;
+            
+            html += `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-1">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-${typeIcon}"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="mb-1">${message.subject || 'No Subject'}</h6>
+                                <p class="text-muted mb-1 small">${message.content.substring(0, 80)}${message.content.length > 80 ? '...' : ''}</p>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span class="badge bg-${statusColor}">${message.status.charAt(0).toUpperCase() + message.status.slice(1)}</span>
+                                    <span class="badge bg-${priorityColor}">${message.priority.charAt(0).toUpperCase() + message.priority.slice(1)}</span>
+                                    <span class="badge bg-light text-dark">${message.type.toUpperCase()}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Recipients: ${message.recipients.length}</small><br>
+                                <small class="text-muted">${timeText}</small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="viewMessage(${message.id})"><i class="fas fa-eye me-2"></i>View</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="resendMessage(${message.id})"><i class="fas fa-redo me-2"></i>Resend</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="duplicateMessage(${message.id})"><i class="fas fa-copy me-2"></i>Duplicate</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteMessage(${message.id})"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    $('#messagesContainer').html(html);
+}
+
+function initializeChart() {
+    const ctx = document.getElementById('messageChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sent', 'Pending', 'Failed'],
+            datasets: [{
+                data: [98, 15, 14],
+                backgroundColor: [
+                    'rgba(25, 135, 84, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(25, 135, 84, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function refreshMessages() {
+    loadMessages();
+    loadMessageStats();
+}
+
+function useTemplate(templateType) {
+    const templates = {
+        'welcome': {
+            subject: 'Welcome to Our Platform!',
+            content: 'Dear {name},\n\nWelcome to our real estate platform! We\'re excited to help you find your dream property.\n\nBest regards,\nThe Team'
+        },
+        'followup': {
+            subject: 'Following up on your property inquiry',
+            content: 'Dear {name},\n\nWe wanted to follow up on your recent property inquiry. Do you have any questions or would you like to schedule a viewing?\n\nBest regards,\nThe Team'
+        },
+        'property_update': {
+            subject: 'New Property Match Found!',
+            content: 'Dear {name},\n\nWe found new properties that match your criteria. Check them out on our platform!\n\nBest regards,\nThe Team'
+        },
+        'appointment': {
+            subject: 'Appointment Confirmation',
+            content: 'Dear {name},\n\nThis is to confirm your appointment scheduled for tomorrow. We look forward to meeting with you.\n\nBest regards,\nThe Team'
+        },
+        'thank_you': {
+            subject: 'Thank You!',
+            content: 'Dear {name},\n\nThank you for choosing our services. We appreciate your business and look forward to serving you again.\n\nBest regards,\nThe Team'
+        }
+    };
+    
+    const template = templates[templateType];
+    if (template) {
+        $('input[name="subject"]').val(template.subject);
+        $('textarea[name="content"]').val(template.content);
+        $('#composeModal').modal('show');
+        previewMessage();
+    }
+}
+
+function previewMessage() {
+    const subject = $('input[name="subject"]').val() || 'No Subject';
+    const content = $('textarea[name="content"]').val() || 'No content';
+    
+    // Replace variables with sample data
+    const sampleContent = content
+        .replace(/\{name\}/g, 'John Doe')
+        .replace(/\{email\}/g, 'john@example.com')
+        .replace(/\{phone\}/g, '+1-234-567-8900');
+    
+    $('#messagePreview').html(`
+        <div><strong>Subject:</strong> ${subject.replace(/\{name\}/g, 'John Doe')}</div>
+        <hr>
+        <div style="white-space: pre-wrap;">${sampleContent}</div>
+    `);
+}
+
+function viewMessage(id) {
+    viewMessageDetails(id);
+}
+
+function resendMessage(id) {
+    if (!confirm('Resend this message?')) {
+        return;
+    }
+
+    fetch('{% url "adminsupport:api_outbound_create" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ source_message_id: id })
+    })
+        .then(r => r.json())
+        .then(d => {
+            if (!d.ok && d.error) throw new Error(d.error);
+            showNotification('success', 'Message resend queued successfully');
+            loadMessages();
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('danger', err.message || 'Failed to resend message');
+        });
+}
+
+function duplicateMessage(id) {
+    fetch(`{% url 'adminsupport:api_messages_detail' 0 %}`.replace('/0/', `/${id}/`), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(r => {
+            if (!r.ok) throw new Error('Unable to load message to duplicate');
+            return r.json();
+        })
+        .then(data => {
+            const msg = (data && data.message) || {};
+            $('input[name="messageSubject"]').val(msg.subject || '');
+            $('textarea[name="messageContent"]').val(msg.body || '');
+            $('#audienceType').val('individuals').trigger('change');
+            window.selectedStaff = Array.isArray(msg.recipientDetails) ? msg.recipientDetails : [];
+            updateSelectedStaffDisplay();
+            $('#composeStaffMessageModal').modal('show');
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('danger', err.message || 'Failed to duplicate message');
+        });
+}
+
+function deleteMessage(id) {
+    if (!confirm('Are you sure you want to delete this message?')) {
+        return;
+    }
+
+    fetch(`{% url 'adminsupport:api_messages_detail' 0 %}`.replace('/0/', `/${id}/`), {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+        .then(r => {
+            if (!r.ok) throw new Error('Unable to delete message');
+            return r.json();
+        })
+        .then(() => {
+            showNotification('success', 'Message deleted');
+            loadMessages();
+            loadMessageStats();
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('danger', err.message || 'Failed to delete message');
+        });
+}
+
+// Form interactions
+$('select[name="recipients"]').on('change', function() {
+    if ($(this).val() === 'custom') {
+        $('#customRecipientsDiv').show();
+    } else {
+        $('#customRecipientsDiv').hide();
+    }
+});
+
+$('input[name="send_option"]').on('change', function() {
+    if ($(this).val() === 'scheduled') {
+        $('#scheduleDateTime').show();
+    } else {
+        $('#scheduleDateTime').hide();
+    }
+});
+
+// Real-time preview
+$('#composeForm input[name="subject"], #composeForm textarea[name="content"]').on('input', function() {
+    previewMessage();
+});
+
+// Form submission
+$('#composeForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    alert('Message sent successfully!');
+    $('#composeModal').modal('hide');
+    loadMessages();
+    loadMessageStats();
+    $('#composeForm')[0].reset();
+    $('#messagePreview').html('<p class="text-muted">Message preview will appear here...</p>');
+});
+
+// Filter functionality
+$('#filterStatus, #filterType').on('change', function() {
+    // Filter messages based on selected criteria
+    loadMessages();
+});
+
+// Staff Management Functions
+function loadStaffDirectory() {
+    $('#staffTableBody').html(`
+        <tr>
+            <td colspan="6" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading staff directory...</p>
+            </td>
+        </tr>
+    `);
+    const q = encodeURIComponent($('#staffSearch').val() || '');
+    const role = encodeURIComponent($('#filterRole').val() || '');
+    fetch(`{% url 'adminsupport:api_staff_list' %}?q=${q}&role=${role}`)
+        .then(r => {
+            if (!r.ok) throw new Error('Failed to load staff directory');
+            return r.json();
+        })
+        .then(d => {
+            const staffList = d.results || [];
+            window.availableStaff = staffList.map(item => ({
+                id: item.id,
+                name: item.name || item.full_name || '',
+                role: item.role || '',
+                email: item.email || '',
+                phone: item.phone || ''
+            }));
+            displayStaffDirectory(staffList);
+        })
+        .catch(err => {
+            console.error(err);
+            window.availableStaff = [];
+            displayStaffDirectory([]);
+        });
+}
+
+function displayStaffDirectory(staff) {
+    let html = '';
+    
+    if (staff.length === 0) {
+        html = `
+            <tr class="no-staff-message">
+                <td colspan="6" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-users fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                        <h6 class="text-muted mb-2">No Staff Has Been Added</h6>
+                        <p class="text-muted small mb-0">Click below to add staff manually or use Import CSV/Excel</p>
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                                <i class="fas fa-user-plus me-2"></i>Add Staff
+                            </button>
+                            <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importStaffModal">
+                                <i class="fas fa-file-upload me-2"></i>Import CSV/Excel
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    } else {
+        staff.forEach(function(member) {
+            const statusColors = {
+                'active': 'success',
+                'inactive': 'secondary',
+                'probation': 'warning',
+                'suspended': 'danger'
+            };
+            
+            const statusColor = statusColors[member.status] || 'secondary';
+            
+            html += `
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3">
+                                ${member.name.charAt(0)}
+                            </div>
+                            <div>
+                                <div class="fw-semibold">${member.name}</div>
+                                <small class="text-muted">${member.email}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info bg-opacity-10 text-info">${member.role}</span>
+                    </td>
+                    <td>${member.employmentDate ? new Date(member.employmentDate).toLocaleDateString() : ''}</td>
+                    <td>${member.phone || ''}<div><small class="text-muted">${member.email || ''}</small></div></td>
+                    <td>${member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString() : '-'}</td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" onclick="editStaff(${member.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-warning removeStaffBtn" data-staff-id="${member.id}" data-staff-name="${member.name}" title="Remove">
+                                <i class="fas fa-user-times"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    $('#staffTableBody').html(html);
+}
+
+function handleAudienceTypeChange() {
+    const audienceType = $('#audienceType').val();
+    if (audienceType === 'individuals') {
+        showIndividualStaffSelection({ focusSearch: true });
+    } else {
+        hideIndividualStaffSelection();
+    }
+    updateScheduleVisibility();
+}
+
+function handleImmediateToggleChange() {
+    updateScheduleVisibility();
+}
+
+function showIndividualStaffSelection({ focusSearch = false } = {}) {
+    $('#individualStaffSelection').slideDown(150, function() {
+        $(this).removeClass('d-none');
+    });
+    if (focusSearch) {
+        setTimeout(() => $('#staffSearchBox').trigger('focus'), 100);
+    }
+
+    $('#sendImmediatelyToggle').prop('checked', true);
+
+    if (!Array.isArray(window.selectedStaff)) {
+        window.selectedStaff = [];
+    }
+
+    if (!Array.isArray(window.availableStaff) || !window.availableStaff.length) {
+        loadStaffForSelection(true);
+    } else {
+        updateStaffSelection($('#staffSearchBox').val() || '');
+    }
+}
+
+function hideIndividualStaffSelection() {
+    $('#individualStaffSelection').slideUp(150, function() {
+        $(this).addClass('d-none');
+    });
+    $('#sendImmediatelyToggle').prop('checked', false);
+}
+
+function updateScheduleVisibility() {
+    const immediate = $('#sendImmediatelyToggle').is(':checked');
+    if (immediate) {
+        $('#staffTriggerSchedule').hide();
+        $('#staffRepeatSchedule').hide();
+    } else {
+        $('#staffTriggerSchedule').show();
+        $('#staffRepeatSchedule').show();
+    }
+}
+
+function loadStaffForSelection(forceReload = false) {
+    const $container = $('#staffSelectionContainer');
+    if (window._loadingStaffSelection) {
+        return;
+    }
+
+    if (!forceReload && Array.isArray(window.availableStaff) && window.availableStaff.length) {
+        updateStaffSelection($('#staffSearchBox').val() || '');
+        return;
+    }
+
+    window._loadingStaffSelection = true;
+    $container.html(`
+        <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted small">Fetching staff directory...</p>
+        </div>
+    `);
+
+    fetch('{% url "adminsupport:api_staff_list" %}?limit=500', {
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(r => {
+            if (!r.ok) throw new Error('Failed to load staff');
+            return r.json();
+        })
+        .then(d => {
+            window.availableStaff = (d.results || []).map(item => ({
+                id: item.id,
+                name: item.name || item.full_name || '',
+                role: item.role || '',
+                email: item.email || '',
+                phone: item.phone || ''
+            }));
+            if (!Array.isArray(window.selectedStaff)) {
+                window.selectedStaff = [];
+            }
+            updateStaffSelection($('#staffSearchBox').val() || '');
+            if (!window.availableStaff.length) {
+                $container.html('<div class="text-muted text-center py-2">No staff members available yet. Add staff or import from CSV to target individuals.</div>');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            $container.html(`
+                <div class="text-center py-3 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Unable to load staff list. <button type="button" class="btn btn-link btn-sm" onclick="loadStaffForSelection()">Retry</button>
+                </div>
+            `);
+        })
+        .finally(() => {
+            window._loadingStaffSelection = false;
+        });
+}
+
+function searchStaff() {
+    const searchTerm = ($('#staffSearchBox').val() || '').toLowerCase();
+    updateStaffSelection(searchTerm);
+}
+
+function updateStaffSelection(searchTerm) {
+    const term = (searchTerm || '').toLowerCase();
+    const available = Array.isArray(window.availableStaff) ? window.availableStaff : [];
+    const filteredStaff = available.filter(staff => {
+        const haystack = [staff.name, staff.role, staff.email, staff.phone]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+        return haystack.includes(term);
+    });
+
+    let html = '';
+    if (filteredStaff.length === 0) {
+        if (!available.length) {
+            html = '<div class="text-muted text-center py-2">No staff members available yet. Add staff or import from CSV to target individuals.</div>';
+        } else {
+            html = '<div class="text-muted text-center py-2">No staff members match your search</div>';
+        }
+    } else {
+        filteredStaff.forEach(staff => {
+            const isSelected = (window.selectedStaff || []).some(s => s.id === staff.id);
+            const safeName = (staff.name || '').replace(/"/g, '&quot;');
+            const safeRole = (staff.role || '').replace(/"/g, '&quot;');
+            html += `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="${staff.id}" 
+                           id="staff${staff.id}" ${isSelected ? 'checked' : ''} 
+                           onchange="toggleStaffSelection(${staff.id})">
+                    <label class="form-check-label" for="staff${staff.id}">
+                        <strong>${staff.name || 'Unnamed Staff'}</strong>
+                        ${staff.role ? ` - ${staff.role}` : ''}
+                        ${staff.email ? `<div class="small text-muted">${staff.email}</div>` : ''}
+                    </label>
+                </div>
+            `;
+        });
+    }
+
+    $('#staffSelectionContainer').html(html);
+}
+
+function toggleStaffSelection(id, name, role) {
+    const available = Array.isArray(window.availableStaff) ? window.availableStaff : [];
+    if (!Array.isArray(window.selectedStaff)) {
+        window.selectedStaff = [];
+    }
+
+    const index = window.selectedStaff.findIndex(s => s.id === id);
+    if (index > -1) {
+        window.selectedStaff.splice(index, 1);
+    } else {
+        const staff = available.find(s => s.id === id);
+        if (staff) {
+            window.selectedStaff.push({
+                id: staff.id,
+                name: staff.name || '',
+                role: staff.role || '',
+                email: staff.email || '',
+                phone: staff.phone || ''
+            });
+        }
+    }
+
+    const isNowSelected = window.selectedStaff.some(s => s.id === id);
+    $(`#staff${id}`).prop('checked', isNowSelected);
+
+    updateSelectedStaffDisplay();
+}
+
+function updateSelectedStaffDisplay() {
+    if (!Array.isArray(window.selectedStaff)) {
+        window.selectedStaff = [];
+    }
+
+    $('#selectedStaffCount').text(window.selectedStaff.length);
+
+    const badges = window.selectedStaff.map(staff => {
+        return `
+            <span class="badge bg-primary me-1 mb-1">
+                ${escapeHtml(staff.name || 'Unnamed Staff')}
+                <button type="button" class="btn-close btn-close-white btn-sm ms-1" 
+                    onclick="toggleStaffSelection(${staff.id})"></button>
+            </span>
+        `;
+    });
+
+    $('#selectedStaffList').html(badges.join(''));
+}
+
+function resetComposeStaffMessageForm() {
+    const formEl = document.getElementById('composeStaffMessageForm');
+    if (formEl) {
+        formEl.reset();
+    }
+
+    $('#audienceType').trigger('change');
+    $('#sendImmediatelyToggle').prop('checked', false);
+    updateScheduleVisibility();
+
+    hideIndividualStaffSelection();
+    $('#staffSelectionContainer').html(`
+        <div class="text-muted text-center py-2">
+            <i class="fas fa-search me-2"></i>Start typing to search for staff members
+        </div>
+    `);
+
+    window.selectedStaff = [];
+    updateSelectedStaffDisplay();
+
+    $('#staffMessagePreview').html(`
+        <p class="text-muted">Message preview will appear here...</p>
+    `);
+}
+
+function handleAddStaff(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    fetch('{% url "adminsupport:api_staff_create" %}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (!d.ok && d.error) throw new Error(d.error);
+        showNotification('success', 'Staff member added successfully');
+        $('#addStaffModal').modal('hide');
+        loadStaffDirectory();
+        loadStaffStats();
+        e.target.reset();
+    })
+    .catch(err => showNotification('danger', err.message || 'Failed to add staff'));
+}
+
+function getStaffMessagePayload(formData, options = {}) {
+    const messageData = Object.fromEntries(formData.entries());
+    const audienceType = messageData['audienceType'];
+    const subject = messageData['messageSubject'] || '';
+    const body = messageData['messageContent'] || '';
+    const channels = Array.from(document.querySelectorAll('input[name="channels"]:checked')).map(cb => cb.value);
+    const repeatSchedule = messageData['repeatSchedule'] || null;
+    const triggerDate = messageData['triggerDate'] || null;
+    const triggerTime = messageData['triggerTime'] || null;
+
+    const gatherRecipients = () => {
+        if (audienceType === 'individuals' && Array.isArray(window.selectedStaff) && window.selectedStaff.length) {
+            return Promise.resolve(window.selectedStaff.map(s => s.id));
+        }
+        return fetch('{% url "adminsupport:api_staff_list" %}?limit=1000')
+            .then(r => r.json())
+            .then(d => (d.results || []).map(x => x.id));
+    };
+
+    return gatherRecipients().then(recipientIds => ({
+        subject,
+        body,
+        audienceType,
+        channels,
+        repeatSchedule,
+        triggerDate,
+        triggerTime,
+        recipients: recipientIds,
+        saveAsTemplate: messageData['saveAsTemplate'] === 'on'
+    })).then(payload => ({ ...payload, ...options }));
+}
+
+function queueStaffMessage(payload, { immediate = false } = {}) {
+    if (immediate) {
+        const primaryChannel = (payload.channels && payload.channels.length) ? payload.channels[0] : 'inapp';
+        return fetch('{% url "adminsupport:api_outbound_create" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                channel: primaryChannel,
+                audience: 'staff',
+                subject: payload.subject,
+                body: payload.body,
+                recipient_ids: payload.recipients
+            })
+        }).then(r => r.json());
+    }
+
+    return fetch('{% url "adminsupport:api_messages_save" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            subject: payload.subject,
+            body: payload.body,
+            is_draft: false,
+            recipients: payload.recipients,
+            schedule: {
+                date: payload.triggerDate,
+                time: payload.triggerTime,
+                repeat: payload.repeatSchedule || null
+            },
+            channels: payload.channels,
+            audienceType: payload.audienceType,
+            saveAsTemplate: payload.saveAsTemplate
+        })
+    }).then(r => r.json());
+}
+
+function handleScheduleMessage(e) {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    getStaffMessagePayload(formData)
+        .then(payload => queueStaffMessage(payload))
+        .then(resp => {
+            if (resp && resp.error) throw new Error(resp.error);
+            showNotification('success', 'Staff message scheduled successfully');
+            $('#composeStaffMessageModal').modal('hide');
+            resetComposeStaffMessageForm();
+        })
+        .catch(err => {
+            showNotification('danger', (err && err.message) || 'Failed to schedule message');
+        });
+}
+
+function sendImmediateStaffMessage() {
+    const form = document.getElementById('composeStaffMessageForm');
+    if (!form) return;
+
+    $('#sendImmediatelyToggle').prop('checked', true);
+    updateScheduleVisibility();
+
+    const formData = new FormData(form);
+    getStaffMessagePayload(formData, { source_message_id: null })
+        .then(payload => queueStaffMessage(payload, { immediate: true }))
+        .then(resp => {
+            if (resp && resp.error) throw new Error(resp.error);
+            showNotification('success', 'Message sent immediately');
+            $('#composeStaffMessageModal').modal('hide');
+            resetComposeStaffMessageForm();
+        })
+        .catch(err => {
+            showNotification('danger', (err && err.message) || 'Failed to send message immediately');
+        });
+}
+
+function loadMessageStatus() {
+    $('#messageStatusTableBody').html(`
+        <tr>
+            <td colspan="7" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading message status...</p>
+            </td>
+        </tr>
+    `);
+    fetch('{% url "adminsupport:api_messages_status" %}')
+        .then(r => r.json())
+        .then(d => displayMessageStatus(d.results || []))
+        .catch(() => displayMessageStatus([]));
+}
+
+function displayMessageStatus(messages) {
+    let html = '';
+    
+    messages.forEach(function(message) {
+        const statusColors = {
+            'delivered': 'success',
+            'pending': 'warning',
+            'failed': 'danger'
+        };
+        
+        const statusColor = statusColors[message.status] || 'secondary';
+        
+        html += `
+            <tr>
+                <td class="ps-4">
+                    <div class="fw-semibold">${message.subject}</div>
+                    <small class="text-muted">ID: ${message.id}</small>
+                </td>
+                <td>${message.recipients} staff</td>
+                <td>
+                    <span class="badge bg-info bg-opacity-10 text-info">${message.channel}</span>
+                </td>
+                <td>
+                    <span class="badge bg-${statusColor} bg-opacity-10 text-${statusColor}">
+                        ${message.status.charAt(0).toUpperCase() + message.status.slice(1)}
+                    </span>
+                </td>
+                <td>${message.sentAt}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="progress me-2" style="width: 60px; height: 8px;">
+                            <div class="progress-bar bg-${statusColor}" style="width: ${message.successRate}%"></div>
+                        </div>
+                        <span class="fw-bold">${message.successRate}%</span>
+                    </div>
+                </td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm" role="group">
+                        ${message.status === 'failed' ? `
+                            <button class="btn btn-outline-warning" onclick="showAlternativeChannel(${message.id})" title="Switch Channel">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="resendMessage(${message.id})" title="Resend">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-outline-info" onclick="viewMessageDetails(${message.id})" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#messageStatusTableBody').html(html);
+}
+
+function showAlternativeChannel(messageId) {
+    // Load message details
+    $('#failedSubject').text('Weekly Team Update');
+    $('#originalChannel').text('SMS');
+    $('#failedRecipients').text('25 staff members');
+    
+    $('#alternativeChannelModal').modal('show');
+}
+
+function handleAlternativeChannel(e) {
+    e.preventDefault();
+    
+    const selectedChannel = document.querySelector('input[name="altChannel"]:checked');
+    if (!selectedChannel) {
+        alert('Please select an alternative channel.');
+        return;
+    }
+    
+    alert(`Message will be resent via ${selectedChannel.value.toUpperCase()}`);
+    $('#alternativeChannelModal').modal('hide');
+    loadMessageStatus();
+}
+
+function previewStaffMessage() {
+    const rawSubject = $('input[name="messageSubject"]').val() || 'No Subject';
+    const rawContent = $('textarea[name="messageContent"]').val() || 'No content';
+
+    const sampleStaff = (Array.isArray(window.selectedStaff) && window.selectedStaff.length)
+        ? window.selectedStaff[0]
+        : (Array.isArray(window.availableStaff) && window.availableStaff.length ? window.availableStaff[0] : null);
+
+    const replacements = {
+        name: sampleStaff && sampleStaff.name ? sampleStaff.name : 'John Doe',
+        role: sampleStaff && sampleStaff.role ? sampleStaff.role : 'Staff Member',
+        email: sampleStaff && sampleStaff.email ? sampleStaff.email : 'staff@example.com',
+        phone: sampleStaff && sampleStaff.phone ? sampleStaff.phone : '+234-800-000-0000'
+    };
+
+    const applyVariables = (text) => {
+        return text
+            .replace(/\{name\}/gi, replacements.name)
+            .replace(/\{role\}/gi, replacements.role)
+            .replace(/\{email\}/gi, replacements.email)
+            .replace(/\{phone\}/gi, replacements.phone);
+    };
+
+    const subject = applyVariables(rawSubject);
+    const content = applyVariables(rawContent);
+
+    $('#staffMessagePreview').html(`
+        <div><strong>Subject:</strong> ${escapeHtml(subject)}</div>
+        <hr>
+        <div style="white-space: pre-wrap;">${escapeHtml(content)}</div>
+    `);
+}
+
+function sendTestMessage() {
+    alert('Test message sent to your email address!');
+}
+
+function refreshStaffList() {
+    loadStaffDirectory();
+}
+
+function refreshMessageStatus() {
+    loadMessageStatus();
+}
+
+function messageAllStaff() {
+    $('#audienceType').val('all_staff').trigger('change');
+    $('#composeStaffMessageModal').modal('show');
+}
+
+function messageByRole(role) {
+    $('#audienceType').val('individuals').trigger('change');
+    const normalized = (role || '').toLowerCase();
+    const available = Array.isArray(window.availableStaff) ? window.availableStaff : [];
+    window.selectedStaff = available.filter(staff => (staff.role || '').toLowerCase() === normalized);
+    updateSelectedStaffDisplay();
+    $('#composeStaffMessageModal').modal('show');
+    if (!window.selectedStaff.length) {
+        showNotification('warning', `No staff found with role "${role}"`);
+    }
+}
+
+function initializeCharts() {
+    // Initialize staff chart
+    const ctx = document.getElementById('staffChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Inactive', 'On Probation'],
+            datasets: [{
+                data: [42, 2, 1],
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(156, 163, 175, 0.8)',
+                    'rgba(251, 191, 36, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Utility functions
+function editStaff(id) {
+    fetch(`{% url 'adminsupport:api_staff_detail' 0 %}`.replace('/0/', `/${id}/`), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(r => {
+            if (!r.ok) throw new Error('Unable to load staff details');
+            return r.json();
+        })
+        .then(data => {
+            const staff = (data && data.staff) || {};
+            $('#addStaffModalTitleText').text('Edit Staff Member');
+            $('#addStaffModalIcon').removeClass('fa-user-plus').addClass('fa-user-edit');
+            $('#staffIdField').val(staff.id || id);
+            $('#addStaffForm input[name="full_name"]').val(staff.full_name || staff.name || '');
+            $('#addStaffForm select[name="role"]').val(staff.role || '');
+            $('#addStaffForm input[name="employment_date"]').val((staff.employment_date || staff.employmentDate || '').substring(0, 10));
+            $('#addStaffForm textarea[name="address"]').val(staff.address || '');
+            $('#addStaffForm input[name="phone_number"]').val(staff.phone || '');
+            $('#addStaffForm input[name="email"]').val(staff.email || '');
+            $('#addStaffForm input[name="whatsapp"]').val(staff.whatsapp || '');
+            $('#addStaffForm input[name="date_of_birth"]').val((staff.date_of_birth || staff.dateOfBirth || '').substring(0, 10));
+            $('#addStaffModal').data('editing', true).modal('show');
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('danger', err.message || 'Failed to load staff details');
+        });
+}
+
+function messageStaff(id) {
+    $('#audienceType').val('individuals').trigger('change');
+    const available = Array.isArray(window.availableStaff) ? window.availableStaff : [];
+    const staff = available.find(s => s.id === id);
+    window.selectedStaff = staff ? [staff] : [];
+    updateSelectedStaffDisplay();
+    $('#composeStaffMessageModal').modal('show');
+}
+
+function deleteStaff(id) {
+    if (confirm('Are you sure you want to delete this staff member?')) {
+        alert(`Staff ${id} deleted successfully!`);
+        loadStaffDirectory();
+        loadStaffStats();
+    }
+}
+
+function viewMessageDetails(id) {
+    $('#messageDetailsModal').modal('show');
+    $('#messageDetailsModal .modal-body').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading message details...</p>
+        </div>
+    `);
+
+    fetch(`{% url 'adminsupport:api_messages_detail' 0 %}`.replace('/0/', `/${id}/`), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(r => {
+            if (!r.ok) throw new Error('Unable to load message details');
+            return r.json();
+        })
+        .then(data => {
+            const msg = (data && data.message) || {};
+            $('#messageDetailsModalLabel').text(msg.subject || 'Message Details');
+            $('#messageDetailsModal .modal-body').html(`
+                <dl class="row">
+                    <dt class="col-sm-3">Subject</dt>
+                    <dd class="col-sm-9">${escapeHtml(msg.subject || 'No subject')}</dd>
+                    <dt class="col-sm-3">Created</dt>
+                    <dd class="col-sm-9">${msg.createdAt ? new Date(msg.createdAt).toLocaleString() : '—'}</dd>
+                    <dt class="col-sm-3">Content</dt>
+                    <dd class="col-sm-9"><pre class="mb-0" style="white-space: pre-wrap;">${escapeHtml(msg.body || '')}</pre></dd>
+                </dl>
+            `);
+        })
+        .catch(err => {
+            console.error(err);
+            $('#messageDetailsModal .modal-body').html(`
+                <div class="alert alert-danger mb-0">
+                    ${escapeHtml(err.message || 'Failed to load message details')}
+                </div>
+            `);
+        });
+}
+
+function exportStatusReport() {
+    alert('Status report exported successfully!');
+}
+
+// Remove Staff Modal Functionality
+$(document).on('click', '.removeStaffBtn', function() {
+    const staffId = $(this).data('staff-id');
+    const staffName = $(this).data('staff-name');
+    
+    $('#removeStaffId').val(staffId);
+    $('#removeStaffName').text(staffName);
+    
+    // Reset form
+    $('input[name="removalReason"]').prop('checked', false);
+    $('textarea[name="removalNotes"]').val('');
+    
+    // Show modal
+    $('#removeStaffModal').modal('show');
+});
+
+$('#removeStaffForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const staffId = $('#removeStaffId').val();
+    const staffName = $('#removeStaffName').text();
+    const checkedReasons = $('input[name="removalReason"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+    const notes = $('textarea[name="removalNotes"]').val();
+    
+    if (checkedReasons.length === 0) {
+        alert('Please select at least one reason for removal.');
+        return;
+    }
+    
+    // Use the first selected reason as primary, or combine them
+    const reason = checkedReasons[0]; // Primary reason
+    const allReasons = checkedReasons.join(', '); // All reasons combined
+    
+    // Show loading state
+    const submitBtn = $(this).find('button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Removing...');
+    submitBtn.prop('disabled', true);
+    
+    fetch('{% url "adminsupport:api_staff_remove" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ user_id: staffId, reasons: checkedReasons, notes })
+    }).then(r => r.json()).then(d => {
+        if (!d.ok && d.error) throw new Error(d.error);
+        // Remove from active staff table
+        $(`.removeStaffBtn[data-staff-id="${staffId}"]`).closest('tr').remove();
+        const currentDate = new Date().toLocaleDateString();
+        const reasonText = reason.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        const reasonColors = {
+            'retired': 'info',
+            'resigned': 'success', 
+            'absconded': 'warning',
+            'sacked': 'danger',
+            'fired': 'danger',
+            'terminated': 'dark',
+            'dismissed': 'danger',
+            'contract_ended': 'secondary'
+        };
+        const reasonColor = reasonColors[reason] || 'secondary';
+        
+        const formerStaffRow = `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-3">
+                            <img src="https://ui-avatars.com/api/?name=${staffName.replace(' ', '+')}&background=6c757d&color=fff" 
+                                 class="rounded-circle" width="40" height="40" alt="${staffName}">
+                        </div>
+                        <div>
+                            <h6 class="mb-0">${staffName}</h6>
+                            <small class="text-muted">Former Staff Member</small>
+                        </div>
+                    </div>
+                </td>
+                <td>Marketing Manager</td>
+                <td>Jan 15, 2023 - ${currentDate}</td>
+                <td>+1 (555) 123-4567</td>
+                <td>
+                    ${checkedReasons.map(r => {
+                        const rText = r.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        const rColor = reasonColors[r] || 'secondary';
+                        return `<span class="badge bg-${rColor} me-1">${rText}</span>`;
+                    }).join('')}
+                    ${notes ? `<br><small class="text-muted">${notes}</small>` : ''}
+                </td>
+                <td class="text-center">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn btn-sm btn-outline-info" onclick="viewFormerStaffDetails('${staffId}')" data-bs-toggle="tooltip" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success reactivateStaffBtn" data-bs-toggle="tooltip" title="Reactivate Staff" 
+                                data-staff-id="${staffId}" data-staff-name="${staffName}">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Check if former staff table is empty and remove empty message
+        const formerStaffBody = $('#formerStaffTableBody');
+        const emptyMessage = formerStaffBody.find('.no-former-staff-message');
+        if (emptyMessage.length > 0) {
+            emptyMessage.remove();
+        }
+        
+        formerStaffBody.append(formerStaffRow);
+        $('#removeStaffModal').modal('hide');
+        submitBtn.html(originalText);
+        submitBtn.prop('disabled', false);
+        showNotification('success', `${staffName} has been removed from active staff and moved to former staff.`);
+        if ($('#staffTableBody tr').length === 0) {
+            $('#staffTableBody').append(`
+                <tr class="no-staff-message">
+                    <td colspan="6" class="text-center py-5">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fas fa-users fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                            <h6 class="text-muted mb-2">No Staff Members</h6>
+                            <p class="text-muted small mb-0">Add your first staff member to get started</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                                <i class="fas fa-user-plus me-2"></i>Add Staff
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
+        }
+    }).catch(err => {
+        submitBtn.html(originalText);
+        submitBtn.prop('disabled', false);
+        showNotification('danger', err.message || 'Failed to remove staff');
+    });
+});
+
+function viewFormerStaffDetails(staffId) {
+    fetch(`{% url 'adminsupport:api_staff_detail' 0 %}`.replace('/0/', `/${staffId}/`), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(r => {
+            if (r.status === 404) throw new Error('Former staff record not found');
+            if (!r.ok) throw new Error('Unable to load former staff details');
+            return r.json();
+        })
+        .then(data => {
+            const staff = (data && data.staff) || {};
+            $('#formerStaffDetailsModalLabel').text(staff.full_name || staff.name || 'Former Staff Details');
+            $('#formerStaffDetailsModal .modal-body').html(`
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">${escapeHtml(staff.full_name || staff.name || '—')}</dd>
+                    <dt class="col-sm-4">Role</dt>
+                    <dd class="col-sm-8">${escapeHtml(staff.role || '—')}</dd>
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">${escapeHtml(staff.email || '—')}</dd>
+                    <dt class="col-sm-4">Phone</dt>
+                    <dd class="col-sm-8">${escapeHtml(staff.phone || '—')}</dd>
+                    <dt class="col-sm-4">Employment Date</dt>
+                    <dd class="col-sm-8">${staff.employmentDate ? new Date(staff.employmentDate).toLocaleDateString() : '—'}</dd>
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8"><span class="badge bg-${staff.active ? 'success' : 'secondary'}">${staff.active ? 'Active' : 'Inactive'}</span></dd>
+                    <dt class="col-sm-4">Address</dt>
+                    <dd class="col-sm-8">${escapeHtml(staff.address || '—')}</dd>
+                </dl>
+            `);
+            $('#formerStaffDetailsModal').modal('show');
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('danger', err.message || 'Failed to load former staff details');
+        });
+}
+
+// Reactivate Staff Functionality
+$(document).on('click', '.reactivateStaffBtn', function() {
+    const staffId = $(this).data('staff-id');
+    const staffName = $(this).data('staff-name');
+    
+    if (confirm(`Are you sure you want to reactivate ${staffName} and move them back to active staff?`)) {
+        // Show loading state
+        const reactivateBtn = $(this);
+        const originalContent = reactivateBtn.html();
+        reactivateBtn.html('<i class="fas fa-spinner fa-spin"></i>');
+        reactivateBtn.prop('disabled', true);
+        
+    fetch('{% url "adminsupport:api_staff_reactivate" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ user_id: staffId })
+        }).then(r => r.json()).then(d => {
+            if (!d.ok && d.error) throw new Error(d.error);
+            // Remove from former staff table
+            reactivateBtn.closest('tr').remove();
+            
+            // Add back to active staff table
+            const currentDate = new Date().toLocaleDateString();
+            const activeStaffRow = `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3">
+                                <img src="https://ui-avatars.com/api/?name=${staffName.replace(' ', '+')}&background=4f46e5&color=fff" 
+                                     class="rounded-circle" width="40" height="40" alt="${staffName}">
+                            </div>
+                            <div>
+                                <h6 class="mb-0">${staffName}</h6>
+                                <small class="text-muted">Reactivated Staff Member</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>Marketing Manager</td>
+                    <td>${currentDate}</td>
+                    <td>+1 (555) 123-4567</td>
+                    <td>
+                        <span class="badge bg-success">January 15, 1990</span>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Edit Staff">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning removeStaffBtn" data-bs-toggle="tooltip" title="Remove Staff" 
+                                    data-staff-id="${staffId}" data-staff-name="${staffName}">
+                                <i class="fas fa-volume-mute"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // Remove "no staff" message if it exists
+            $('#staffTableBody .no-staff-message').remove();
+            $('#staffTableBody').append(activeStaffRow);
+            
+            // Check if former staff table is empty
+            if ($('#formerStaffTableBody tr').length === 1) {
+                $('#formerStaffTableBody').html(`
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="fas fa-user-times fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                                <h6 class="text-muted mb-2">No Former Staff</h6>
+                                <p class="text-muted small mb-0">Former staff members will appear here when removed</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+            
+            showNotification('success', `${staffName} has been successfully reactivated and moved back to active staff.`);
+            
+        }).catch(err => {
+            reactivateBtn.html(originalContent);
+            reactivateBtn.prop('disabled', false);
+            showNotification('danger', err.message || 'Failed to reactivate staff');
+        });
+    }
+});
+
+function refreshFormerStaffList() {
+    loadFormerStaffDirectory();
+}
+
+function loadFormerStaffDirectory() {
+    fetch('{% url "adminsupport:api_staff_former" %}')
+        .then(r => r.json())
+        .then(d => {
+            const list = d.results || [];
+            const body = $('#formerStaffTableBody');
+            if (!list.length) {
+                body.html(`
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="fas fa-user-times fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                                <h6 class="text-muted mb-2">No Former Staff</h6>
+                                <p class="text-muted small mb-0">Former staff members will appear here when removed</p>
+                            </div>
+                        </td>
+                    </tr>`);
+                return;
+            }
+            let html = '';
+            list.forEach(m => {
+                html += `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3">
+                                    <img src="https://ui-avatars.com/api/?name=${(m.name||'').replace(' ', '+')}&background=6c757d&color=fff" class="rounded-circle" width="40" height="40" alt="${m.name}">
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">${m.name}</h6>
+                                    <small class="text-muted">Former Staff Member</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${m.role || ''}</td>
+                        <td>${m.employmentDate ? new Date(m.employmentDate).toLocaleDateString() : ''} - ${new Date().toLocaleDateString()}</td>
+                        <td>${m.phone || ''}</td>
+                        <td><span class="badge bg-secondary">Inactive</span></td>
+                        <td class="text-center">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewFormerStaffDetails('${m.id}')" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success reactivateStaffBtn" data-bs-toggle="tooltip" title="Reactivate Staff" data-staff-id="${m.id}" data-staff-name="${m.name}">
+                                    <i class="fas fa-user-plus"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            body.html(html);
+        })
+        .catch(() => {})
+}
+
+function handleImportStaff(e) {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = $(e.target).find('button[type="submit"]');
+    const orig = btn.html();
+    btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Importing...');
+    btn.prop('disabled', true);
+    fetch('{% url "adminsupport:api_staff_import" %}', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    }).then(r => r.json()).then(d => {
+        if (!d.ok && d.error) throw new Error(d.error);
+        $('#importStaffModal').modal('hide');
+        showNotification('success', `Import complete: ${d.created || 0} created, ${d.updated || 0} updated`);
+        loadStaffDirectory();
+        loadFormerStaffDirectory();
+        loadStaffStats();
+        e.target.reset();
+    }).catch(err => {
+        showNotification('danger', err.message || 'Import failed');
+    }).finally(() => {
+        btn.html(orig);
+        btn.prop('disabled', false);
+    });
+}
+
+function initImportDragAndDrop() {
+    const drop = document.getElementById('dropZone');
+    const input = document.getElementById('fileInput');
+    const info = document.getElementById('fileInfo');
+    if (!drop || !input) return;
+
+    const highlight = () => drop.classList.add('border-primary', 'bg-white');
+    const unhighlight = () => drop.classList.remove('border-primary', 'bg-white');
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); highlight(); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); unhighlight(); });
+    });
+    drop.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const f = files[0];
+            if (!/\.(csv|xlsx|xlsm)$/i.test(f.name)) {
+                showNotification('danger', 'Unsupported file type. Please upload .csv, .xlsx or .xlsm');
+                return;
+            }
+            input.files = files; // bind to hidden input
+            info.textContent = `Selected file: ${f.name} (${Math.round(f.size/1024)} KB)`;
+        }
+    });
+    drop.addEventListener('click', () => input.click());
+    input.addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (f) info.textContent = `Selected file: ${f.name} (${Math.round(f.size/1024)} KB)`;
+    });
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function showNotification(type, message) {
+    const toast = $(`
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : (type === 'danger' ? 'danger' : 'primary')} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `);
+    
+    // Create toast container if it doesn't exist
+    if ($('#toastContainer').length === 0) {
+        $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+    }
+    
+    $('#toastContainer').append(toast);
+    toast.toast({ delay: 5000 }).toast('show');
+    
+    // Remove toast after it's hidden
+    toast.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'marketer_base.html' %}
+{% load static %}
+{% block content %}
+
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Marketer Dashboard</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ dashboard_url }}">Home</a></li>
+        <li class="breadcrumb-item active">Dashboard</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+
+  <section class="section dashboard">
+    <div class="row">
+
+      <!-- Total Transactions Card -->
+      <div class="col-xxl-4 col-md-6 mb-3">
+        <div class="card info-card sales-card">
+          <div class="card-body d-flex align-items-center">
+            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center me-3">
+              <i class="bi bi-receipt"></i>
+            </div>
+            <div>
+              <h5 class="card-title">Total Transactions</h5>
+              <h6>{{ total_transactions }}</h6>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Estates Sold Card -->
+      <div class="col-xxl-4 col-md-6 mb-3">
+        <div class="card info-card revenue-card">
+          <div class="card-body d-flex align-items-center">
+            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center me-3">
+              <i class="bi bi-building"></i>
+            </div>
+            <div>
+              <h5 class="card-title">Total Estates Sold</h5>
+              <h6>{{ total_estates_sold }}</h6>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Number of Clients Card -->
+      <div class="col-xxl-4 col-md-6 mb-3">
+        <div class="card info-card customers-card">
+          <div class="card-body d-flex align-items-center">
+            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center me-3">
+              <i class="bi bi-people"></i>
+            </div>
+            <div>
+              <h5 class="card-title">Number of Clients</h5>
+              <h6>{{ number_clients }}</h6>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle Buttons -->
+      <div class="col-12 mb-3">
+        <div class="btn-group">
+          <button class="btn btn-outline-warning active" data-range="weekly">Week</button>
+          <button class="btn btn-outline-warning" data-range="monthly">Month</button>
+          <button class="btn btn-outline-warning" data-range="yearly">Year</button>
+          <button class="btn btn-outline-warning" data-range="alltime">All-Time</button>
+        </div>
+      </div>
+
+      <!-- Performance Chart -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Performance</h5>
+            <div id="reportsChart"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ApexCharts -->
+<script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const dataSets = {
+      weekly:  {{ weekly|safe }},
+      monthly: {{ monthly|safe }},
+      yearly:  {{ yearly|safe }},
+      alltime: {{ alltime|safe }}
+    };
+
+    const chart = new ApexCharts(document.querySelector("#reportsChart"), {
+      series: [],
+      chart: { height: 350, type: 'area', toolbar: { show: false } },
+      markers: { size: 4 },
+      fill: {
+        type: "gradient",
+        gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.4, stops: [0,90,100] }
+      },
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 2 },
+      xaxis: { categories: [], type: 'category' },
+      tooltip: { x: { format: 'dd MMM yyyy' } }
+    });
+
+    chart.render();
+
+    function updateRange(range) {
+      const block = dataSets[range];
+      chart.updateOptions({
+        series: [
+          { name: 'Transactions', data: block.tx },
+          { name: 'Estates Sold', data: block.est },
+          { name: 'New Clients', data: block.cli }
+        ],
+        xaxis: { categories: block.labels }
+      });
+    }
+
+    document.querySelectorAll('.btn-group button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateRange(btn.dataset.range);
+      });
+    });
+
+    // initialize
+    updateRange('weekly');
+  });
+</script>
+
+<style>
+  .info-card .card-icon { font-size: 1.5rem; }
+</style>
+
+{% endblock %}

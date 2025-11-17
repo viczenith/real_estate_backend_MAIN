@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Receipt</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+
+        html, body { font-family: 'Poppins', sans-serif !important; font-size: 12px; margin: 0; padding: 0; background: #fff; width: 100%; }
+
+        .receipt-main-container { width: 100%; max-width: 800px;  margin: 0 auto; padding: 20px; box-sizing: border-box; position: relative; background: #fff; }
+
+        .receipt-watermark-overlay { position: fixed; width: 100%; text-align: center; font-size: 150px; font-weight: 800; color: rgba(25, 118, 210, 0.05); top: 40%; left: 0; transform: rotate(-30deg); z-index: 0; pointer-events: none; }
+
+        .receipt-info-section, .receipt-property-details, .receipt-payment-table, .receipt-amount-box, .receipt-signature-area, .receipt-footer-section {
+            page-break-inside: avoid;
+        }
+
+        .receipt-header-section { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .receipt-header-section .receipt-logo-area { flex: 0 0 120px; }
+        .receipt-header-section .receipt-logo-area img { max-height: 80px; }
+        .receipt-header-section .receipt-company-info { text-align: center; flex: 1; }
+        .receipt-header-section .receipt-company-info .receipt-company-name { margin: 0; font-size: 24px; font-weight: bold; }
+        .receipt-header-section .receipt-company-info .receipt-company-tagline { margin: 2px 0; font-style: italic; }
+        .receipt-header-section .receipt-contact-info { flex: 0 0 200px; text-align: right; font-size: 10px; line-height: 1.2; }
+        .receipt-company-name { font-size: 20px; font-weight: bold; margin: 0; }
+        .receipt-company-tagline { margin: 5px 0; font-size: 11px; }
+        .receipt-title-heading { font-size: 20px; text-align: center; margin: 20px 0; }
+        .receipt-info-section { margin-bottom: 20px; }
+        .receipt-info-section h3 { background-color: #f0f0f0; padding: 5px; margin: 0 0 10px 0; }
+        .receipt-info-row { margin-bottom: 5px; }
+        .receipt-info-label { font-weight: bold; display: inline-block; width: 150px; }
+        .receipt-property-details { background-color: #e0e0e0; padding: 10px; margin-bottom: 20px; }
+        .receipt-property-details h2 { text-align: center; margin-top: 0; }
+        .receipt-payment-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .receipt-payment-table th { background-color: #333; color: white; text-align: left; padding: 8px; box-sizing: border-box; margin: 0 auto 20px; }
+        .receipt-payment-table td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .receipt-payment-table tr:nth-child(even) { background-color: #f2f2f2; }
+        .receipt-total-row { background-color: #333; color: white; font-weight: bold; }
+        .receipt-amount-box { background-color: #28a745; color: white; text-align: center; padding: 20px; margin: 20px 0; }
+        .receipt-amount-label { font-size: 18px; }
+        .receipt-amount-value { font-size: 36px; font-weight: bold; }
+        .receipt-signature-area { display: flex; justify-content: space-between; margin-top: 40px; }
+        .receipt-signature-box { width: 45%; text-align: center; }
+        .receipt-signature-line { border-bottom: 1px solid #000; height: 1px; margin: 0; }
+        .receipt-signature-line-client { border-bottom: 1px solid #000; height: 1px; margin: 40px 0 10px; }
+        .receipt-signature-box img { max-width: 100%; height: auto; }
+        .receipt-signature-caption { margin-top: 5px; font-size: 11px; color: #333; }
+        .receipt-footer-section { text-align: center; margin-top: 40px; font-size: 10px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="receipt-main-container">
+        <div class="receipt-watermark-overlay">NEURALENS</div>
+        <div class="receipt-header-section">
+            <div class="receipt-logo-area">
+                <img src="{% static 'assets/img/logo.png' %}" width="70" alt="Company Logo">
+            </div>
+            <div class="receipt-company-info">
+                <h1 class="receipt-company-name">NEURALENS PROPERTIES</h1>
+                <div class="receipt-company-tagline">Modern Technology Homes</div>
+            </div>
+            <div class="receipt-contact-info">
+                123 NeuraLens, Wuse Zone 4, Abuja<br>
+                +234 812 345 6789<br>
+                info@neuralensproperties.com
+            </div>
+        </div>
+
+        <h2 class="receipt-title-heading">OFFICIAL PAYMENT RECEIPT</h2>
+
+        <div class="receipt-info-section">
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Reference Number:</span>
+                {% if payment %}
+                    {{ payment.reference_code }}
+                {% else %}
+                    {{ transaction.reference_code }}
+                {% endif %}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Issue Date:</span>
+                {% if payment and payment.receipt_date %}
+                    {{ payment.receipt_date|date:"d M Y" }}
+                {% else %}
+                    {{ transaction.transaction_date|date:"d M Y" }}
+                {% endif %}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Payment Method:</span>
+                {% if payment %}
+                    {{ payment.get_payment_method_display }}
+                {% else %}
+                    {{ transaction.get_payment_method_display }}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="receipt-info-section">
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Client Name:</span>
+                {{ transaction.client.full_name }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Client ID:</span>
+                CLT{{ transaction.client.pk|stringformat:"04d" }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Contact:</span>
+                {{ transaction.client.phone|default:"N/A" }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Email:</span>
+                {{ transaction.client.email|default:"N/A" }}
+            </div>
+        </div>
+
+        <div class="receipt-property-details">
+            <h2>PROPERTY DETAILS</h2>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Estate:</span>
+                {{ transaction.allocation.estate.name }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Plot Size:</span>
+                {{ transaction.allocation.plot_size }}
+            </div>
+            <!-- <div class="receipt-info-row">
+                <span class="receipt-info-label">Allocation ID:</span>
+                {{ transaction.allocation.allocation_number }}
+            </div> -->
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Location:</span>
+                {{ transaction.allocation.estate.location }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Total Value:</span>
+                ₦{{ transaction.total_amount|floatformat:2 }}
+            </div>
+            <div class="receipt-info-row">
+                <span class="receipt-info-label">Payment Type:</span>
+                {% if transaction.allocation.payment_type == 'full' %}
+                    Full Payment
+                {% else %}
+                    Installment ({{ transaction.installment_plan }})
+                {% endif %}
+            </div>
+        </div>
+
+        <h3>PAYMENT DETAILS</h3>
+        <table class="receipt-payment-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Payment</th>
+                    <th>Amount (₦)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if payment %}
+                    {% for p in payments %}
+                    <tr>
+                        <td>Payment towards property acquisition</td>
+                        <td>{{ p.payment_date|date:"d M Y" }}</td>
+                        <td>{{ p.get_installment_display }} Installment</td>
+                        <td>{{ p.amount_paid|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>Full property payment</td>
+                        <td>{{ transaction.transaction_date|date:"d M Y" }}</td>
+                        <td>Full Payment</td>
+                        <td>{{ transaction.total_amount|floatformat:2 }}</td>
+                    </tr>
+                {% endif %}
+                <tr class="receipt-total-row">
+                    <td colspan="3" style="text-align: right;">TOTAL PAID:</td>
+                    <td>
+                        {% if payment %}
+                            {{ payments_total|floatformat:2 }}
+                        {% else %}
+                            {{ transaction.total_amount|floatformat:2 }}
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="receipt-amount-box">
+            <div class="receipt-amount-label">AMOUNT RECEIVED</div>
+            <div class="receipt-amount-value">
+                ₦{% if payment %}{{ payments_total|floatformat:2 }}{% else %}{{ transaction.total_amount|floatformat:2 }}{% endif %}
+            </div>
+        </div>
+
+        <div class="receipt-signature-area">
+            <div class="receipt-signature-box">
+                <img src="{% static 'assets/img/signature.png' %}" width="100" alt="Authorized Signature">
+                <div class="receipt-signature-line"></div>
+                <div class="receipt-signature-caption">Authorized Signature</div>
+            </div>
+            <div class="receipt-signature-box">
+                <div class="receipt-signature-line-client"></div>
+                <div class="receipt-signature-caption">Client Signature</div>
+            </div>
+        </div>
+
+        <div class="receipt-footer-section">
+            This is an official receipt from NeuraLens Properties. <br>
+            Please retain this document for your records.<br>
+            &copy; {% now "Y" %} NeuraLens Properties. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

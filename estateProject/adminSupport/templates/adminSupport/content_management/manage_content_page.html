@@ -1,0 +1,649 @@
+{% extends 'adminSupport/base.html' %}
+
+{% block title %}Manage Content{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div>
+        <h1>Manage Content</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'adminSupport:support_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Manage Content</li>
+            </ol>
+        </nav>
+    </div>
+    <div>
+        <button class="btn btn-success me-2" onclick="publishChanges()">
+            <i class="fas fa-rocket me-2"></i>Publish Changes
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contentEditorModal">
+            <i class="fas fa-edit me-2"></i>Edit Content
+        </button>
+    </div>
+</div>
+
+<!-- Content Status Overview -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 id="pendingChanges">5</h3>
+            <p>Pending Changes</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-success bg-opacity-10 text-success">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 id="publishedContent">28</h3>
+            <p>Published Content</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h3 id="drafts">7</h3>
+            <p>Drafts</p>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="stats-icon bg-info bg-opacity-10 text-info">
+                <i class="fas fa-history"></i>
+            </div>
+            <h3 id="lastPublished">2h ago</h3>
+            <p>Last Published</p>
+        </div>
+    </div>
+</div>
+
+<!-- Content Sections -->
+<div class="row">
+    <!-- Content List -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Content Items</h5>
+                <div>
+                    <div class="btn-group me-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="filterContent('all')">All</button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterContent('pending')">Pending</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="filterContent('published')">Published</button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterContent('draft')">Drafts</button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadContent()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="contentContainer">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading content...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recent Activity -->
+    <div class="col-lg-4 mb-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#contentEditorModal">
+                        <i class="fas fa-plus me-2"></i>Create New Content
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="bulkEdit()">
+                        <i class="fas fa-edit me-2"></i>Bulk Edit
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="publishChanges()">
+                        <i class="fas fa-rocket me-2"></i>Publish Pending
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="schedulePublish()">
+                        <i class="fas fa-clock me-2"></i>Schedule Publish
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="previewSite()">
+                        <i class="fas fa-eye me-2"></i>Preview Site
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentActivityContainer">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Editor Modal -->
+<div class="modal fade" id="contentEditorModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Content Editor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="contentEditorForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Content Title</label>
+                                <input type="text" class="form-control" name="title" required placeholder="Enter content title">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Content Type</label>
+                                <select class="form-select" name="content_type" required>
+                                    <option value="">Select Content Type</option>
+                                    <option value="page">Page</option>
+                                    <option value="post">Blog Post</option>
+                                    <option value="section">Page Section</option>
+                                    <option value="widget">Widget</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Content Body</label>
+                                <div class="border rounded">
+                                    <!-- Toolbar -->
+                                    <div class="border-bottom p-2">
+                                        <div class="btn-group btn-group-sm me-2">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="formatText('bold')">
+                                                <i class="fas fa-bold"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="formatText('italic')">
+                                                <i class="fas fa-italic"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="formatText('underline')">
+                                                <i class="fas fa-underline"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group btn-group-sm me-2">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="insertImage()">
+                                                <i class="fas fa-image"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="insertLink()">
+                                                <i class="fas fa-link"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="insertTable()">
+                                                <i class="fas fa-table"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="toggleEditor('visual')" id="visualBtn" class="active">
+                                                Visual
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="toggleEditor('code')" id="codeBtn">
+                                                Code
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Content Area -->
+                                    <div id="visualEditor" class="p-3" contenteditable="true" style="min-height: 300px; background: white;">
+                                        <p>Start typing your content here...</p>
+                                    </div>
+                                    <textarea id="codeEditor" class="form-control border-0" style="min-height: 300px; display: none;" name="content"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status">
+                                    <option value="draft">Draft</option>
+                                    <option value="pending">Pending Review</option>
+                                    <option value="published">Published</option>
+                                    <option value="scheduled">Scheduled</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Publish Date</label>
+                                <input type="datetime-local" class="form-control" name="publish_date">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">SEO Title</label>
+                                <input type="text" class="form-control" name="seo_title" placeholder="Optional SEO title">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Meta Description</label>
+                                <textarea class="form-control" name="meta_description" rows="3" placeholder="SEO meta description"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Featured Image</label>
+                                <div class="border rounded p-3 text-center">
+                                    <i class="fas fa-image fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-2">No image selected</p>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectFeaturedImage()">
+                                        Select Image
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Categories</label>
+                                <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="general" id="cat1">
+                                        <label class="form-check-label" for="cat1">General</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="properties" id="cat2">
+                                        <label class="form-check-label" for="cat2">Properties</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="news" id="cat3">
+                                        <label class="form-check-label" for="cat3">News</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="guides" id="cat4">
+                                        <label class="form-check-label" for="cat4">Guides</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="previewContent()">
+                        <i class="fas fa-eye me-2"></i>Preview
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Content
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Publish Modal -->
+<div class="modal fade" id="schedulePublishModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Schedule Publish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="schedulePublishForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Publish Date & Time</label>
+                        <input type="datetime-local" class="form-control" name="scheduled_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content to Publish</label>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="content1" value="1">
+                                <label class="form-check-label" for="content1">
+                                    Home Page Updates
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="content2" value="2">
+                                <label class="form-check-label" for="content2">
+                                    New Property Listings
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="content3" value="3">
+                                <label class="form-check-label" for="content3">
+                                    Blog Post: Market Trends
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notification</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="notify_users" checked>
+                            <label class="form-check-label">
+                                Notify users about updates
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-clock me-2"></i>Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    loadContent();
+    loadRecentActivity();
+});
+
+function loadContent() {
+    $('#contentContainer').html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading content...</p>
+        </div>
+    `);
+    
+    // Simulate loading content
+    setTimeout(function() {
+        const sampleContent = [
+            {
+                id: 1,
+                title: "Home Page Hero Section",
+                type: "section",
+                status: "pending",
+                modified: "2025-01-09T14:30:00Z",
+                author: "Admin"
+            },
+            {
+                id: 2,
+                title: "About Us Page",
+                type: "page",
+                status: "published",
+                modified: "2025-01-08T16:20:00Z",
+                author: "Content Manager"
+            },
+            {
+                id: 3,
+                title: "Property Listing Widget",
+                type: "widget",
+                status: "draft",
+                modified: "2025-01-07T11:15:00Z",
+                author: "Developer"
+            },
+            {
+                id: 4,
+                title: "Market Trends Blog Post",
+                type: "post",
+                status: "pending",
+                modified: "2025-01-06T09:45:00Z",
+                author: "Content Writer"
+            },
+            {
+                id: 5,
+                title: "Contact Page Form",
+                type: "section",
+                status: "published",
+                modified: "2025-01-05T13:30:00Z",
+                author: "Admin"
+            }
+        ];
+        
+        displayContent(sampleContent);
+    }, 1500);
+}
+
+function displayContent(content) {
+    let html = '';
+    
+    content.forEach(function(item) {
+        const statusClass = item.status === 'published' ? 'success' : item.status === 'pending' ? 'warning' : 'secondary';
+        const statusIcon = item.status === 'published' ? 'check' : item.status === 'pending' ? 'clock' : 'edit';
+        const typeIcon = item.type === 'page' ? 'file-alt' : item.type === 'post' ? 'newspaper' : item.type === 'section' ? 'puzzle-piece' : 'cube';
+        
+        html += `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 me-3">
+                                    <i class="fas fa-${typeIcon}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${item.title}</h6>
+                                    <p class="text-muted mb-1 small">Type: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</p>
+                                    <span class="badge bg-${statusClass}">
+                                        <i class="fas fa-${statusIcon} me-1"></i>${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Modified</small><br>
+                            <small>${new Date(item.modified).toLocaleString()}</small><br>
+                            <small class="text-muted">by ${item.author}</small>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editContent(${item.id})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-success" onclick="previewContent(${item.id})" title="Preview">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="duplicateContent(${item.id})"><i class="fas fa-copy me-2"></i>Duplicate</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="viewHistory(${item.id})"><i class="fas fa-history me-2"></i>View History</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteContent(${item.id})"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    $('#contentContainer').html(html);
+}
+
+function loadRecentActivity() {
+    $('#recentActivityContainer').html(`
+        <div class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+    
+    setTimeout(function() {
+        const activities = [
+            { title: "Content Published", description: "Home Page Hero Section published", time: "1 hour ago", icon: "rocket" },
+            { title: "Draft Saved", description: "Property Widget draft saved", time: "2 hours ago", icon: "save" },
+            { title: "Content Created", description: "New blog post created", time: "3 hours ago", icon: "plus" },
+            { title: "Review Requested", description: "Market Trends post sent for review", time: "5 hours ago", icon: "eye" }
+        ];
+        
+        let html = '';
+        activities.forEach(function(activity) {
+            html += `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-${activity.icon} fa-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 small">${activity.title}</h6>
+                        <p class="mb-0 text-muted small">${activity.description}</p>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        $('#recentActivityContainer').html(html);
+    }, 1000);
+}
+
+function filterContent(status) {
+    console.log(`Filter content by: ${status}`);
+    // Implement filtering logic here
+}
+
+function editContent(id) {
+    $('#contentEditorModal').modal('show');
+    // Load content data for editing
+    console.log(`Edit content ${id}`);
+}
+
+function previewContent(id) {
+    if (id) {
+        console.log(`Preview content ${id}`);
+    } else {
+        // Preview current editor content
+        alert('Preview functionality coming soon!');
+    }
+}
+
+function duplicateContent(id) {
+    console.log(`Duplicate content ${id}`);
+}
+
+function viewHistory(id) {
+    console.log(`View history for content ${id}`);
+}
+
+function deleteContent(id) {
+    if (confirm('Are you sure you want to delete this content?')) {
+        console.log(`Delete content ${id}`);
+    }
+}
+
+function publishChanges() {
+    if (confirm('Publish all pending changes?')) {
+        alert('Publishing changes...');
+        setTimeout(function() {
+            alert('Changes published successfully!');
+            loadContent();
+        }, 2000);
+    }
+}
+
+function bulkEdit() {
+    alert('Bulk edit functionality coming soon!');
+}
+
+function schedulePublish() {
+    $('#schedulePublishModal').modal('show');
+}
+
+function previewSite() {
+    window.open('/', '_blank');
+}
+
+// Content Editor Functions
+function formatText(command) {
+    document.execCommand(command, false, null);
+    $('#visualEditor').focus();
+}
+
+function insertImage() {
+    const url = prompt('Enter image URL:');
+    if (url) {
+        document.execCommand('insertImage', false, url);
+    }
+}
+
+function insertLink() {
+    const url = prompt('Enter URL:');
+    if (url) {
+        document.execCommand('createLink', false, url);
+    }
+}
+
+function insertTable() {
+    const html = `
+        <table class="table table-bordered">
+            <tr><td>Cell 1</td><td>Cell 2</td></tr>
+            <tr><td>Cell 3</td><td>Cell 4</td></tr>
+        </table>
+    `;
+    document.execCommand('insertHTML', false, html);
+}
+
+function toggleEditor(mode) {
+    if (mode === 'visual') {
+        $('#visualEditor').show();
+        $('#codeEditor').hide();
+        $('#visualBtn').addClass('active');
+        $('#codeBtn').removeClass('active');
+        
+        // Update visual editor with code content
+        $('#visualEditor').html($('#codeEditor').val());
+    } else {
+        $('#visualEditor').hide();
+        $('#codeEditor').show();
+        $('#visualBtn').removeClass('active');
+        $('#codeBtn').addClass('active');
+        
+        // Update code editor with visual content
+        $('#codeEditor').val($('#visualEditor').html());
+    }
+}
+
+function selectFeaturedImage() {
+    alert('Featured image selector coming soon!');
+}
+
+// Update code editor when visual editor changes
+$('#visualEditor').on('input', function() {
+    $('#codeEditor').val($(this).html());
+});
+
+// Update visual editor when code editor changes
+$('#codeEditor').on('input', function() {
+    $('#visualEditor').html($(this).val());
+});
+
+// Form submissions
+$('#contentEditorForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    // Get content from active editor
+    const content = $('#visualEditor').is(':visible') ? $('#visualEditor').html() : $('#codeEditor').val();
+    
+    alert('Content saved successfully!');
+    $('#contentEditorModal').modal('hide');
+    loadContent();
+});
+
+$('#schedulePublishForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    alert('Content scheduled for publishing!');
+    $('#schedulePublishModal').modal('hide');
+});
+</script>
+{% endblock %}

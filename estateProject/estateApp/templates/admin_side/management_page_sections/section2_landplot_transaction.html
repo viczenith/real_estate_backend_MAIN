@@ -1,0 +1,1064 @@
+{% load static %}
+
+<!-- Land Plot Transactions Tab -->
+<div class="tab-pane fade" id="transactions" role="tabpanel" aria-labelledby="payments-tab">
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="card-title mb-0 text-color">
+                                <i class="bi bi-house-check me-2"></i>Land Plot Transactions
+                            </h3>
+                            <div>
+                                <!-- <button class="btn btn-primary me-2" id="exportTransactionsBtn">
+                                    <i class="bi bi-download me-2"></i>Export
+                                </button> -->
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Transaction
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pending Sales Notification -->
+                        {% if pending_allocations %}
+                        <div class="row mb-4">
+                            <div class="alert alert-warning">
+                                <strong>Pending Transactions:</strong><br>
+                                You have <strong>{{ pending_allocations.count }}</strong> new plot allocations 
+                                that haven't been added to Sales yet:
+                                <ul class="mb-0">
+                                {% for alloc in pending_allocations %}
+                                    <li>
+                                        <a href="#"
+                                            style="color: #664d03;"
+                                            class="pending-item"
+                                            data-client-id="{{ alloc.client.id }}"
+                                            data-allocation-id="{{ alloc.id }}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addTransactionModal">
+                                            {{ alloc.client.full_name }} -
+                                            {{ alloc.estate.name }} ({{ alloc.plot_size_unit.plot_size.size }})
+                                            allocated on {{ alloc.date_allocated|date:"d M Y" }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Filters -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <select class="form-select" id="estateFilter">
+                                    <option value="">All Estates</option>
+                                    {% for estate in estates %}
+                                        <option value="{{ estate.name }}">{{ estate.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Statuses</option>
+                                    <option value="Fully Paid">Fully Paid</option>
+                                    <option value="Paid Complete">Paid Complete</option>
+                                    <option value="Part Payment">Part Payment</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="marketerFilter">
+                                    <option value="">All Marketers</option>
+                                    {% for marketer in marketers %}
+                                        <option value="{{ marketer.full_name }}">{{ marketer.full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" id="clientSearch" placeholder="Search client...">
+                            </div>
+                        </div>
+
+                        <!-- Main Sales Table -->
+                        <div class="table-responsive">
+                            <table class="table data-table" id="salesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Estate Name</th>
+                                        <th>Plot Size</th>
+                                        <th>Marketer</th>
+                                        <th>Client</th>
+                                        <th>Date</th>
+                                        <th>Actual Amount (₦)</th>
+                                        <th>First Installment</th>
+                                        <th>Second Installment</th>
+                                        <th>Third Installment</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for txn in transactions %}
+                                        <tr
+                                        data-estate="{{ txn.allocation.estate.name }}"
+                                        data-status="{{ txn.status }}"
+                                        data-marketer="{{ txn.marketer.full_name }}"
+                                        data-client="{{ txn.client.full_name|lower }}"
+                                        data-payment-type="{{ txn.allocation.payment_type }}"
+                                        >
+                                        <td>{{ txn.allocation.estate.name }}</td>
+                                        <td>{{ txn.allocation.plot_size_unit.plot_size.size }}</td>
+                                        <td>{{ txn.marketer.full_name }}</td>
+                                        <td>{{ txn.client.full_name }}</td>
+                                        <td>{{ txn.transaction_date|date:"d M Y" }}</td>
+                                        <td>₦{{ txn.total_amount|floatformat:2 }}</td>
+                                        <td>₦{{ txn.first_installment|default:"0.00"|floatformat:2 }}</td>
+                                        <td>₦{{ txn.second_installment|default:"0.00"|floatformat:2 }}</td>
+                                        <td>₦{{ txn.third_installment|default:"0.00"|floatformat:2 }}</td>
+
+                                        <td data-label="Status">
+                                            {% if txn.status == 'Fully Paid' %}
+                                            <span class="badge badge-paid">
+                                                <i class="bi bi-check-circle me-1"></i>Fully Paid
+                                            </span>
+                                            {% elif txn.status == 'Paid Complete' %}
+                                            <span class="badge badge-paid">
+                                                <i class="bi bi-check-circle me-1"></i>Paid Complete
+                                            </span>
+                                            {% elif txn.status == 'Part Payment' %}
+                                            <span class="badge badge-partial">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Part Payment
+                                            </span>
+                                            {% elif txn.status == 'Pending' %}
+                                            <span class="badge badge-pending">
+                                                <i class="bi bi-clock me-1"></i>Pending
+                                            </span>
+                                            {% elif txn.status == 'Overdue' %}
+                                            <span class="badge badge-overdue">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Overdue
+                                            </span>
+                                            <div class="payment-progress">
+                                                <div class="payment-progress-bar"
+                                                    style="width:33%; background-color:var(--danger)"></div>
+                                            </div>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ txn.status }}</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td data-label="Actions">
+                                            <div class="action-buttons">
+                                            <button class="btn btn-sm btn-primary"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#transactionDetailsModal"
+                                                    data-id="{{ txn.id }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+
+                                            {% if txn.status != 'Fully Paid' and txn.status != 'Paid Complete' %}
+                                                <button class="btn btn-sm btn-success"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#recordPaymentModal"
+                                                        data-id="{{ txn.id }}">
+                                                <i class="bi bi-cash"></i>
+                                                </button>
+                                            {% endif %}
+
+                                            {% if txn.status == 'Overdue' %}
+                                                <button class="btn btn-sm btn-warning"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#sendReminderModal"
+                                                        data-id="{{ txn.id }}">
+                                                <i class="bi bi-envelope"></i>
+                                                </button>
+                                            {% endif %}
+                                            </div>
+                                        </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                        <td colspan="11" class="text-center">
+                                            No transactions found.
+                                        </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Record Payment Modal -->
+    <div class="modal fade" id="recordPaymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form id="recordPaymentForm" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" id="rp_transaction_id" name="transaction_id">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                <label>Client</label>
+                <input id="rp_client" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                <label>Estate &amp; Plot</label>
+                <input id="rp_estate_plot" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                <label>Total Amount</label>
+                <input id="rp_total_amount" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                <label>Installment</label>
+                <select id="rp_installment" name="installment" class="form-select" required>
+                    <option>Loading…</option>
+                </select>
+                </div>
+                <div class="mb-3">
+                <label>Amount Paid (₦)</label>
+                <input type="number" name="amount_paid" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                <label>Payment Date</label>
+                <input type="date" name="payment_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                <label>Payment Method</label>
+                <select name="payment_method" class="form-select" required>
+                    <option value="">Select…</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="cash">Cash</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="pos">POS</option>
+                </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">Record Payment</button>
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <!-- Left column -->
+                    <div class="col-md-6">
+                        <h6>Transaction Information</h6>
+                        <table class="table table-sm">
+                        <tr><th>Estate:</th>        <td id="td_estate"></td></tr>
+                        <tr><th>Plot Size:</th>     <td id="td_plot_size"></td></tr>
+                        <tr><th>Marketer:</th>      <td id="td_marketer"></td></tr>
+                        <tr><th>Client:</th>        <td id="td_client"></td></tr>
+                        <tr><th>Date:</th>          <td id="td_date"></td></tr>
+                        <tr><th>Total Amount:</th>  <td id="td_amount" class="currency"></td></tr>
+                        <tr>
+                            <th>Payment Type:</th>
+                            <td id="td_payment_type"></td>
+                        </tr>
+                        </table>
+                    </div>
+                    <!-- Right column -->
+                    <div class="col-md-6">
+                        <h6>Payment Information</h6>
+                        <table class="table table-sm">
+                        <tr>
+                            <th>Status:</th>
+                            <td id="td_status"></td>
+                        </tr>
+                        <!-- Payment Duration row -->
+                        <tr id="td_payment_duration_row" style="display: none;">
+                            <th>Payment Duration:</th>
+                            <td id="td_payment_duration"></td>
+                        </tr>
+                        <!-- Installment Plan & amounts -->
+                        <tr id="td_installment_plan_row" style="display: none;">
+                            <th>Installment Plan:</th>
+                            <td id="td_installment_plan"></td>
+                        </tr>
+                        <tr id="td_first_installment_row" style="display: none;">
+                            <th>First Installment:</th>
+                            <td id="td_first_installment" class="currency"></td>
+                        </tr>
+                        <tr id="td_second_installment_row" style="display: none;">
+                            <th>Second Installment:</th>
+                            <td id="td_second_installment" class="currency"></td>
+                        </tr>
+                        <tr id="td_third_installment_row" style="display: none;">
+                            <th>Third Installment:</th>
+                            <td id="td_third_installment" class="currency"></td>
+                        </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="td_payment_history"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Generate Receipt Modal -->
+    <div class="modal fade" id="generateReceiptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Generate Receipt</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Client</label>
+                        <input type="text" class="form-control" id="gr_client" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estate & Plot</label>
+                        <input type="text" class="form-control" id="gr_estate_plot" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount Paid</label>
+                        <input type="text" class="form-control" id="gr_amount" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Date</label>
+                        <input type="text" class="form-control" id="gr_date" readonly>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sendReceiptCheckbox" checked>
+                        <label class="form-check-label" for="sendReceiptCheckbox">
+                            Send receipt to client via email and app notification
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="generateReceiptBtn">Generate Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Reminder Modal -->
+    <div class="modal fade" id="sendReminderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Send Payment Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Client</label>
+                        <input type="text" class="form-control" id="sr_client" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estate & Plot</label>
+                        <input type="text" class="form-control" id="sr_estate_plot" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Outstanding Amount</label>
+                        <input type="text" class="form-control" id="sr_amount" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Next Due Date</label>
+                        <input type="text" class="form-control" id="sr_due_date" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reminderMessage" class="form-label">Custom Message</label>
+                        <textarea class="form-control" id="reminderMessage" rows="3" placeholder="Add a custom message to the reminder..."></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sendSmsReminder" checked>
+                        <label class="form-check-label" for="sendSmsReminder">
+                            Also send SMS reminder
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="sendReminderBtn">Send Reminder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div class="modal fade" id="addTransactionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Add New Land Plot Transaction</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="transactionForm" method="post" action="{% url 'add-transaction' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                    <label class="form-label">Marketer</label>
+                    <input type="text" id="marketer" name="marketer" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Client</label>
+                    <select id="client" name="client" class="form-select" required>
+                        <option value="">Select Client</option>
+                        {% for c in all_clients %}
+                        <option value="{{ c.id }}">{{ c.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                    <label class="form-label">Allocation</label>
+                    <select id="allocation" name="allocation" class="form-select" disabled required>
+                        <option value="">Select Allocation</option>
+                    </select>
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Plot Size</label>
+                    <input type="text" id="plot_size" name="plot_size" class="form-control" readonly>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                    <label class="form-label">Transaction Date</label>
+                    <input type="date" id="transaction_date" name="transaction_date"
+                            class="form-control" readonly required>
+                    </div>
+                    <div class="col-md-6">
+                    <label class="form-label">Sales Amount (₦)</label>
+                    <input type="number" id="total_amount" name="total_amount"
+                            class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                    <label class="form-label">Payment Type</label>
+                    <input type="text" id="payment_type" name="payment_type"
+                            class="form-control" readonly required>
+                    </div>
+                    <div class="col-md-4" id="installmentPlanField" style="display:none;">
+                    <label class="form-label">Installment Plan</label>
+                    <select id="installment_plan" name="installment_plan" class="form-select">
+                        <option value="">Select Plan</option>
+                        <option value="50-30-20">50% - 30% - 20%</option>
+                        <option value="60-20-20">60% - 20% - 20%</option>
+                        <option value="40-30-30">40% - 30% - 30%</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    </div>
+                    <div class="col-md-4" id="customPlanField" style="display:none;">
+                    <label class="form-label">Custom (%)</label>
+                    <div class="input-group">
+                        <input type="number" id="first_percent"  name="first_percent"
+                            class="form-control" placeholder="First"  min="0" max="100">
+                        <input type="number" id="second_percent" name="second_percent"
+                            class="form-control" placeholder="Second" min="0" max="100">
+                        <input type="number" id="third_percent"  name="third_percent"
+                            class="form-control" placeholder="Third"  min="0" max="100">
+                    </div>
+                    </div>
+                </div>
+
+                
+                <div class="row mb-3" id="fullPaymentFields" style="display:none;">
+                    <div class="col-md-6">
+                        <label class="form-label">Payment Method</label>
+                        <select id="payment_method" name="payment_method" class="form-select">
+                        <option value="">Select Method</option>
+                        <option value="bank">Bank Transfer</option>
+                        <option value="cash">Cash</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="pos">POS</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Reference Code</label>
+                        <input type="text" id="reference_code" name="reference_code"
+                            class="form-control" readonly>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4" id="durationField" style="display:none;">
+                    <label class="form-label">Payment Duration</label>
+                    <select id="paymentDuration" name="payment_duration" class="form-select">
+                        <option value="3">3 Months</option>
+                        <option value="6">6 Months</option>
+                        <option value="12">12 Months</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    </div>
+                    <div class="col-md-4" id="customDurationField" style="display:none;">
+                    <label class="form-label">Custom Duration (Months)</label>
+                    <input type="number" id="customDuration" name="custom_duration"
+                            class="form-control" min="1" max="36">
+                    </div>
+                </div>
+
+                <div id="installmentPreview" style="display:none;"></div>
+
+                <div class="mb-3">
+                    <label class="form-label">Special Notes</label>
+                    <textarea id="special_notes" name="special_notes"
+                            class="form-control" rows="3"></textarea>
+                </div>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Save Transaction
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#client').on('change', function(){
+            const cid = this.value;
+            if (!cid) {
+            $('#marketer').val('');
+            $('#allocation').prop('disabled', true)
+                            .html('<option value="">Select Allocation</option>');
+            return;
+            }
+            // marketer
+            $.get("{% url 'ajax_client_marketer' %}", { client_id: cid })
+            .done(d => $('#marketer').val(d.marketer_name))
+            .fail(() => console.error('Failed to load marketer'));
+            // allocations
+            $.get("{% url 'ajax_client_allocations' %}", { client_id: cid })
+            .done(list => {
+            const $alloc = $('#allocation').empty()
+                            .append('<option value="">Select Allocation</option>');
+            list.forEach(o => {
+                $alloc.append(`
+                <option value="${o.id}"
+                        data-plot-size="${o.plot_size}"
+                        data-payment-type="${o.payment_type}">
+                    ${o.estate_name}
+                </option>`);
+            });
+            $alloc.prop('disabled', false);
+            })
+            .fail(() => console.error('Failed to load allocations'));
+        });
+
+        $('#allocation').on('change', function(){
+            const aid = this.value;
+            if (!aid) return;
+
+            const clientId = $('#client').val();
+
+            // 1) Fetch allocation info
+            $.get("{% url 'ajax_allocation_info' %}", { allocation_id: aid })
+                .done(d => {
+                // core fields
+                $('#plot_size').val(d.plot_size);
+                $('#transaction_date').val(d.transaction_date).prop('readonly', true);
+                $('#total_amount').val(d.total_amount);
+                $('#special_notes').val(d.special_notes);
+
+                // unify payment_type badge/text
+                const isPart = d.payment_type === 'part';
+                $('#payment_type').val(isPart ? 'Part Payment' : 'Full Payment');
+
+                // Part-payment: show installment & duration
+                if (isPart) {
+                    $('#installmentPlanField, #durationField').show();
+                    $('#installment_plan').val(d.installment_plan || '');
+
+                    if (d.installment_plan === 'custom') {
+                    $('#customPlanField').show()
+                        .find('#first_percent').val(d.first_percent);
+                    $('#customPlanField')
+                        .find('#second_percent').val(d.second_percent);
+                    $('#customPlanField')
+                        .find('#third_percent').val(d.third_percent);
+                    } else {
+                    $('#customPlanField').hide();
+                    }
+
+                    if (d.payment_duration) {
+                    $('#paymentDuration').val(d.payment_duration);
+                    $('#customDurationField').hide();
+                    }
+                    else if (d.custom_duration) {
+                    $('#paymentDuration').val('custom');
+                    $('#customDuration').val(d.custom_duration);
+                    $('#customDurationField').show();
+                    }
+                }
+                // Full-payment: hide part fields
+                else {
+                    $('#installmentPlanField, #customPlanField, #durationField, #customDurationField')
+                    .hide();
+                }
+
+                calculatePreview();
+
+                // 2) Show/hide & populate full-payment fields
+                if (!isPart) {
+                    $('#fullPaymentFields').show();
+
+                    // fetch existing payment_method & reference_code (if any)
+                    $.get("{% url 'ajax_existing_transaction' %}", {
+                    client_id:     clientId,
+                    allocation_id: aid
+                    }).done(tx => {
+                    $('#payment_method').val(tx.payment_method || '');
+                    $('#reference_code').val(tx.reference_code || '');
+                    });
+                } else {
+                    $('#fullPaymentFields').hide();
+                }
+                })
+                .fail(() => console.error('Failed to load allocation info'));
+            });
+
+        $('#installment_plan').on('change', function(){
+            $(this).val() === 'custom'
+            ? $('#customPlanField').show()
+            : $('#customPlanField').hide();
+            calculatePreview();
+        });
+
+        $('#paymentDuration').on('change', function(){
+            $(this).val() === 'custom'
+            ? $('#customDurationField').show()
+            : $('#customDurationField').hide();
+        });
+
+        function calculatePreview(){
+            const total = parseFloat($('#total_amount').val()) || 0;
+            const plan  = $('#installment_plan').val();
+            if (total <= 0 || !plan) return $('#installmentPreview').hide();
+
+            let pcts = plan === 'custom'
+            ? [ +$('#first_percent').val(), +$('#second_percent').val(), +$('#third_percent').val() ]
+            : plan.split('-').map(Number);
+
+            if (pcts.length !== 3 || pcts.reduce((a,b)=>a+b,0) !== 100) {
+            return $('#installmentPreview').hide();
+            }
+            const amts = pcts.map(p => total * p / 100);
+            $('#installmentPreview').html(`
+            <div class="alert alert-info">
+                <ul class="mb-0">
+                <li>First: ₦${amts[0].toFixed(2)}</li>
+                <li>Second: ₦${amts[1].toFixed(2)}</li>
+                <li>Third: ₦${amts[2].toFixed(2)}</li>
+                </ul>
+            </div>
+            `).show();
+        }
+        
+        $('#total_amount, #first_percent, #second_percent, #third_percent')
+            .on('input', calculatePreview);
+
+        // Transaction form
+        $('#transactionForm').on('submit', function(e){
+            e.preventDefault();
+            const $form = $(this);
+            const url   = $form.attr('action');
+
+            $.ajax({
+            url:     url,
+            type:    'POST',
+            data:    $form.serialize(),
+            success: function(){
+                // on success, close modal & reload dashboard
+                $('#addTransactionModal').modal('hide');
+                window.location.reload();
+            },
+            error: function(xhr){
+                // show server error message inside the modal
+                const err = xhr.responseJSON?.error || xhr.responseText || 'Unknown error';
+                alert('Error saving transaction: ' + err);
+            }
+            });
+        });
+
+
+        // Installment Preview Calculation
+        function calculateInstallments() {
+            const total = parseFloat($('#total_amount').val()) || 0;
+            const plan = $('#installment_plan').val();
+
+            if ($('#payment_type').val() !== 'Part Payment' || total <= 0) {
+                return $('#installmentPreview').hide();
+            }
+
+            let pcts;
+            if (plan === 'custom') {
+                pcts = [
+                    parseFloat($('#first_percent').val()) || 0,
+                    parseFloat($('#second_percent').val()) || 0,
+                    parseFloat($('#third_percent').val()) || 0
+                ];
+            } else {
+                pcts = plan.split('-').map(Number);
+            }
+
+            if (pcts.length !== 3 || pcts.reduce((x,y)=>x+y,0) !== 100) {
+                return $('#installmentPreview').hide();
+            }
+
+            const amounts = pcts.map(p => total * p / 100);
+            displayInstallmentAmounts(amounts[0], amounts[1], amounts[2]);
+        }
+
+        function displayInstallmentAmounts(a, b, c) {
+            $('#installmentPreview').html(`
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Installment amounts:
+                    <ul class="mb-0">
+                        <li>First: ₦${a.toFixed(2)}</li>
+                        <li>Second: ₦${b.toFixed(2)}</li>
+                        <li>Third: ₦${c.toFixed(2)}</li>
+                    </ul>
+                </div>
+            `).show();
+        }
+
+        $('#total_amount, #first_percent, #second_percent, #third_percent').on('input', calculateInstallments);
+
+        // Pending Sales Handling
+        let pendingAllocId = null;
+
+        // Pending Transactions
+        $('.pending-item').on('click', function(e){
+            e.preventDefault();
+            const clientId = $(this).data('client-id');
+            const allocId = $(this).data('allocation-id');
+            $('#client').val(clientId).trigger('change');
+            
+            setTimeout(() => {
+                $('#allocation').val(allocId).trigger('change');
+            }, 500);
+        });
+        
+
+        // Table Filters
+        function applyFilters() {
+            const e = $('#estateFilter').val();
+            const s = $('#statusFilter').val();
+            const m = $('#marketerFilter').val();
+            const q = $('#clientSearch').val().trim().toLowerCase();
+
+            $('#salesTable tbody tr').each(function() {
+                const re = $(this).data('estate');
+                const rs = $(this).data('status');
+                const rm = $(this).data('marketer');
+                const rc = $(this).data('client');
+
+                const show =
+                    (!e || re === e) &&
+                    (!s || rs === s) &&
+                    (!m || rm === m) &&
+                    (!q || rc.includes(q));
+
+                $(this).toggle(show);
+            });
+        }
+
+        $('#estateFilter, #statusFilter, #marketerFilter').on('change', applyFilters);
+        $('#clientSearch').on('input', applyFilters);
+
+        // // Record Payment Modal
+        $('#recordPaymentModal').on('show.bs.modal', function(e) {
+            const btn = $(e.relatedTarget);
+            const txnId = btn.data('id');
+            const row = btn.closest('tr');
+            
+            $('#rp_transaction_id').val(txnId);
+            $('#rp_client').val(row.find('td').eq(3).text());
+            $('#rp_estate_plot').val(
+                row.find('td').eq(0).text() + ' (' + row.find('td').eq(1).text() + ')'
+            );
+            
+            // Format amount correctly (remove currency symbols)
+            const totalAmount = row.find('td').eq(5).text().replace(/[^\d.]/g, '');
+            $('#rp_total_amount').val(totalAmount);
+
+            // Populate installments dropdown:
+            $.get("{% url 'ajax_get_unpaid_installments' %}", { transaction_id: txnId })
+                .done(data => {
+                    const $sel = $('#rp_installment').empty()
+                        .append('<option value="">Select Installment</option>');
+
+                    data.installments.forEach(inst => {
+                        // Only show installments that are not fully paid
+                        if (parseFloat(inst.remaining) > 0) {
+                            const textLabel = inst.label || `Installment ${inst.n}`;
+                            const rem = parseFloat(inst.remaining).toFixed(2);
+                            
+                            $sel.append(
+                                `<option value="${inst.n}">` +
+                                `${textLabel} (Remaining: ₦${rem})` +
+                                `</option>`
+                            );
+                        }
+                    });
+                })
+                .fail(() => {
+                    $('#rp_installment').html('<option>Error loading installments</option>');
+                });
+        });
+
+        // Submit record-payment form
+        $('#recordPaymentForm').on('submit', function(e) {
+            e.preventDefault();
+            const $btn = $(this).find('button[type=submit]')
+                .prop('disabled', true)
+                .html('<span class="spinner-border spinner-border-sm"></span> Recording...');
+
+            $.post("{% url 'ajax_record_payment' %}", $(this).serialize())
+                .done(resp => {
+                    if (resp.success) {
+                        // Refresh the page to update payment status
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (resp.error || 'Unknown error occurred'));
+                        $btn.prop('disabled', false).text('Record Payment');
+                    }
+                })
+                .fail(xhr => {
+                    alert('Error saving payment: ' + xhr.responseText);
+                    $btn.prop('disabled', false).text('Record Payment');
+                });
+        });
+
+
+
+        function formatCurrency(v){
+            return '₦'+ parseFloat(v || 0).toLocaleString(undefined,{
+            minimumFractionDigits:2, maximumFractionDigits:2
+            });
+        }
+
+        $('#transactionDetailsModal').on('show.bs.modal', function(e){
+            const id = $(e.relatedTarget).data('id');
+
+            // clear & hide all optional rows
+            $('#transactionDetailsModal td').text('');
+            $('#td_status,#td_payment_type,#td_payment_history').empty();
+            $('#td_payment_duration_row,'
+            + '#td_installment_plan_row,'
+            + '#td_first_installment_row,'
+            + '#td_second_installment_row,'
+            + '#td_third_installment_row').hide();
+
+            // 1) Fetch details
+            $.get(`/transaction/${id}/details/`)
+            .done(d => {
+                // Basic info
+                $('#td_estate').text(d.allocation.estate.name);
+                $('#td_plot_size').text(d.allocation.plot_size);
+                $('#td_marketer').text(d.marketer);
+                $('#td_client').text(d.client);
+                $('#td_date').text(d.transaction_date);
+                $('#td_amount').text(formatCurrency(d.total_amount));
+
+                // Payment Type badge
+                const ptHtml = d.allocation.payment_type === 'part'
+                ? '<span class="badge bg-info text-dark"><i class="bi bi-credit-card-2-front me-1"></i>Part Payment</span>'
+                : '<span class="badge bg-primary"><i class="bi bi-cash-stack me-1"></i>Full Payment</span>';
+                $('#td_payment_type').html(ptHtml);
+
+                // Status badge
+                let statusHtml = '';
+                switch(d.status){
+                case 'Paid Complete':
+                case 'Fully Paid':
+                    statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>'+d.status+'</span>';
+                    break;
+                case 'Part Payment':
+                    statusHtml = '<span class="badge bg-warning text-dark"><i class="bi bi-arrow-repeat me-1"></i>'+d.status+'</span>';
+                    break;
+                case 'Overdue':
+                    statusHtml = '<span class="badge bg-danger"><i class="bi bi-exclamation-circle me-1"></i>'+d.status+'</span>';
+                    break;
+                default:
+                    statusHtml = '<span class="badge bg-secondary"><i class="bi bi-hourglass-split me-1"></i>'+d.status+'</span>';
+                }
+                $('#td_status').html(statusHtml);
+
+                // If part-payment, show duration & installments
+                if(d.allocation.payment_type === 'part'){
+                // Payment Duration
+                let durText = '';
+                if(d.payment_duration){
+                    durText = d.payment_duration + ' month' + (d.payment_duration>1?'s':'');
+                } else if(d.custom_duration){
+                    durText = d.custom_duration + ' month' + (d.custom_duration>1?'s':'');
+                }
+                if(durText){
+                    $('#td_payment_duration').text(durText);
+                    $('#td_payment_duration_row').show();
+                }
+
+                // Installment plan
+                const planText = d.installment_plan === 'custom'
+                    ? `${d.first_percent}%, ${d.second_percent}%, ${d.third_percent}%`
+                    : d.installment_plan.split('-').join('%, ') + '%';
+                $('#td_installment_plan').text(planText);
+                $('#td_installment_plan_row').show();
+
+                // Installment amounts
+                $('#td_first_installment').text(formatCurrency(d.first_installment));
+                $('#td_first_installment_row').show();
+                $('#td_second_installment').text(formatCurrency(d.second_installment));
+                $('#td_second_installment_row').show();
+                $('#td_third_installment').text(formatCurrency(d.third_installment));
+                $('#td_third_installment_row').show();
+                }
+            })
+            .fail(()=> alert('Error loading transaction details'));
+
+            // 2) Fetch payment history
+            $.get("{% url 'ajax_payment_history' %}", { transaction_id: id })
+                .done(d => {
+                    let html = '<h6>Payment History</h6>' +
+                            '<table class="table table-sm table-hover align-middle">' +
+                            '<thead><tr>' +
+                            '<th>Date</th>' +
+                            '<th>Amount</th>' +
+                            '<th>Method</th>' +
+                            '<th>Installment</th>' +
+                            '<th>Reference</th>' +
+                            '<th class="text-end">Action</th>' +
+                            '</tr></thead><tbody>';
+                    
+                    if(d.payments?.length){
+                        d.payments.forEach(p => {
+                            html += `<tr>
+                                <td>${p.date}</td>
+                                <td>${formatCurrency(p.amount)}</td>
+                                <td>${p.method}</td>
+                                <td>${p.installment}</td>
+                                <td>${p.reference||''}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary view-receipt-btn" 
+                                            data-reference="${p.reference}">
+                                        <i class="bi bi-receipt"></i> Receipt
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
+                    } else {
+                        html += '<tr><td colspan="6" class="text-center">No payment history</td></tr>';
+                    }
+                    html += '</tbody></table>';
+                    $('#td_payment_history').html(html);
+                })
+                .fail(() => $('#td_payment_history')
+                .html('<div class="alert alert-warning">Error loading payment history</div>'));
+
+            // Add click handler for receipt buttons
+            $(document).on('click', '.view-receipt-btn', function() {
+                const reference = $(this).data('reference');
+                window.open(`/payment/receipt/${reference}/`, '_blank');
+            });
+        });
+
+        // Generate Receipt Modal
+        $('#generateReceiptModal').on('show.bs.modal', function(e) {
+            const btn = $(e.relatedTarget);
+            const row = btn.closest('tr');
+            const txnId = btn.data('id');
+            
+            $('#gr_client').val(row.find('td').eq(3).text());
+            $('#gr_estate_plot').val(row.find('td').eq(0).text() + ' (' + row.find('td').eq(1).text() + ')');
+            $('#gr_amount').val(row.find('td').eq(5).text());
+            $('#gr_date').val(row.find('td').eq(4).text());
+            
+            // Store transaction ID on the generate button
+            $('#generateReceiptBtn').data('id', txnId);
+        });
+
+        // Send Reminder Modal
+        $('#sendReminderModal').on('show.bs.modal', function(e) {
+            const btn = $(e.relatedTarget);
+            const row = btn.closest('tr');
+            
+            $('#sr_client').val(row.find('td').eq(3).text());
+            $('#sr_estate_plot').val(row.find('td').eq(0).text() + ' (' + row.find('td').eq(1).text() + ')');
+            
+            // Calculate outstanding amount (simplified example)
+            const total = parseFloat(row.find('td').eq(5).text().replace(/[^0-9.]/g, ''));
+            const paid = parseFloat(row.find('td').eq(6).text().replace(/[^0-9.]/g, ''));
+            const outstanding = total - paid;
+            
+            $('#sr_amount').val('₦' + outstanding.toFixed(2));
+            $('#sr_due_date').val('15 June 2023 (Overdue by 5 days)');
+        });
+
+        // // Generate Receipt Button
+        // $('#generateReceiptBtn').on('click', function(){
+        //     const txnId = $(this).data('id');
+        //     const sendReceipt = $('#sendReceiptCheckbox').is(':checked');
+            
+        //     // Generate PDF receipt
+        //     window.open(`/receipt/${txnId}/`, '_blank');
+            
+        //     if (sendReceipt) {
+        //         $.post("{% url 'ajax_send_receipt' %}", { 
+        //             transaction_id: txnId,
+        //             csrfmiddlewaretoken: '{{ csrf_token }}'
+        //         })
+        //         .done(resp => {
+        //             if (resp.success) {
+        //                 alert('Receipt has been sent to client');
+        //             } else {
+        //                 alert('Error sending receipt: ' + (resp.error || 'Unknown error'));
+        //             }
+        //         })
+        //         .fail(() => {
+        //             alert('Error sending receipt. Please try again.');
+        //         });
+        //     }
+            
+        //     $('#generateReceiptModal').modal('hide');
+        // });
+    
+    });
+</script>
+

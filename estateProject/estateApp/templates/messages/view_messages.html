@@ -1,0 +1,66 @@
+{% if is_admin %}
+  {% extends 'admin_base.html' %}
+{% else %}
+  {% extends 'client_base.html' %}
+{% endif %}
+{% load static %}
+{% block content %}
+
+  <h2>All Messages</h2>
+  
+  <ul class="list-group">
+    {% for message in messages %}
+      <li class="list-group-item {% if not message.is_read %} unread {% endif %}">
+        <a href="{% url 'message_detail' message.id %}">
+          <div>
+            <h4>{{ message.sender.username }}</h4>
+            <p>{{ message.content|truncatewords:10 }}</p>
+            <p><small>Sent: {{ message.date_sent|date:"M d, Y H:i" }}</small></p>
+            <span class="badge bg-{{ message.message_type == 'complaint' and 'danger' or message.message_type == 'enquiry' and 'info' or 'success' }}">
+              {{ message.get_message_type_display }}
+            </span>
+          </div>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="text-center mt-3">
+    <a href="{% url 'all_messages' %}" class="btn btn-primary">Show All Messages</a>
+  </div>
+
+
+  <style>
+    .message-item.unread {
+        background-color: #f7f7f7;
+        font-weight: bold;
+        border-left: 3px solid #ff5722;
+        transform: scale(1.02);
+    }
+
+    /* Additional styling for the list items */
+    .message-item a {
+        display: block;
+        color: #000;
+        text-decoration: none;
+    }
+
+    .message-item a:hover {
+        background-color: #e9ecef;
+    }
+
+    /* Message type badges */
+    .message-item .badge {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    /* Padding and spacing for each message item */
+    .message-item {
+        padding: 15px;
+        border-bottom: 1px solid #f1f1f1;
+        transition: background-color 0.3s ease;
+    }
+
+  </style>
+{% endblock %}

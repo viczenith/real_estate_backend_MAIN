@@ -1,0 +1,124 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+
+  <style>
+    /* Dashboard Styles */
+    .allocated-plots {
+        background-color: darkgreen;
+        color: white;
+        padding: 10px;
+        margin: 10px 0;
+    }
+    .unallocated-plots {
+        background-color: darkred;
+        color: white;
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    /* Table Styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+    th {
+        background-color: #6a11cb;
+        color: white;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tr:hover {
+        background-color: #ddd;
+    }
+    .btn-action {
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .btn-edit {
+        background-color: #ffc107;
+        color: white;
+    }
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+    }
+  </style>
+
+  <div class="container">
+    <h2>{{ estate.name }} - Plot Allocation Dashboard</h2>
+
+    <!-- Allocated Plots Section -->
+    <div class="allocated-plots">
+        <h3>Allocated Plot Numbers</h3>
+        <ul>
+            {% for plot in allocated_plots %}
+                <li>{{ plot.plot_number.number }}</li>
+            {% empty %}
+                <p>No plots allocated yet.</p>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Unallocated Plots Section -->
+    <div class="unallocated-plots">
+        <h3>Unallocated Plot Numbers</h3>
+        <p>Reserved or Not Allocated: {{ unallocated_plots|length }}</p>
+        <ul>
+            {% for plot in unallocated_plots %}
+                <li>{{ plot.plot_number.number }}</li>
+            {% empty %}
+                <p>No plots unallocated yet.</p>
+            {% endfor %}
+        </ul>
+    </div>
+    
+
+    <!-- Clients Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Client Name</th>
+                <th>Payment Type</th>
+                <th>Estate Name</th>
+                <th>Plot Size</th>
+                <th>Plot Number</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients_allocated %}
+                <tr>
+                    <td>{{ client.client_name }}</td>
+                    <td>{{ client.payment_type }}</td>
+                    <td>{{ client.estate_name }}</td>
+                    <td>{{ client.plot_size }}</td>
+                    <td>{{ client.plot_number }}</td>
+                    <td>{{ client.status }}</td>
+                    <td><a href="{{ client.action_url }}" class="btn-action btn-edit">Edit</a></td>
+                </tr>
+            {% endfor %}
+            {% for client in clients_not_allocated %}
+                <tr>
+                    <td>{{ client.client_name }}</td>
+                    <td>{{ client.payment_type }}</td>
+                    <td>{{ client.estate_name }}</td>
+                    <td>{{ client.plot_size }}</td>
+                    <td>{{ client.plot_number }}</td>
+                    <td>{{ client.status }}</td>
+                    <td><a href="{{ client.action_url }}" class="btn-action btn-edit">Edit</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+  </div>
+
+{% endblock %}

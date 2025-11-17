@@ -1,0 +1,759 @@
+{% extends 'marketer_base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --danger-gradient: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-bg: #ffffff;
+        --text-color: #2a2a2a;
+        --chat-bg: #f8f6ff;
+    }
+
+    body[data-theme="dark"] {
+        --card-bg: #1e1e28;
+        --text-color: #f8f9ff;
+        --chat-bg: #14141f;
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .pagetitle h1 i {
+        font-size: 28px;
+    }
+
+    .chat-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        height: 80vh;
+        background: var(--card-bg);
+        position: relative;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .chat-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .chat-header {
+        padding: 20px 28px;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1;
+    }
+
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .chat-header-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: var(--secondary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        font-weight: 600;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+    }
+
+    .chat-header-avatar::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #38ef7d;
+        border: 3px solid var(--card-bg);
+        bottom: 4px;
+        right: 4px;
+        box-shadow: 0 0 0 2px rgba(56, 239, 125, 0.3);
+    }
+
+    .chat-header-text h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .chat-header-text p {
+        margin: 0;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    body[data-theme="dark"] .chat-header-text p {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .chat-window {
+        flex: 1;
+        overflow-y: auto;
+        padding: 28px;
+        background: linear-gradient(160deg, rgba(229, 221, 213, 0.25), rgba(229, 221, 213, 0.45));
+        background-blend-mode: multiply;
+        position: relative;
+    }
+
+    body[data-theme="dark"] .chat-window {
+        background: linear-gradient(160deg, rgba(20, 20, 31, 0.6), rgba(20, 20, 31, 0.8));
+    }
+
+    .chat-window::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("{% static 'assets/img/pattern.svg' %}");
+        opacity: 0.08;
+        pointer-events: none;
+        mix-blend-mode: soft-light;
+    }
+
+    .chat-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    body[data-theme="dark"] .chat-empty-state {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .chat-empty-state i {
+        font-size: 56px;
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 12px;
+    }
+
+    .chat-input-area {
+        padding: 18px 20px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        background: var(--card-bg);
+    }
+
+    .file-preview-container {
+        display: none;
+        background: rgba(102, 126, 234, 0.08);
+        border-radius: 16px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        gap: 12px;
+        align-items: center;
+    }
+
+    .file-preview-container.active {
+        display: flex;
+    }
+
+    .file-thumbnail {
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid rgba(118, 75, 162, 0.2);
+    }
+
+    .file-icon-thumbnail {
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: white;
+        background: var(--secondary-gradient);
+    }
+
+    .file-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-details-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-details-size {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    body[data-theme="dark"] .file-details-size {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .remove-file {
+        font-size: 20px;
+        color: #ff6b6b;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .remove-file:hover {
+        background: rgba(255, 107, 107, 0.12);
+    }
+
+    .chat-input-form {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .chat-input-form input[type="file"] {
+        display: none;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        background: rgba(102, 126, 234, 0.08);
+        border-radius: 24px;
+        padding: 10px 16px;
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        border: 1px solid rgba(102, 126, 234, 0.18);
+        transition: all 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+        border-color: rgba(118, 75, 162, 0.4);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+        background: rgba(102, 126, 234, 0.12);
+    }
+
+    .attachment-btn {
+        font-size: 24px;
+        color: rgba(102, 126, 234, 0.85);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .attachment-btn:hover {
+        background: rgba(102, 126, 234, 0.15);
+        color: rgba(102, 126, 234, 1);
+    }
+
+    textarea#message-content {
+        flex: 1;
+        border: none;
+        background: transparent;
+        resize: none;
+        min-height: 40px;
+        max-height: 120px;
+        font-size: 15px;
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+
+    textarea#message-content:focus {
+        outline: none;
+    }
+
+    textarea#message-content::placeholder {
+        color: rgba(0, 0, 0, 0.45);
+    }
+
+    body[data-theme="dark"] textarea#message-content::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .send-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: none;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 6px 18px rgba(253, 160, 133, 0.35);
+    }
+
+    .send-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(253, 160, 133, 0.45);
+    }
+
+    .send-btn:active {
+        transform: translateY(1px);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 520px;
+        width: 100%;
+        position: relative;
+        box-shadow: var(--card-shadow);
+        animation: scaleIn 0.25s ease-out;
+    }
+
+    .modal-close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 28px;
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    body[data-theme="dark"] .modal-close {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 24px;
+    }
+
+    .btn-secondary,
+    .btn-danger {
+        border-radius: 12px;
+        padding: 12px 28px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary {
+        background: rgba(102, 126, 234, 0.12);
+        color: var(--text-color);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(102, 126, 234, 0.18);
+    }
+
+    .btn-danger {
+        background: var(--danger-gradient);
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 8, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(255, 8, 68, 0.4);
+    }
+
+    @media (max-width: 992px) {
+        .chat-container {
+            height: calc(100vh - 90px);
+            border-radius: 16px;
+        }
+
+        .chat-header {
+            padding: 18px;
+        }
+
+        .chat-window {
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .chat-container {
+            height: calc(100vh - 70px);
+        }
+
+        .chat-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .chat-input-form {
+            flex-wrap: wrap;
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+        }
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1><i class="bi bi-chat-dots"></i> Chat with Admin Support</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'marketer-dashboard' %}">Home</a></li>
+                <li class="breadcrumb-item active">Chat</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-header-avatar">
+                    {{ request.user.full_name|first|upper }}
+                </div>
+                <div class="chat-header-text">
+                    <h3>{{ request.user.full_name }}</h3>
+                    <p><i class="bi bi-circle-fill" style="font-size: 8px; color: #38ef7d;"></i> Active now</p>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="btn btn-secondary" id="notification-settings" type="button">
+                    <i class="bi bi-gear"></i> Notification Settings
+                </button>
+            </div>
+        </div>
+
+        <div id="chat-window" class="chat-window">
+            {% for msg in messages %}
+                {% include 'marketer_side/chat_message.html' with msg=msg %}
+            {% empty %}
+                <div class="chat-empty-state">
+                    <i class="bi bi-chat-heart"></i>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input-area">
+            <div id="file-preview-container" class="file-preview-container">
+                <div id="file-thumbnail-wrapper"></div>
+                <div class="file-details">
+                    <span id="file-details-name" class="file-details-name"></span>
+                    <span id="file-details-size" class="file-details-size"></span>
+                </div>
+                <span id="remove-file" class="remove-file">
+                    <i class="bi bi-x-circle"></i>
+                </span>
+            </div>
+
+            <form id="chat-form" method="post" enctype="multipart/form-data" action="{% url 'marketer-chat' %}">
+                {% csrf_token %}
+                <div class="chat-input-form">
+                    <input type="file" id="file-input" name="file">
+                    <div class="input-wrapper">
+                        <label for="file-input" class="attachment-btn">
+                            <i class="bi bi-paperclip"></i>
+                        </label>
+                        <textarea
+                            name="message_content"
+                            id="message-content"
+                            placeholder="Type a message"
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="send-btn">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="attachment-modal" class="modal">
+        <div class="modal-content">
+            <span id="modal-close" class="modal-close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span id="delete-modal-close" class="modal-close">&times;</span>
+            <h3>Delete Message</h3>
+            <p>Are you sure you want to delete this message? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="delete-cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button id="delete-confirm-btn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        const fileInput = document.getElementById('file-input');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        const fileThumbnailWrapper = document.getElementById('file-thumbnail-wrapper');
+        const fileDetailsName = document.getElementById('file-details-name');
+        const fileDetailsSize = document.getElementById('file-details-size');
+        const removeFileBtn = document.getElementById('remove-file');
+
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            fileThumbnailWrapper.innerHTML = '';
+            const fileName = file.name;
+            const fileSize = formatFileSize(file.size);
+            const fileExt = fileName.split('.').pop().toLowerCase();
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'file-thumbnail';
+                    fileThumbnailWrapper.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'file-icon-thumbnail';
+                iconDiv.innerHTML = '<i class="bi bi-file-earmark"></i>';
+
+                if (fileExt === 'pdf') iconDiv.innerHTML = '<i class="bi bi-file-earmark-pdf-fill"></i>';
+                else if (['doc', 'docx'].includes(fileExt)) iconDiv.innerHTML = '<i class="bi bi-file-earmark-word-fill"></i>';
+                else if (['xls', 'xlsx'].includes(fileExt)) iconDiv.innerHTML = '<i class="bi bi-file-earmark-excel-fill"></i>';
+                else if (['zip', 'rar', '7z'].includes(fileExt)) iconDiv.innerHTML = '<i class="bi bi-file-earmark-zip-fill"></i>';
+
+                fileThumbnailWrapper.appendChild(iconDiv);
+            }
+
+            fileDetailsName.textContent = fileName.length > 35 ? fileName.slice(0, 32) + '...' : fileName;
+            fileDetailsName.title = fileName;
+            fileDetailsSize.textContent = fileSize;
+            filePreviewContainer.classList.add('active');
+        });
+
+        removeFileBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            filePreviewContainer.classList.remove('active');
+            fileThumbnailWrapper.innerHTML = '';
+            fileDetailsName.textContent = '';
+            fileDetailsSize.textContent = '';
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+        }
+
+        const messageInput = document.getElementById('message-content');
+        messageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        });
+
+        document.getElementById('chat-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.message_html;
+                        const newMessageElement = tempDiv.firstElementChild;
+
+                        const newMsgId = newMessageElement.querySelector('[data-msg-id]')?.getAttribute('data-msg-id');
+                        if (!newMsgId || !document.querySelector(`[data-msg-id="${newMsgId}"]`)) {
+                            chatWindow.appendChild(newMessageElement);
+                        }
+                        chatWindow.scrollTop = chatWindow.scrollHeight;
+                        this.reset();
+                        filePreviewContainer.classList.remove('active');
+                        fileThumbnailWrapper.innerHTML = '';
+                        fileDetailsName.textContent = '';
+                        fileDetailsSize.textContent = '';
+                        messageInput.style.height = 'auto';
+                    } else {
+                        alert('Error sending message: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error sending message.');
+                });
+        });
+
+        let lastMessageId = {{ messages.last.id|default:0 }};
+
+        function pollNewMessages() {
+            fetch(`{% url 'marketer-chat' %}?last_msg=${lastMessageId}`, { credentials: 'same-origin' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages && data.messages.length > 0 && data.messages_html) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.messages_html;
+                        tempDiv.querySelectorAll('[data-msg-id]').forEach(msgElement => {
+                            const msgId = msgElement.getAttribute('data-msg-id');
+                            if (msgId && !document.querySelector(`[data-msg-id="${msgId}"]`)) {
+                                chatWindow.appendChild(msgElement);
+                                lastMessageId = Math.max(lastMessageId, parseInt(msgId, 10));
+                            }
+                        });
+                        chatWindow.scrollTop = chatWindow.scrollHeight;
+                    }
+
+                    if (data.updated_statuses && data.updated_statuses.length > 0) {
+                        data.updated_statuses.forEach(statusUpdate => {
+                            const statusIcon = document.querySelector(`[data-msg-id="${statusUpdate.id}"] .message-status`);
+                            if (statusIcon) {
+                                if (statusUpdate.status === 'sent') {
+                                    statusIcon.innerHTML = '<i class="bi bi-check status-icon" title="Sent"></i>';
+                                } else if (statusUpdate.status === 'delivered') {
+                                    statusIcon.innerHTML = '<i class="bi bi-check-all status-icon" title="Delivered"></i>';
+                                } else if (statusUpdate.status === 'read') {
+                                    statusIcon.innerHTML = '<i class="bi bi-check-all status-icon read" title="Read"></i>';
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => console.error('Polling error:', error));
+        }
+
+        setInterval(pollNewMessages, 1500);
+
+        const deleteModal = document.getElementById('delete-modal');
+        const deleteCloseBtn = document.getElementById('delete-modal-close');
+        const deleteCancelBtn = document.getElementById('delete-cancel-btn');
+        const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+        let messageIdToDelete = null;
+
+        document.addEventListener('click', function (e) {
+            const deleteBtn = e.target.closest('.delete-msg-btn');
+            if (deleteBtn) {
+                messageIdToDelete = deleteBtn.getAttribute('data-msg-id');
+                deleteModal.style.display = 'flex';
+            }
+        });
+
+        deleteCloseBtn.addEventListener('click', () => deleteModal.style.display = 'none');
+        deleteCancelBtn.addEventListener('click', () => deleteModal.style.display = 'none');
+
+        deleteConfirmBtn.addEventListener('click', function () {
+            if (!messageIdToDelete) return;
+
+            fetch(`{% url 'delete_message' 0 %}`.replace('0', messageIdToDelete), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                credentials: 'same-origin'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const msgElement = document.querySelector(`[data-msg-id="${messageIdToDelete}"]`).closest('.chat-message-wrapper');
+                        if (msgElement) {
+                            msgElement.remove();
+                        }
+                        deleteModal.style.display = 'none';
+                    } else {
+                        alert('Error deleting message: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting message:', error);
+                    alert('Error deleting message.');
+                });
+        });
+    });
+</script>
+
+{% endblock %}

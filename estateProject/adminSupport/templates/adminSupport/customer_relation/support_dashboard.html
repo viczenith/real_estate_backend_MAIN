@@ -1,0 +1,857 @@
+{% extends 'adminSupport/customer_relations_base.html' %}
+
+{% block title %}Customer Relations Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-tab {
+        display: none;
+        animation: fadeInUp 0.4s ease-out;
+    }
+
+    .dashboard-tab.active {
+        display: block !important;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: #2d3748;
+    }
+    
+    .stat-label {
+        color: #718096;
+        font-weight: 500;
+        margin: 0;
+    }
+    
+    /* Holiday Timeline Styles */
+    .holiday-timeline {
+        position: relative;
+    }
+    
+    .holiday-item {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .holiday-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .date-badge {
+        min-width: 60px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+    }
+    
+    .holiday-item .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Table enhancements */
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    /* Badge enhancements */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.5em 0.75em;
+    }
+    
+    /* Special Days Calendar styles moved to dedicated Auto Special Days page */
+    
+    /* Form Enhancements */
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .was-validated .form-control:valid {
+        border-color: #51cf66;
+    }
+    
+    .was-validated .form-control:invalid {
+        border-color: #ff6b6b;
+    }
+    
+    /* Table Enhancements */
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* Status Indicators */
+    .status-active {
+        background: linear-gradient(45deg, #51cf66, #40c057);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-inactive {
+        background: linear-gradient(45deg, #adb5bd, #868e96);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-failed {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    /* Message Template Preview */
+    .message-preview {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 10px;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+        color: #495057;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Failed Messages Alert */
+    .failed-message-row {
+        background: rgba(255, 107, 107, 0.05);
+        border-left: 4px solid #ff6b6b;
+    }
+    
+    .retry-button {
+        background: linear-gradient(45deg, #ffd93d, #ff6b35);
+        border: none;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+    }
+    
+    .retry-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+    
+    /* Animation for new events */
+    @keyframes eventAdded {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .event-added {
+        animation: eventAdded 0.5s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Content Header -->
+<div class="content-header">
+    <div>
+        <h1><i class="fas fa-chart-line me-3"></i>Customer Relations Dashboard</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active"><a href="{% url 'adminSupport:support_dashboard' %}">Admin Support Dashboard</a></li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Dashboard Content Container -->
+<div id="dashboard-content">
+    
+    <!-- Default Dashboard Overview -->
+    <div id="dashboard-overview" class="dashboard-tab active">
+        
+        <!-- CRM Statistics Overview -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="stat-number" id="totalCustomers">--</h3>
+                    <p class="stat-label">Active Customers</p>
+                    <small class="text-muted d-flex justify-content-around">
+                        <span><i class="fas fa-user-tie me-1"></i>Marketers: <span id="totalMarketers">--</span></span>
+                        <span><i class="fas fa-user me-1"></i>Clients: <span id="totalClients">--</span></span>
+                    </small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+                    <h3 class="stat-number" id="birthdaysToday">--</h3>
+                    <p class="stat-label">Birthdays Today</p>
+                    <small class="text-info">
+                        <i class="fas fa-calendar-alt me-1"></i><span id="upcomingBirthdays">--</span> this week
+                    </small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <h3 class="stat-number" id="messagesThisMonth">--</h3>
+                    <p class="stat-label">Messages Sent</p>
+                    <small class="text-primary">
+                        <i class="fas fa-chart-line me-1"></i><span id="deliveryRate">--</span>% delivery rate
+                    </small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="stat-number" id="automatedMessages">--</h3>
+                    <p class="stat-label">Automation Templates</p>
+                    <small class="text-muted">
+                        <i class="fas fa-circle me-1"></i><span id="automationStatus">Checking...</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Overview Cards -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Recent Activity Overview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center g-3" id="overviewMetrics">
+                            <div class="col-md-4 border-md-end">
+                                <h4 class="text-primary mb-1" id="birthdaysThisMonthMetric">--</h4>
+                                <small class="text-muted">Birthdays This Month</small>
+                            </div>
+                            <div class="col-md-4 border-md-end">
+                                <h4 class="text-success mb-1"><span id="deliverySuccess">--</span>%</h4>
+                                <small class="text-muted">Delivery Success</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h4 class="text-info mb-1" id="messagesSentTotal">--</h4>
+                                <small class="text-muted">Messages Sent</small>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <div id="recentActivityList" class="small">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                <p class="mt-2 text-muted mb-0">Loading recent activity...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4 mb-lg-0">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-birthday-cake text-warning me-2"></i>
+                            Today's Birthdays
+                        </h5>
+                        <span class="badge bg-primary-soft text-primary" id="todayBirthdaysCount">--</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="todaysBirthdays">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                                <p class="mt-2 small text-muted">Loading today's birthdays...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-week text-info me-2"></i>
+                            Upcoming Birthdays (Next 7 Days)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="upcomingBirthdaysList">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                                <p class="mt-2 small text-muted">Loading upcoming birthdays...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            Special Day Highlights
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="specialDayHighlight">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                                <p class="mt-2 small text-muted">Checking for special days...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto Special Days Tab - Now redirects to dedicated page -->
+    <div id="auto-special-days" class="dashboard-tab">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-star fa-4x text-warning mb-4"></i>
+                        <h3 class="mb-3">Auto Special Days Manager</h3>
+                        <p class="text-muted mb-4">
+                            The Auto Special Days feature has been moved to its dedicated page for better organization and enhanced functionality.
+                        </p>
+                        <a href="{% url 'adminSupport:auto_special_day_template' %}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>Go to Auto Special Days
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics" class="dashboard-tab">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="text-primary mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>Advanced Analytics
+                </h3>
+                <p class="text-muted">Comprehensive insights and performance metrics for your real estate CRM</p>
+            </div>
+        </div>
+        
+        <!-- Analytics Content -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Performance Dashboard
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="analytics-content">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-info" role="status"></div>
+                        <p class="mt-2">Loading analytics dashboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global function to show dashboard tabs
+window.showDashboardTab = function(tabName) {
+    // Hide all tabs
+    $('.dashboard-tab').removeClass('active').hide();
+    
+    // Show the requested tab
+    $('#' + tabName).addClass('active').show();
+    
+    // Load content based on tab
+    switch(tabName) {
+        case 'auto-special-days':
+            // Auto Special Days now has its own dedicated page
+            break;
+        case 'analytics':
+            loadAnalyticsContent();
+            break;
+        default:
+            // Dashboard overview is already loaded
+            break;
+    }
+};
+
+$(document).ready(function() {
+    initializeDashboard();
+    loadHeadlineStats();
+    loadRecentActivity();
+    loadBirthdaysSummary();
+    loadUpcomingBirthdays();
+    loadSpecialDayHighlight();
+
+    $('.customer-nav-link[data-tab]').on('click', function(e) {
+        e.preventDefault();
+        $('.customer-nav-link').removeClass('active');
+        $(this).addClass('active');
+        showDashboardTab($(this).data('tab'));
+    });
+});
+
+const SUPPORT_ENDPOINTS = {
+    stats: "{% url 'adminSupport:api_stats' %}",
+    activity: "{% url 'adminSupport:api_activity' %}",
+    birthdaysSummary: "{% url 'adminSupport:api_birthdays_summary' %}",
+    birthdaysUpcoming: "{% url 'adminSupport:api_birthdays' %}",
+    specialDayCounts: "{% url 'adminSupport:api_special_days_counts' %}"
+};
+
+function initializeDashboard() {
+    $('.stat-card').each(function(index) {
+        $(this).delay(index * 100).queue(function(next) {
+            $(this).addClass('animate__animated animate__fadeInUp');
+            next();
+        });
+    });
+}
+
+function fetchJson(url) {
+    return fetch(url, { credentials: 'same-origin' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Request failed (${response.status})`);
+            }
+            return response.json();
+        });
+}
+
+function safeText(value, fallback = '--') {
+    if (value === null || value === undefined || value === '') {
+        return fallback;
+    }
+    return value;
+}
+
+function formatNumber(value, fallback = '--') {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+        return safeText(value, fallback);
+    }
+    return num.toLocaleString();
+}
+
+function loadHeadlineStats() {
+    fetchJson(SUPPORT_ENDPOINTS.stats)
+        .then(data => {
+            $('#totalCustomers').text(formatNumber(data.total_customers));
+            $('#totalClients').text(formatNumber(data.clients_count));
+            $('#totalMarketers').text(formatNumber(data.marketers_count));
+            $('#birthdaysToday').text(formatNumber(data.today_birthdays, '0'));
+            $('#upcomingBirthdays').text(formatNumber(data.upcoming_birthdays, '0'));
+            $('#messagesThisMonth').text(formatNumber(data.messages_sent, '0'));
+            $('#messagesSentTotal').text(formatNumber(data.messages_sent, '0'));
+            const deliveryRate = data.open_rate_percent ?? '--';
+            $('#deliveryRate').text(deliveryRate);
+            $('#deliverySuccess').text(deliveryRate);
+            $('#automatedMessages').text(formatNumber(data.active_birthday_templates, '0'));
+            $('#birthdaysThisMonthMetric').text(formatNumber(data.birthdays_this_month, '0'));
+            $('#todayBirthdaysCount').text(formatNumber(data.today_birthdays, '0'));
+            const automationStatus = Number(data.active_birthday_templates) > 0 ? 'Active' : 'No active templates';
+            $('#automationStatus').text(automationStatus);
+        })
+        .catch(err => {
+            console.error('Failed to load stats', err);
+            showToast('Dashboard', 'Unable to load headline stats.', 'error');
+        });
+}
+
+function loadRecentActivity() {
+    fetchJson(SUPPORT_ENDPOINTS.activity)
+        .then(data => {
+            const container = $('#recentActivityList');
+            const items = data.activity || [];
+            if (!items.length) {
+                container.html('<p class="text-muted mb-0 text-center">No recent activity logged.</p>');
+                return;
+            }
+            const html = items.slice(0, 6).map(item => {
+                const actor = item.actor ? `<strong>${item.actor}</strong>` : 'System';
+                const when = item.at ? new Date(item.at).toLocaleString() : '';
+                return `
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3 text-primary"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <div class="fw-semibold">${actor}</div>
+                            <div class="small text-muted">${when}</div>
+                            <div>${item.text}</div>
+                        </div>
+                    </div>`;
+            }).join('');
+            container.html(html);
+        })
+        .catch(err => {
+            console.error('Failed to load activity', err);
+            $('#recentActivityList').html('<p class="text-danger mb-0">Could not load activity.</p>');
+        });
+}
+
+function loadBirthdaysSummary() {
+    fetchJson(SUPPORT_ENDPOINTS.birthdaysSummary)
+        .then(data => {
+            renderBirthdayList('#todaysBirthdays', data.today || [], entry => entry.is_today);
+            $('#todayBirthdaysCount').text(safeText((data.today || []).length, '0'));
+        })
+        .catch(err => {
+            console.error('Failed to load birthday summary', err);
+            $('#todaysBirthdays').html('<p class="text-danger small mb-0">Unable to load today\'s birthdays.</p>');
+        });
+}
+
+function loadUpcomingBirthdays() {
+    fetchJson(`${SUPPORT_ENDPOINTS.birthdaysUpcoming}?period=weekly`)
+        .then(data => {
+            const birthdays = (data.birthdays || []).filter(item => !item.is_today);
+            renderBirthdayList('#upcomingBirthdaysList', birthdays, entry => false);
+            if (!birthdays.length) {
+                $('#upcomingBirthdaysList').html('<p class="text-muted small mb-0 text-center">No birthdays in the next 7 days.</p>');
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load upcoming birthdays', err);
+            $('#upcomingBirthdaysList').html('<p class="text-danger small mb-0">Unable to load upcoming birthdays.</p>');
+        });
+}
+
+function renderBirthdayList(target, entries, badgeResolver) {
+    if (!entries.length) {
+        $(target).html('<p class="text-muted small mb-0 text-center">No birthdays found.</p>');
+        return;
+    }
+    const html = entries.slice(0, 6).map(entry => {
+        const dateLabel = entry.date ? new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+        const badgeContent = badgeResolver(entry) ? 'Today' : safeText(dateLabel, '');
+        const badgeClass = badgeResolver(entry) ? 'badge bg-warning text-dark ms-auto' : 'badge bg-light text-muted ms-auto';
+        const daysUntil = Number(entry.daysUntil);
+        const subtitle = badgeResolver(entry)
+            ? 'Celebrating today'
+            : (Number.isFinite(daysUntil) ? `${daysUntil} day${daysUntil === 1 ? '' : 's'} remaining` : (entry.role === 'marketer' ? 'Marketer' : 'Client'));
+        return `
+            <div class="d-flex align-items-center mb-3">
+                <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="mb-1">${safeText(entry.firstName || entry.name || 'Unknown')} ${safeText(entry.lastName || '')}</h6>
+                    <small class="text-muted">${subtitle}</small>
+                </div>
+                <span class="${badgeClass}">${badgeContent}</span>
+            </div>`;
+    }).join('');
+    $(target).html(html);
+}
+
+function loadSpecialDayHighlight() {
+    fetchJson(SUPPORT_ENDPOINTS.specialDayCounts)
+        .then(data => {
+            const container = $('#specialDayHighlight');
+            const today = data.today;
+            const next = data.next;
+            let html = '';
+            if (today) {
+                html += `
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-warning text-dark me-2">Today</span>
+                            <strong>${today.name || today.title || 'Special Day'}</strong>
+                        </div>
+                        <small class="text-muted">${safeText(today.description, '')}</small>
+                    </div>`;
+            }
+            if (next) {
+                const nextDate = next.date ? new Date(next.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '--';
+                html += `
+                    <div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-light text-muted me-2">Next</span>
+                            <strong>${next.name || next.title || 'Upcoming Event'}</strong>
+                        </div>
+                        <small class="text-muted">${nextDate}</small>
+                    </div>`;
+            }
+            container.html(html || '<p class="text-muted small mb-0">No special days within the current window.</p>');
+        })
+        .catch(err => {
+            console.error('Failed to load special day counts', err);
+            $('#specialDayHighlight').html('<p class="text-danger small mb-0">Unable to load special day highlights.</p>');
+        });
+}
+
+// clients/marketers directory moved to dedicated pages
+
+// Removed loadHolidaysContent - moved to dedicated Auto Special Days page
+
+function loadAnalyticsContent() {
+    $('#analytics-content').html(`
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Performance Metrics</h6>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Email Delivery Rate</span>
+                        <span class="text-success">98.7%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 98.7%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>SMS Delivery Rate</span>
+                        <span class="text-info">76.8%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: 76.8%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>WhatsApp Delivery Rate</span>
+                        <span class="text-info">76.8%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: 76.8%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <h6>This Month Statistics</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Messages Sent:</strong> 2,856</li>
+                    <li><strong>Birthdays Celebrated:</strong> 67</li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6>Overall Statistics</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Total Messages Sent:</strong> 2,856</li>
+                    <li><strong>Total Birthdays Celebrated:</strong> 67</li>
+                </ul>
+            </div>
+        </div>
+    `);
+}
+
+
+
+// Utility functions
+function sendBirthdayWish(name) {
+    showToast('Birthday Wish', `Sending birthday message to ${name}`, 'success');
+}
+
+function sendAllBirthdayWishes() {
+    showToast('Birthday Campaign', 'Sending all birthday wishes for today', 'success');
+}
+
+function runAutomationCheck() {
+    showToast('Automation', 'Running automation check...', 'info');
+    loadHeadlineStats();
+}
+
+function refreshDashboard() {
+    showToast('Dashboard', 'Refreshing dashboard data...', 'info');
+    loadHeadlineStats();
+    loadRecentActivity();
+    loadBirthdaysSummary();
+    loadUpcomingBirthdays();
+    loadSpecialDayHighlight();
+}
+
+function showToast(title, message, type = 'info') {
+    const colors = {
+        'success': 'text-bg-success',
+        'error': 'text-bg-danger',
+        'warning': 'text-bg-warning',
+        'info': 'text-bg-info'
+    };
+    
+    const toastHtml = `
+        <div class="toast ${colors[type]}" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">${title}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+    
+    const toastContainer = $('#toastContainer');
+    if (toastContainer.length === 0) {
+        $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+    }
+    
+    const toast = $(toastHtml);
+    $('#toastContainer').append(toast);
+    
+    const bsToast = new bootstrap.Toast(toast[0]);
+    bsToast.show();
+    
+    // Remove toast after it's hidden
+    toast.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
+
+// Export functions
+function exportClientsData() {
+    showToast('Export', 'Preparing clients data export...', 'info');
+}
+
+function addNewMarketer() {
+    showToast('Add Marketer', 'Opening new marketer form...', 'success');
+}
+
+function createSpecialMessage() {
+    showToast('Special Message', 'Opening special message creator...', 'info');
+}
+
+// Enterprise Features Functions
+function showEnterpriseView() {
+    // Load the enterprise dashboard content
+    window.open('/admin-support/crm-enterprise/', '_blank');
+}
+
+function showSpecialDaysManager() {
+    // Load the special days manager
+    window.open('/admin-support/special-days-manager/', '_blank');
+}
+
+// Special Days Functions
+function openSpecialDaysManager() {
+    window.open('/admin-support/special-days-manager/', '_blank');
+}
+
+function previewCampaign(holiday) {
+    const holidayNames = {
+        'independence': 'Independence Day',
+        'christmas': 'Christmas',
+        'newyear': 'New Year'
+    };
+    
+    showToast('Campaign Preview', `Previewing ${holidayNames[holiday]} campaign...`, 'info');
+    
+    // Simulate preview modal or new window
+    setTimeout(() => {
+        alert(`${holidayNames[holiday]} Campaign Preview:\n\n🎉 Happy ${holidayNames[holiday]}!\n\nDear [Client Name],\n\nWishing you joy and prosperity on this special day. Take advantage of our exclusive real estate offers!\n\nBest regards,\nYour Real Estate Team`);
+    }, 500);
+}
+
+function sendCampaign(holiday) {
+    const holidayNames = {
+        'independence': 'Independence Day',
+        'christmas': 'Christmas',
+        'newyear': 'New Year'
+    };
+    
+    if (confirm(`Send ${holidayNames[holiday]} campaign to all clients now?`)) {
+        showToast('Campaign Sent', `${holidayNames[holiday]} campaign sent to 1,247 clients!`, 'success');
+    }
+}
+
+function scheduleCampaign(holiday) {
+    const holidayNames = {
+        'independence': 'Independence Day',
+        'christmas': 'Christmas',
+        'newyear': 'New Year'
+    };
+    
+    showToast('Campaign Scheduled', `${holidayNames[holiday]} campaign has been scheduled!`, 'success');
+}
+
+</script>
+{% endblock %}

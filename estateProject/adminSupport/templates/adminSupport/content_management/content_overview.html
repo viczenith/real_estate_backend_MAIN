@@ -1,0 +1,133 @@
+{% extends 'adminSupport/base.html' %}
+
+{% block title %}Content Management{% endblock %}
+
+{% block content %}
+<!-- Content Header -->
+<div class="content-header">
+    <div>
+        <h1><i class="fas fa-file-edit me-3"></i>Content Management</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Admin Support</a></li>
+                <li class="breadcrumb-item active">Content Management</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-2"></i>Add Content
+        </button>
+        <button class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-sync-alt me-2"></i>Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Content Management Dashboard -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt text-primary me-2"></i>
+                    Content Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-1">45</h4>
+                            <small class="text-muted">Total Pages</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-success mb-1">12</h4>
+                            <small class="text-muted">Published</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border-end">
+                            <h4 class="text-warning mb-1">8</h4>
+                            <small class="text-muted">Drafts</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info mb-1">25</h4>
+                        <small class="text-muted">Media Files</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock text-warning me-2"></i>
+                    Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        <span>Homepage updated</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-plus text-success me-2"></i>
+                        <span>New blog post added</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-image text-info me-2"></i>
+                        <span>Media gallery updated</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Management Tools -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-primary mb-3">
+                    <i class="fas fa-file-alt fa-3x"></i>
+                </div>
+                <h5>Pages & Content</h5>
+                <p class="text-muted">Manage website pages, content, and structure</p>
+                <button class="btn btn-primary">Manage Pages</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-success mb-3">
+                    <i class="fas fa-image fa-3x"></i>
+                </div>
+                <h5>Media Gallery</h5>
+                <p class="text-muted">Upload and manage images, videos, and documents</p>
+                <button class="btn btn-success">Manage Media</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="text-info mb-3">
+                    <i class="fas fa-cog fa-3x"></i>
+                </div>
+                <h5>Site Settings</h5>
+                <p class="text-muted">Configure site-wide settings and preferences</p>
+                <button class="btn btn-info">Site Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

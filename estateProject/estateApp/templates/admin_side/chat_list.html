@@ -1,0 +1,1224 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* Modern Color Palette & Variables */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+        --chat-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+    }
+
+    /* Smooth Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(0);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* Page Title Styling */
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .pagetitle h1 i {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: pulse 2s infinite;
+    }
+
+    /* Chat Container - Premium Design */
+    .chat-container {
+        animation: fadeInUp 0.8s ease-out;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .chat-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 0;
+        box-shadow: var(--card-shadow);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        overflow: hidden;
+    }
+
+    .chat-card:hover {
+        box-shadow: var(--card-shadow-hover);
+        transform: translateY(-2px);
+    }
+
+    /* Chat Header */
+    .chat-header {
+        background: var(--primary-gradient);
+        padding: 30px 35px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chat-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: shimmer 3s linear infinite;
+    }
+
+    .chat-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .chat-header-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        animation: pulse 2s infinite;
+    }
+
+    .chat-header-icon i {
+        font-size: 28px;
+        color: white;
+    }
+
+    .chat-header-text h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-header-text p {
+        margin: 5px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    /* Chat Body */
+    .chat-body {
+        padding: 35px;
+    }
+
+    /* Chat List */
+    #client-chat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Chat Item - Enhanced Design */
+    .chat-item {
+        display: flex;
+        align-items: center;
+        padding: 20px 25px;
+        background: var(--card-bg);
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        border-radius: 16px;
+        text-decoration: none;
+        color: var(--text-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        animation: slideInRight 0.5s ease-out backwards;
+    }
+
+    .chat-item:nth-child(1) { animation-delay: 0.1s; }
+    .chat-item:nth-child(2) { animation-delay: 0.15s; }
+    .chat-item:nth-child(3) { animation-delay: 0.2s; }
+    .chat-item:nth-child(4) { animation-delay: 0.25s; }
+    .chat-item:nth-child(5) { animation-delay: 0.3s; }
+
+    .chat-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--primary-gradient);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .chat-item:hover::before {
+        transform: scaleY(1);
+    }
+
+    .chat-item:hover {
+        transform: translateX(8px);
+        border-color: #667eea;
+        box-shadow: var(--chat-shadow);
+        background: rgba(102, 126, 234, 0.03);
+    }
+
+    .chat-item::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .chat-item:active::after {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* Chat Avatar */
+    .chat-avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        position: relative;
+    }
+
+    .chat-avatar::before {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #38ef7d;
+        border: 3px solid var(--card-bg);
+        border-radius: 50%;
+        bottom: 2px;
+        right: 2px;
+        box-shadow: 0 0 0 2px rgba(56, 239, 125, 0.3);
+    }
+
+    /* Chat Info */
+    .chat-info {
+        flex: 1;
+        margin-left: 18px;
+        min-width: 0;
+    }
+
+    .chat-name {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .chat-name h5 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-item:hover .chat-name h5 {
+        color: #667eea;
+    }
+
+    /* Unread Badge */
+    .unread-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 8px;
+        background: var(--danger-gradient);
+        color: white;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(235, 51, 73, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    /* Last Message */
+    .chat-last-message {
+        font-size: 14px;
+        color: var(--text-color);
+        opacity: 0.6;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .chat-last-message i {
+        font-size: 12px;
+        color: #667eea;
+    }
+
+    /* Chat Arrow */
+    .chat-arrow {
+        margin-left: 15px;
+        color: var(--text-color);
+        opacity: 0.3;
+        font-size: 18px;
+        transition: all 0.3s ease;
+    }
+
+    .chat-item:hover .chat-arrow {
+        opacity: 1;
+        color: #667eea;
+        transform: translateX(5px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 25px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: pulse 2s infinite;
+    }
+
+    .empty-state-icon i {
+        font-size: 45px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .empty-state h4 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 12px;
+    }
+
+    .empty-state p {
+        font-size: 15px;
+        color: var(--text-color);
+        opacity: 0.6;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    /* Loading State */
+    .loading-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .loading-indicator.active {
+        opacity: 1;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .chat-container {
+            padding: 0 15px;
+        }
+
+        .chat-header {
+            padding: 25px 20px;
+        }
+
+        .chat-header-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .chat-header-icon i {
+            font-size: 24px;
+        }
+
+        .chat-header-text h3 {
+            font-size: 20px;
+        }
+
+        .chat-header-text p {
+            font-size: 13px;
+        }
+
+        .chat-body {
+            padding: 20px;
+        }
+
+        .chat-item {
+            padding: 15px 18px;
+        }
+
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+        }
+
+        .chat-name h5 {
+            font-size: 16px;
+        }
+
+        .chat-last-message {
+            font-size: 13px;
+        }
+
+        .pagetitle h1 {
+            font-size: 26px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chat-header {
+            padding: 20px 15px;
+        }
+
+        .chat-body {
+            padding: 15px;
+        }
+
+        .chat-item {
+            padding: 12px 15px;
+        }
+
+        .chat-avatar {
+            width: 42px;
+            height: 42px;
+            font-size: 18px;
+        }
+
+        .chat-info {
+            margin-left: 12px;
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+        }
+
+        .empty-state-icon i {
+            font-size: 35px;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .chat-item {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .chat-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    [data-theme="dark"] .chat-avatar::before {
+        border-color: var(--card-bg);
+    }
+
+    /* Search Bar Styling */
+    .search-container {
+        padding: 20px 35px;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        background: var(--card-bg);
+    }
+
+    .search-wrapper {
+        position: relative;
+        animation: slideInRight 0.6s ease-out;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 45px 14px 45px;
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-color);
+        opacity: 0.5;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 16px;
+        pointer-events: none;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-color);
+        opacity: 0.4;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        display: none;
+    }
+
+    .clear-search:hover {
+        opacity: 1;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+    }
+
+    .clear-search.visible {
+        display: block;
+    }
+
+    /* Search Results */
+    #search-results {
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 15px;
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        background: var(--card-bg);
+    }
+
+    #search-results.active {
+        display: block;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    /* Marketer search results styling */
+    #marketer-search-results {
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 15px;
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.15);
+        background: var(--card-bg);
+    }
+
+    #marketer-search-results.active {
+        display: block;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.05);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: var(--text-color);
+    }
+
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-result-item:hover {
+        background: rgba(102, 126, 234, 0.08);
+        transform: translateX(4px);
+    }
+
+    .search-result-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .search-result-info {
+        flex: 1;
+    }
+
+    .search-result-name {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .search-result-email {
+        font-size: 12px;
+        opacity: 0.6;
+    }
+
+    .no-results {
+        padding: 30px 20px;
+        text-align: center;
+        color: var(--text-color);
+        opacity: 0.6;
+    }
+
+    .no-results i {
+        font-size: 40px;
+        margin-bottom: 10px;
+        opacity: 0.4;
+    }
+
+    /* Section Headers */
+    .section-header {
+        padding: 15px 35px 10px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-color);
+        opacity: 0.5;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.05);
+    }
+
+    /* Two-column layout */
+    .chat-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 992px) {
+        .chat-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1><i class="fas fa-comments"></i> Client Chats</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}"><i class="fas fa-home"></i> Home</a></li>
+                <li class="breadcrumb-item active">Chat List</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-columns">
+        <!-- Clients Column -->
+        <div class="chat-card">
+            <div class="chat-header">
+                <div class="chat-header-content">
+                    <div class="chat-header-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="chat-header-text">
+                        <h3>Client Conversations</h3>
+                        <p>Manage and respond to client messages</p>
+                    </div>
+                </div>
+                <div class="loading-indicator" id="loadingIndicator"></div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="client-search" 
+                        class="search-input" 
+                        placeholder="Search clients to start a chat..."
+                        autocomplete="off"
+                    >
+                    <button type="button" class="clear-search" id="clear-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="search-results"></div>
+            </div>
+
+            <div class="chat-body">
+                <div id="client-chat-list">
+                    {% for client in clients %}
+                    <a href="{% url 'admin_chat' client.id %}" class="chat-item">
+                        <div class="chat-avatar">
+                            {{ client.full_name|first|upper }}
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">
+                                <h5>{{ client.full_name }}</h5>
+                                {% if client.unread_count > 0 %}
+                                <span class="unread-badge">{{ client.unread_count }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="chat-last-message">
+                                <i class="far fa-clock"></i>
+                                <span>Last message: {{ client.last_message|timesince }} ago</span>
+                            </div>
+                        </div>
+                        <div class="chat-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h4>No Client Conversations</h4>
+                        <p>When clients start conversations, they will appear here. Check back later or reach out to clients directly.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Marketers Column -->
+        <div class="chat-card">
+            <div class="chat-header">
+                <div class="chat-header-content">
+                    <div class="chat-header-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="chat-header-text">
+                        <h3>Marketer Messages</h3>
+                        <p>Manage and respond to marketer messages</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Marketer Search Bar -->
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="marketer-search" 
+                        class="search-input" 
+                        placeholder="Search marketers to start a chat..."
+                        autocomplete="off"
+                    >
+                    <button type="button" class="clear-search" id="clear-marketer-search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="marketer-search-results"></div>
+            </div>
+
+            <div class="chat-body">
+                <div id="marketer-chat-list">
+                    {% for marketer in marketers %}
+                    <a href="{% url 'admin_marketer_chat' marketer.id %}" class="chat-item">
+                        <div class="chat-avatar">
+                            {{ marketer.full_name|first|upper }}
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">
+                                <h5>{{ marketer.full_name }}</h5>
+                                {% if marketer.unread_count > 0 %}
+                                <span class="unread-badge">{{ marketer.unread_count }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="chat-last-message">
+                                <i class="far fa-clock"></i>
+                                <span>Last message: {{ marketer.last_message|timesince }} ago</span>
+                            </div>
+                        </div>
+                        <div class="chat-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h4>No Marketer Conversations</h4>
+                        <p>When marketers start conversations, they will appear here.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        </div> <!-- /.chat-columns -->
+    </div>
+</main>
+
+<script>
+    function fetchClientChats() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        // Show loading indicator (subtle, non-intrusive)
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('active');
+        }
+
+        fetch("{% url 'admin_client_chat_list' %}")
+            .then(response => response.text())
+            .then(html => {
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                var newList = tempDiv.querySelector('#client-chat-list');
+                var newMarketerList = tempDiv.querySelector('#marketer-chat-list');
+                
+                if (newList) {
+                    const currentList = document.getElementById('client-chat-list');
+                    
+                    // Smart update: Only update if content actually changed
+                    if (currentList.innerHTML !== newList.innerHTML) {
+                        // Get all current chat items
+                        const currentItems = Array.from(currentList.querySelectorAll('.chat-item'));
+                        const newItems = Array.from(newList.querySelectorAll('.chat-item'));
+                        
+                        // Update only changed elements to prevent flickering
+                        newItems.forEach((newItem, index) => {
+                            const newHref = newItem.getAttribute('href');
+                            const existingItem = currentItems.find(item => item.getAttribute('href') === newHref);
+                            
+                            if (existingItem) {
+                                // Check if unread count or last message changed
+                                const newBadge = newItem.querySelector('.unread-badge');
+                                const existingBadge = existingItem.querySelector('.unread-badge');
+                                const newLastMsg = newItem.querySelector('.chat-last-message span').textContent;
+                                const existingLastMsg = existingItem.querySelector('.chat-last-message span').textContent;
+                                
+                                // Update unread badge if changed
+                                if (newBadge && existingBadge) {
+                                    if (newBadge.textContent !== existingBadge.textContent) {
+                                        existingBadge.textContent = newBadge.textContent;
+                                        existingBadge.style.animation = 'none';
+                                        setTimeout(() => existingBadge.style.animation = '', 10);
+                                    }
+                                } else if (newBadge && !existingBadge) {
+                                    // Add new badge
+                                    const chatName = existingItem.querySelector('.chat-name');
+                                    chatName.appendChild(newBadge.cloneNode(true));
+                                } else if (!newBadge && existingBadge) {
+                                    // Remove badge
+                                    existingBadge.remove();
+                                }
+                                
+                                // Update last message if changed
+                                if (newLastMsg !== existingLastMsg) {
+                                    existingItem.querySelector('.chat-last-message span').textContent = newLastMsg;
+                                }
+                            } else {
+                                // New chat item - add it smoothly
+                                newItem.style.opacity = '0';
+                                newItem.style.transform = 'translateX(-20px)';
+                                currentList.insertBefore(newItem, currentList.firstChild);
+                                setTimeout(() => {
+                                    newItem.style.transition = 'all 0.3s ease';
+                                    newItem.style.opacity = '1';
+                                    newItem.style.transform = 'translateX(0)';
+                                }, 10);
+                            }
+                        });
+                        
+                        // Remove items that no longer exist
+                        currentItems.forEach(item => {
+                            const itemHref = item.getAttribute('href');
+                            const stillExists = newItems.some(newItem => newItem.getAttribute('href') === itemHref);
+                            if (!stillExists && !item.classList.contains('empty-state')) {
+                                item.style.transition = 'all 0.3s ease';
+                                item.style.opacity = '0';
+                                item.style.transform = 'translateX(-20px)';
+                                setTimeout(() => item.remove(), 300);
+                            }
+                        });
+                        
+                        // Handle empty state
+                        const newEmpty = newList.querySelector('.empty-state');
+                        const currentEmpty = currentList.querySelector('.empty-state');
+                        if (newEmpty && !currentEmpty && currentItems.length === 0) {
+                            currentList.appendChild(newEmpty.cloneNode(true));
+                        } else if (!newEmpty && currentEmpty) {
+                            currentEmpty.remove();
+                        }
+                    }
+                }
+
+                // Update marketer list similarly
+                if (newMarketerList) {
+                    const currentMList = document.getElementById('marketer-chat-list');
+                    if (currentMList && currentMList.innerHTML !== newMarketerList.innerHTML) {
+                        const currentItems = Array.from(currentMList.querySelectorAll('.chat-item'));
+                        const newItems = Array.from(newMarketerList.querySelectorAll('.chat-item'));
+
+                        newItems.forEach((newItem) => {
+                            const newHref = newItem.getAttribute('href');
+                            const existingItem = currentItems.find(item => item.getAttribute('href') === newHref);
+                            if (existingItem) {
+                                const newBadge = newItem.querySelector('.unread-badge');
+                                const existingBadge = existingItem.querySelector('.unread-badge');
+                                const newLastMsg = newItem.querySelector('.chat-last-message span').textContent;
+                                const existingLastMsg = existingItem.querySelector('.chat-last-message span').textContent;
+
+                                if (newBadge && existingBadge) {
+                                    if (newBadge.textContent !== existingBadge.textContent) {
+                                        existingBadge.textContent = newBadge.textContent;
+                                        existingBadge.style.animation = 'none';
+                                        setTimeout(() => existingBadge.style.animation = '', 10);
+                                    }
+                                } else if (newBadge && !existingBadge) {
+                                    const chatName = existingItem.querySelector('.chat-name');
+                                    chatName.appendChild(newBadge.cloneNode(true));
+                                } else if (!newBadge && existingBadge) {
+                                    existingBadge.remove();
+                                }
+
+                                if (newLastMsg !== existingLastMsg) {
+                                    existingItem.querySelector('.chat-last-message span').textContent = newLastMsg;
+                                }
+                            } else {
+                                newItem.style.opacity = '0';
+                                newItem.style.transform = 'translateX(-20px)';
+                                currentMList.insertBefore(newItem, currentMList.firstChild);
+                                setTimeout(() => {
+                                    newItem.style.transition = 'all 0.3s ease';
+                                    newItem.style.opacity = '1';
+                                    newItem.style.transform = 'translateX(0)';
+                                }, 10);
+                            }
+                        });
+
+                        currentItems.forEach(item => {
+                            const itemHref = item.getAttribute('href');
+                            const stillExists = newItems.some(newItem => newItem.getAttribute('href') === itemHref);
+                            if (!stillExists && !item.classList.contains('empty-state')) {
+                                item.style.transition = 'all 0.3s ease';
+                                item.style.opacity = '0';
+                                item.style.transform = 'translateX(-20px)';
+                                setTimeout(() => item.remove(), 300);
+                            }
+                        });
+
+                        const newEmpty = newMarketerList.querySelector('.empty-state');
+                        const currentEmpty = currentMList.querySelector('.empty-state');
+                        if (newEmpty && !currentEmpty && currentItems.length === 0) {
+                            currentMList.appendChild(newEmpty.cloneNode(true));
+                        } else if (!newEmpty && currentEmpty) {
+                            currentEmpty.remove();
+                        }
+                    }
+                }
+                
+                // Hide loading indicator
+                if (loadingIndicator) {
+                    loadingIndicator.classList.remove('active');
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching client chats:", error);
+                
+                // Hide loading indicator on error
+                if (loadingIndicator) {
+                    loadingIndicator.classList.remove('active');
+                }
+            });
+    }
+
+    // Poll every 2 seconds for faster real-time updates (smooth background refresh)
+    setInterval(fetchClientChats, 2000);
+
+    // Search Functionality
+    const searchInput = document.getElementById('client-search');
+    const searchResults = document.getElementById('search-results');
+    const clearSearchBtn = document.getElementById('clear-search');
+    let searchTimeout = null;
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Show/hide clear button
+        if (query.length > 0) {
+            clearSearchBtn.classList.add('visible');
+        } else {
+            clearSearchBtn.classList.remove('visible');
+            searchResults.classList.remove('active');
+            searchResults.innerHTML = '';
+            return;
+        }
+
+        // Debounce search
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchClients(query);
+        }, 300);
+    });
+
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.focus();
+        clearSearchBtn.classList.remove('visible');
+        searchResults.classList.remove('active');
+        searchResults.innerHTML = '';
+    });
+
+    function searchClients(query) {
+        if (query.length < 2) {
+            searchResults.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>Type at least 2 characters to search</p></div>';
+            searchResults.classList.add('active');
+            return;
+        }
+
+        fetch(`/api/search-clients/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.clients && data.clients.length > 0) {
+                    let html = '';
+                    data.clients.forEach(client => {
+                        const initial = client.full_name.charAt(0).toUpperCase();
+                        html += `
+                            <a href="/chat-admin/chat/${client.id}/" class="search-result-item">
+                                <div class="search-result-avatar">${initial}</div>
+                                <div class="search-result-info">
+                                    <div class="search-result-name">${client.full_name}</div>
+                                    <div class="search-result-email">${client.email || 'No email'}</div>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    searchResults.innerHTML = html;
+                    searchResults.classList.add('active');
+                } else {
+                    searchResults.innerHTML = '<div class="no-results"><i class="fas fa-user-slash"></i><p>No clients found matching "' + query + '"</p></div>';
+                    searchResults.classList.add('active');
+                }
+            })
+            .catch(error => {
+                console.error('Error searching clients:', error);
+                searchResults.innerHTML = '<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Error searching clients</p></div>';
+                searchResults.classList.add('active');
+            });
+    }
+
+    // Marketer Search Functionality
+    const marketerSearchInput = document.getElementById('marketer-search');
+    const marketerSearchResults = document.getElementById('marketer-search-results');
+    const clearMarketerSearchBtn = document.getElementById('clear-marketer-search');
+    let marketerSearchTimeout = null;
+
+    if (marketerSearchInput) {
+        marketerSearchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length > 0) {
+                clearMarketerSearchBtn.classList.add('visible');
+            } else {
+                clearMarketerSearchBtn.classList.remove('visible');
+                marketerSearchResults.classList.remove('active');
+                marketerSearchResults.innerHTML = '';
+                return;
+            }
+            clearTimeout(marketerSearchTimeout);
+            marketerSearchTimeout = setTimeout(() => {
+                searchMarketers(query);
+            }, 300);
+        });
+    }
+
+    if (clearMarketerSearchBtn) {
+        clearMarketerSearchBtn.addEventListener('click', function() {
+            marketerSearchInput.value = '';
+            marketerSearchInput.focus();
+            clearMarketerSearchBtn.classList.remove('visible');
+            marketerSearchResults.classList.remove('active');
+            marketerSearchResults.innerHTML = '';
+        });
+    }
+
+    function searchMarketers(query) {
+        if (query.length < 2) {
+            marketerSearchResults.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>Type at least 2 characters to search</p></div>';
+            marketerSearchResults.classList.add('active');
+            return;
+        }
+        fetch(`/api/search-marketers/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.marketers && data.marketers.length > 0) {
+                    let html = '';
+                    data.marketers.forEach(m => {
+                        const initial = (m.full_name || '').charAt(0).toUpperCase();
+                        html += `
+                            <a href="/chat-admin/marketer-chat/${m.id}/" class="search-result-item">
+                                <div class="search-result-avatar">${initial || '?'}</div>
+                                <div class="search-result-info">
+                                    <div class="search-result-name">${m.full_name}</div>
+                                    <div class="search-result-email">${m.email || 'No email'}</div>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    marketerSearchResults.innerHTML = html;
+                    marketerSearchResults.classList.add('active');
+                } else {
+                    marketerSearchResults.innerHTML = '<div class="no-results"><i class="fas fa-user-slash"></i><p>No marketers found matching "' + query + '"</p></div>';
+                    marketerSearchResults.classList.add('active');
+                }
+            })
+            .catch(error => {
+                console.error('Error searching marketers:', error);
+                marketerSearchResults.innerHTML = '<div class="no-results"><i class="fas fa-exclamation-triangle"></i><p>Error searching marketers</p></div>';
+                marketerSearchResults.classList.add('active');
+            });
+    }
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container')) {
+            searchResults.classList.remove('active');
+        }
+        if (!e.target.closest('#marketer-search') && !e.target.closest('#marketer-search-results') && !e.target.closest('#clear-marketer-search')) {
+            marketerSearchResults.classList.remove('active');
+        }
+    });
+
+    // Add ripple effect on click
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatItems = document.querySelectorAll('.chat-item');
+        chatItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,390 @@
+{% extends 'marketer_base.html' %}
+{% load static humanize %}
+{% block content %}
+
+<main id="main" class="main">
+  <div class="pagetitle">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1>Client Records</h1>
+        <nav>
+          <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ home_url }}">Home</a></li>
+            <li class="breadcrumb-item active">Client Records</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      {% if clients %}
+        {% for client in clients %}
+          <div class="col-xl-6">
+            <div class="client-card">
+              <div class="card-header bg-gradient-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <div class="client-avatar">
+                        {% if client.profile_image %}
+                            <img
+                            src="{{ client.profile_image.url }}"
+                            alt="{{ client.full_name }}"
+                            class="img-fluid"
+                            >
+                        {% else %}
+                            <img
+                                src="{% static 'assets/img/profile_avatar.jpeg' %}"
+                                alt="Default Female Avatar"
+                                class="img-fluid"
+                            >
+                        {% endif %}
+                    </div>
+
+                    <div class="ms-3">
+                      <h3 class="mb-0 text-white">{{ client.full_name }}</h3>
+                      <p class="mb-0 text-white-50">
+                        <i class="bi bi-telephone me-1"></i> {{ client.phone_number }}
+                      </p>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              
+              <div class="card-body">
+                <!-- Client Summary -->
+                <div class="client-summary mb-4">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="bi bi-envelope text-primary"></i>
+                        <div>
+                          <span>Email</span>
+                          <strong>{{ client.email }}</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="bi bi-geo-alt text-primary"></i>
+                        <div>
+                          <span>Address</span>
+                          <strong>{{ client.address|default:"Not provided" }}</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="bi bi-calendar text-primary"></i>
+                        <div>
+                          <span>Date Joined</span>
+                          <strong>{{ client.date_registered|date:"F j, Y" }}</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="bi bi-building text-primary"></i>
+                        <div>
+                          <span>Total Estates</span>
+                          <strong>{{ client.transactions.count }}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Estate Transactions -->
+                <div class="accordion" id="accordion-{{ client.id }}">
+                  {% regroup client.transactions.all by allocation.estate as estate_groups %}
+                  {% for estate_group in estate_groups %}
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="heading-{{ forloop.counter }}-{{ client.id }}">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}-{{ client.id }}" aria-expanded="true" aria-controls="collapse-{{ forloop.counter }}-{{ client.id }}">
+                          <div class="d-flex align-items-center">
+                            <i class="bi bi-building me-3 fs-4 text-primary"></i>
+                            <div>
+                              <h5 class="mb-0">{{ estate_group.grouper.name }}</h5>
+                              <small class="text-muted">{{ estate_group.list|length }} transactions</small>
+                            </div>
+                          </div>
+                        </button>
+                      </h2>
+                      <div id="collapse-{{ forloop.counter }}-{{ client.id }}" class="accordion-collapse collapse show" aria-labelledby="heading-{{ forloop.counter }}-{{ client.id }}" data-bs-parent="#accordion-{{ client.id }}">
+                        <div class="accordion-body p-0">
+                          <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                              <thead class="table-light">
+                                <tr>
+                                  <th>Plot Size</th>
+                                  <th>Price (₦)</th>
+                                  <th>Payment</th>
+                                  <th>Allocation</th>
+                                  <th>Date</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {% for txn in estate_group.list %}
+                                  <tr>
+                                    <td>
+                                      <span class="badge bg-primary rounded-pill">
+                                        {{ txn.allocation.plot_size.size }}
+                                      </span>
+                                    </td>
+                                    <td class="fw-bold">{{ txn.total_amount|intcomma }}</td>
+                                    <td>
+                                      <span class="badge bg-{% if txn.status in 'Paid,Complete,Fully Paid' %}success{% else %}warning{% endif %} rounded-pill">
+                                        {{ txn.status }}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      {% if txn.allocation.plot_number %}
+                                        <span class="badge bg-success rounded-pill">
+                                          <i class="bi bi-check-circle me-1"></i> Allocated
+                                        </span>
+                                      {% else %}
+                                        <span class="badge bg-danger rounded-pill">
+                                          <i class="bi bi-x-circle me-1"></i> Not Allocated
+                                        </span>
+                                      {% endif %}
+                                    </td>
+                                    <td>
+                                      <small class="text-muted">
+                                        {{ txn.transaction_date|date:"M d, Y" }}
+                                      </small>
+                                    </td>
+                                  </tr>
+                                {% endfor %}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between">
+                    <div>
+                    {# WhatsApp click-to-chat URL: https://wa.me/<number> #}
+                    <a
+                        href="https://wa.me/{{ client.phone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}"
+                        target="_blank"
+                        class="btn btn-success"
+                    >
+                        <i class="bi bi-whatsapp me-1"></i>
+                        Send Message
+                    </a>
+                    </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12">
+          <div class="empty-state text-center py-5">
+            <div class="empty-icon">
+              <i class="bi bi-people display-1 text-muted"></i>
+            </div>
+            <h3 class="mt-4">No Clients Found</h3>
+            <p class="text-muted">You haven't been assigned any clients yet.</p>
+            <div class="mt-4">
+              <button class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle me-1"></i> Add New Client
+              </button>
+              <button class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-repeat me-1"></i> Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</main>
+
+<style>
+  .client-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+    margin-bottom: 30px;
+    border: none;
+  }
+  
+  .client-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+  }
+  
+  .card-header.bg-gradient-primary {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    padding: 1.5rem 1.8rem;
+    border-bottom: none;
+  }
+  
+  .client-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .client-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .client-summary {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .detail-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 0;
+  }
+  
+  .detail-item i {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 40px;
+    height: 40px;
+    background: rgba(37, 117, 252, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .detail-item div {
+    flex: 1;
+  }
+  
+  .detail-item span {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .detail-item strong {
+    display: block;
+    font-weight: 500;
+    color: #343a40;
+  }
+  
+  .accordion-item {
+    border: none;
+    border-radius: 8px !important;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .accordion-button {
+    background-color: #fff;
+    padding: 1.2rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+  }
+  
+  .accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: #2575fc;
+  }
+  
+  .accordion-body {
+    padding: 0;
+  }
+  
+  .table th {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+  }
+  
+  .table td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+  }
+  
+  .badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+  }
+  
+  .search-bar {
+    position: relative;
+    width: 300px;
+  }
+  
+  .search-bar .form-control {
+    border-radius: 30px;
+    padding-left: 45px;
+    height: 45px;
+  }
+  
+  .btn-search {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #6c757d;
+  }
+  
+  .empty-state {
+    background: #fff;
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+  
+  .empty-icon i {
+    font-size: 5rem;
+    opacity: 0.3;
+  }
+</style>
+
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+    
+    // Add animation to client cards
+    const cards = document.querySelectorAll('.client-card');
+    
+    cards.forEach((card, index) => {
+      card.style.opacity = 0;
+      card.style.transform = 'translateY(30px)';
+      card.style.display = 'block';
+      
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        card.style.opacity = 1;
+        card.style.transform = 'translateY(0)';
+      }, index * 150);
+    });
+  });
+</script>
+
+{% endblock %}

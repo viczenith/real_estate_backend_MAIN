@@ -1,0 +1,19 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+<h3>All Messages</h3>
+<ul>
+    {% for message in messages %}
+        <li>
+            <strong>{{ message.sender.username }}</strong> ({{ message.message_type }}): {{ message.content }}
+            <br><small>Replied: {{ message.reply|default:"No reply yet" }}</small>
+            <br>
+            <a href="{% url 'reply-message' message.id %}">Reply</a>
+        </li>
+    {% empty %}
+        <li>No messages found.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

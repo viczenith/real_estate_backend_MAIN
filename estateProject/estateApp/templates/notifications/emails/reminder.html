@@ -1,0 +1,12 @@
+{% extends "notifications/emails/base.html" %}
+
+{% block content %}
+<div class="notification-type reminder">Payment Reminder</div>
+<h3 style="margin-top:0;">Hi {{ user.first_name }},</h3>
+<p>This is a friendly reminder regarding your upcoming payment:</p>
+<div style="background:#fff3cd; padding:15px; border-radius:5px; margin:20px 0;">
+    <p>Due Date: <strong>{{ due_date }}</strong></p>
+    <p>Amount Due: <strong>{{ amount }}</strong></p>
+</div>
+<a href="{{ payment_url }}" class="button" style="background:#dc3545;">Make Payment</a>
+{% endblock %}

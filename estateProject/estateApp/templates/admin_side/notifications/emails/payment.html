@@ -1,0 +1,10 @@
+{% extends "admin_side/notifications/emails/base.html" %}
+
+{% block content %}
+    <h2 style="color: #2eca6a;">Payment Update</h2>
+    <p>Hello {{ user.first_name }},</p>
+    {{ message|safe }}
+    <p style="margin-top: 30px;">
+        <a href="" class="button">View Payment Details</a>
+    </p>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% load static %}
+{% if is_admin %}
+{% extends 'admin_base.html' %}
+{% else %}
+{% extends 'client_base.html' %}
+{% endif %}
+
+{% block content %}
+<h2>Message Details</h2>
+
+<div class="message-detail">
+  <div class="sender">
+    <h3>{{ message.sender.username }}</h3>
+    <p><strong>Message Type:</strong> {{ message.get_message_type_display }}</p>
+    <p><strong>Sent:</strong> {{ message.date_sent|date:"M d, Y H:i" }}</p>
+  </div>
+
+  <div class="message-content">
+    <p>{{ message.content }}</p>
+  </div>
+
+  {% if message.reply %}
+    <div class="admin-reply">
+      <h4>Admin Reply:</h4>
+      <p>{{ message.reply }}</p>
+      <p><strong>Replied:</strong> {{ message.date_replied|date:"M d, Y H:i" }}</p>
+    </div>
+  {% endif %}
+
+  <!-- Reply form for admins -->
+  {% if is_admin and not message.reply %}
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="reply_content">Your Reply:</label>
+        <textarea id="reply_content" name="reply_content" rows="5" class="form-control" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Send Reply</button>
+    </form>
+  {% endif %}
+  
+  <a href="{% url 'all_messages' %}">Back to All Messages</a>
+</div>
+{% endblock %}

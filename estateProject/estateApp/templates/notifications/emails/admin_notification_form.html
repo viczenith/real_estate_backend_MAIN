@@ -1,0 +1,675 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    /* Modern Color Palette & Variables */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+        --card-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 30px 80px rgba(0, 0, 0, 0.12);
+        --input-focus-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    /* Smooth Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Page Title Styling */
+    .pagetitle {
+        animation: fadeInUp 0.6s ease-out;
+        margin-bottom: 30px;
+    }
+
+    .pagetitle h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    /* Notification Container */
+    .notification-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        width: 100%;
+        padding: 0;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .notification-card {
+        width: 100%;
+        max-width: 900px;
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 0;
+        box-shadow: var(--card-shadow);
+        transition: all 0.4s ease;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .notification-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 24px 24px 0 0;
+    }
+
+    .notification-card:hover {
+        box-shadow: var(--card-shadow-hover);
+        transform: translateY(-5px);
+    }
+
+    /* Notification Header */
+    .notification-header {
+        background: var(--primary-gradient);
+        padding: 35px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notification-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        animation: shimmer 3s infinite;
+    }
+
+    .notification-header h4 {
+        color: white;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        position: relative;
+        z-index: 1;
+        letter-spacing: 0.5px;
+    }
+
+    .notification-header i {
+        font-size: 32px;
+        animation: pulse 2s infinite;
+    }
+
+    /* Notification Body */
+    .notification-body {
+        padding: 45px 50px;
+    }
+
+    /* Error Message */
+    #error-message {
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border: none;
+        background: var(--danger-gradient);
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(235, 51, 73, 0.3);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    #error-message.d-none {
+        display: none !important;
+    }
+
+    /* Toast Container */
+    #toast-container {
+        position: fixed;
+        top: 90px;
+        right: 30px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .toast {
+        padding: 18px 25px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        animation: slideInRight 0.4s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        backdrop-filter: blur(10px);
+    }
+
+    .toast.success {
+        background: var(--success-gradient);
+    }
+
+    .toast.error {
+        background: var(--danger-gradient);
+    }
+
+    /* Form Groups */
+    .form-group {
+        margin-bottom: 28px;
+        animation: slideInRight 0.6s ease-out;
+    }
+
+    .form-group:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .form-group:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .form-group:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .form-group label {
+        color: var(--text-color);
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    .form-group label i {
+        font-size: 18px;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Input Wrapper */
+    .input-wrapper {
+        padding: 0;
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        width: 100%;
+        transition: all 0.3s ease;
+        background: var(--card-bg);
+        overflow: hidden;
+    }
+
+    .input-wrapper:focus-within {
+        border-color: #667eea;
+        box-shadow: var(--input-focus-shadow);
+        transform: translateY(-2px);
+    }
+
+    /* Form Controls */
+    select, input, textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-color);
+        padding: 14px 18px;
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+
+    select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 20px;
+        padding-right: 45px;
+    }
+
+    textarea {
+        min-height: 140px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    select:focus, input:focus, textarea:focus {
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    textarea::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    textarea::-webkit-scrollbar-track {
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 10px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 10px;
+    }
+
+    textarea::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 126, 234, 0.5);
+    }
+
+    /* Validation States */
+    .is-invalid {
+        border-color: #eb3349 !important;
+        animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    /* Button Container */
+    .btn-container {
+        text-align: center;
+        margin-top: 35px;
+        animation: fadeInUp 0.8s ease-out;
+        animation-delay: 0.4s;
+    }
+
+    /* Submit Button */
+    .btn-glow {
+        background: var(--primary-gradient);
+        color: #fff;
+        padding: 16px 45px;
+        border: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-glow::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-glow:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+
+    .btn-glow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-glow:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-glow:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-glow i, .btn-glow span {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Spin Animation for Loading */
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .notification-header {
+            padding: 25px 30px;
+        }
+
+        .notification-header h4 {
+            font-size: 22px;
+        }
+
+        .notification-header i {
+            font-size: 26px;
+        }
+
+        .notification-body {
+            padding: 30px 25px;
+        }
+
+        .pagetitle h1 {
+            font-size: 26px;
+        }
+
+        select, input, textarea {
+            font-size: 14px;
+            padding: 12px 15px;
+        }
+
+        .btn-glow {
+            padding: 14px 35px;
+            font-size: 15px;
+        }
+
+        #toast-container {
+            right: 15px;
+            top: 80px;
+        }
+
+        .toast {
+            min-width: 250px;
+            padding: 15px 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .notification-card {
+            border-radius: 16px;
+        }
+
+        .notification-header {
+            padding: 20px 20px;
+        }
+
+        .notification-header h4 {
+            font-size: 20px;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification-body {
+            padding: 25px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 120px;
+        }
+
+        .btn-glow {
+            padding: 12px 30px;
+            font-size: 14px;
+            width: 100%;
+        }
+    }
+
+    /* Dark Mode Enhancements */
+    [data-theme="dark"] .notification-card {
+        border-color: rgba(162, 155, 254, 0.2);
+    }
+
+    [data-theme="dark"] .input-wrapper {
+        border-color: rgba(162, 155, 254, 0.3);
+    }
+
+    [data-theme="dark"] .input-wrapper:focus-within {
+        border-color: #a29bfe;
+    }
+
+    [data-theme="dark"] select:focus, 
+    [data-theme="dark"] input:focus, 
+    [data-theme="dark"] textarea:focus {
+        background: rgba(162, 155, 254, 0.05);
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1><i class="bi bi-bell"></i> Send Notifications</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Home</a></li>
+                <li class="breadcrumb-item active">Send Notifications</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Form Section -->
+    <section class="section">
+        <div class="notification-container">
+            <div class="notification-card">
+                <div class="notification-header">
+                    <h4><i class="bi bi-megaphone"></i> Broadcast Message</h4>
+                </div>
+                <div class="notification-body">
+                    <form id="notification-form" action="{% url 'send-announcement' %}" method="post">  
+                        {% csrf_token %}
+                    
+                        <!-- Error Message Container -->
+                        <div id="error-message" class="alert alert-danger d-none"></div>
+                    
+                        <div id="toast-container"></div>
+                    
+                        <!-- Notification Type -->
+                        <div class="form-group">
+                            <label><i class="bi bi-list-check"></i> Announcement Type</label>
+                            <div class="input-wrapper">
+                                {{ form.notification_type }}
+                            </div>
+                        </div>
+                    
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label><i class="bi bi-type"></i> Title</label>
+                            <div class="input-wrapper">
+                                {{ form.title }}
+                            </div>
+                        </div>
+                    
+                        <!-- Message -->
+                        <div class="form-group">
+                            <label><i class="bi bi-chat-text"></i> Message</label>
+                            <div class="input-wrapper">
+                                {{ form.message }}
+                            </div>
+                        </div>
+                    
+                        <!-- Submit Button -->
+                        <div class="btn-container">
+                            <button type="submit" class="btn-glow">
+                                <i class="bi bi-send-fill"></i>
+                                <span>Send Announcement</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = message;
+            
+            const container = document.getElementById('toast-container');
+            container.appendChild(toast);
+            
+            // Remove toast after 5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.4s ease-out reverse';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        }
+
+        document.getElementById('notification-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const errorMessage = document.getElementById('error-message');
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Validate required fields client-side first
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.closest('.input-wrapper').classList.add('is-invalid');
+                } else {
+                    field.closest('.input-wrapper').classList.remove('is-invalid');
+                }
+            });
+        
+            if (!isValid) {
+                showToast('❌ Please fill all required fields', 'error');
+                return;
+            }
+        
+            // Loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnHTML = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i><span>Sending...</span>';
+            submitBtn.disabled = true;
+        
+            // Clear previous errors
+            errorMessage.classList.add('d-none');
+        
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: new FormData(form),
+            })
+            .then(response => {
+                if (response.status === 403) {
+                    throw new Error('Authentication error - please refresh the page');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('✅ ' + data.message, 'success');
+                    form.reset();
+                } else {
+                    const errorText = data.message || Object.values(data.errors || {}).flat().join('\n');
+                    showToast('❌ ' + errorText, 'error');
+                    errorMessage.textContent = errorText;
+                    errorMessage.classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('❌ ' + error.message, 'error');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalBtnHTML;
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</main>
+{% endblock %}

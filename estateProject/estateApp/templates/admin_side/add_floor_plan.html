@@ -1,0 +1,826 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+  <style>
+    /* === Global Wrapper === */
+    .floor-plan-wrapper {
+        min-height: 100vh;
+        padding: 20px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .floor-plan-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: movePattern 60s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes movePattern {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+
+    /* === Floating Particles === */
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        animation: floatParticle 20s infinite ease-in-out;
+        pointer-events: none;
+    }
+
+    .particle:nth-child(1) { width: 4px; height: 4px; top: 18%; left: 12%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 6px; height: 6px; top: 68%; left: 82%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 3px; height: 3px; top: 38%; left: 58%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 5px; height: 5px; top: 78%; left: 28%; animation-delay: 6s; }
+
+    @keyframes floatParticle {
+        0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        50% { transform: translateY(-120px) translateX(60px); }
+    }
+
+    /* === Form Container === */
+    .form-container {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 50px;
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        animation: slideUpFadeIn 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #4facfe, #667eea);
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes slideUpFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 200% 0%; }
+    }
+
+    /* === Form Header === */
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+        position: relative;
+        padding-bottom: 25px;
+    }
+
+    .form-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 2px;
+        animation: expandWidth 2s ease-in-out infinite;
+    }
+
+    @keyframes expandWidth {
+        0%, 100% { width: 80px; }
+        50% { width: 120px; }
+    }
+
+    .form-header .icon-wrapper {
+        display: inline-block;
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: 
+            0 10px 30px rgba(102, 126, 234, 0.4),
+            0 0 0 10px rgba(102, 126, 234, 0.1);
+        animation: iconFloat 3s ease-in-out infinite;
+        position: relative;
+    }
+
+    .form-header .icon-wrapper::before {
+        content: '';
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        padding: 5px;
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        animation: rotateBorder 3s linear infinite;
+    }
+
+    @keyframes iconFloat {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-10px) scale(1.05); }
+    }
+
+    @keyframes rotateBorder {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .form-header .icon-wrapper i {
+        font-size: 42px;
+        color: #ffffff;
+        animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .form-header .subtitle {
+        font-size: 15px;
+        font-weight: 400;
+        color: #636e72;
+        margin-bottom: 8px;
+        animation: fadeInDown 0.6s ease-out 0.3s both;
+    }
+
+    .form-header .estate-name {
+        font-size: 26px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeInDown 0.6s ease-out 0.4s both;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* === Alert Container === */
+    .alert-container {
+        margin-bottom: 30px;
+        animation: slideInAlert 0.5s ease-out;
+    }
+
+    @keyframes slideInAlert {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 16px 20px;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .alert::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #e8f5e9, #f1f8f4);
+        color: #2e7d32;
+    }
+
+    .alert-success::before {
+        background: linear-gradient(180deg, #4caf50, #66bb6a);
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #ffebee, #fce4ec);
+        color: #c62828;
+    }
+
+    .alert-danger::before {
+        background: linear-gradient(180deg, #f44336, #e57373);
+    }
+
+    /* === Form Group === */
+    .form-group {
+        margin-bottom: 28px;
+        animation: fadeInUp 0.6s ease-out backwards;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.5s; }
+    .form-group:nth-child(2) { animation-delay: 0.6s; }
+    .form-group:nth-child(3) { animation-delay: 0.7s; }
+    .form-group:nth-child(4) { animation-delay: 0.8s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-label {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-label i {
+        margin-right: 8px;
+        color: #667eea;
+        font-size: 18px;
+    }
+
+    .form-label .required {
+        color: #e74c3c;
+        margin-left: 4px;
+        font-size: 16px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 14px 18px;
+        font-size: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: inherit;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        background: #ffffff;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 18px center;
+        padding-right: 45px;
+    }
+
+    .form-select option {
+        padding: 10px;
+    }
+
+    .form-select option:disabled {
+        color: #b2bec3;
+        background-color: #f5f5f5;
+    }
+
+    .form-control::placeholder {
+        color: #b2bec3;
+    }
+
+    /* Custom File Input */
+    .file-input-wrapper {
+        position: relative;
+        display: block;
+    }
+
+    .file-input-wrapper input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .file-input-display {
+        border: 3px dashed #dfe6e9;
+        border-radius: 14px;
+        padding: 30px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-input-display::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .file-input-wrapper:hover .file-input-display::before {
+        left: 100%;
+    }
+
+    .file-input-wrapper:hover .file-input-display {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    }
+
+    .file-input-display.has-file {
+        border-color: #667eea;
+        border-style: solid;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #ffffff;
+    }
+
+    .file-input-wrapper:hover .file-input-display.has-file {
+        background: linear-gradient(135deg, #764ba2, #667eea);
+        transform: translateY(-2px) scale(1.01);
+    }
+
+    .file-input-icon {
+        font-size: 40px;
+        color: #667eea;
+        margin-bottom: 12px;
+        animation: iconBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes iconBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .file-input-display.has-file .file-input-icon {
+        color: #ffffff;
+    }
+
+    .file-input-text {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 5px;
+    }
+
+    .file-input-display.has-file .file-input-text {
+        color: #ffffff;
+    }
+
+    .file-input-subtext {
+        font-size: 13px;
+        color: #636e72;
+    }
+
+    .file-input-display.has-file .file-input-subtext {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* === Submit Button === */
+    .btn-submit-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 35px;
+        animation: fadeInUp 0.6s ease-out 0.9s both;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 16px 48px;
+        font-size: 17px;
+        font-weight: 600;
+        border-radius: 12px;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 
+            0 8px 20px rgba(102, 126, 234, 0.3),
+            0 0 0 0 rgba(102, 126, 234, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 12px 30px rgba(102, 126, 234, 0.4),
+            0 0 0 8px rgba(102, 126, 234, 0.1);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn-primary:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-primary:active {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary i {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+
+    .btn-primary.loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-primary.loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* === Responsive Design === */
+    @media (max-width: 768px) {
+        .floor-plan-wrapper {
+            padding: 15px 0;
+        }
+
+        .form-container {
+            padding: 35px 25px;
+            border-radius: 20px;
+        }
+
+        .form-header .icon-wrapper {
+            width: 75px;
+            height: 75px;
+        }
+
+        .form-header .icon-wrapper i {
+            font-size: 36px;
+        }
+
+        .form-header .estate-name {
+            font-size: 22px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px 32px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-container {
+            padding: 25px 18px;
+        }
+
+        .form-header .estate-name {
+            font-size: 19px;
+        }
+
+        .file-input-display {
+            padding: 25px 15px;
+        }
+
+        .file-input-icon {
+            font-size: 32px;
+        }
+    }
+
+    /* === Custom Scrollbar === */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f3f5;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #667eea, #764ba2);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #764ba2, #667eea);
+    }
+  </style>
+
+  <div class="floor-plan-wrapper">
+    <!-- Floating Particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+
+    <main id="main" class="main" style="background: transparent;">
+
+      <div class="pagetitle">
+        <h1>Floor Plans</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'admin-dashboard' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'view-allocated-plot' id=estate.id %}">Allocated Plots</a></li>
+            <li class="breadcrumb-item active">Floor Plans</li>
+          </ol>
+        </nav>
+      </div><!-- End Page Title -->
+
+      <section class="section contact">
+        <div class="row gy-4">
+          <div class="col-xl-12">
+            <div class="form-container">
+              <!-- Premium Header with Icon -->
+              <div class="form-header">
+                <div class="icon-wrapper">
+                  <i class="fas fa-th"></i>
+                </div>
+                <div class="subtitle">Upload Floor Plan for</div>
+                <h2 class="estate-name">{{ estate.name }}</h2>
+              </div>
+              
+              <form method="POST" enctype="multipart/form-data" id="floorPlanForm">
+                <!-- Alert Messages -->
+                {% if messages %}
+                  <div class="alert-container">
+                    {% for message in messages %}
+                      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
+                        {{ message|safe }}
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
+                {% csrf_token %}
+                <input type="hidden" name="estate" value="{{ estate.id }}">
+
+                <!-- Plot Size Selection -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-ruler-combined"></i>
+                    Plot Size
+                    <span class="required">*</span>
+                  </label>
+                  <select name="plot_size" id="plotSize" class="form-select" required>
+                    <option value="" disabled selected>Select a plot size</option>
+                    {% for size in plot_sizes %}
+                      <option value="{{ size.id }}">{{ size.size }}</option>
+                    {% empty %}
+                      <option value="" disabled>No plot sizes configured for this estate</option>
+                    {% endfor %}
+                  </select>
+                </div>
+      
+                <!-- File Upload -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-file-image"></i>
+                    Floor Plan Image
+                    <span class="required">*</span>
+                  </label>
+                  <div class="file-input-wrapper">
+                    <input 
+                      type="file" 
+                      name="floor_plan_image" 
+                      id="floorPlanImage" 
+                      accept="image/*" 
+                      required
+                    >
+                    <div class="file-input-display" id="fileDisplay">
+                      <div class="file-input-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                      </div>
+                      <div class="file-input-text">Choose floor plan image</div>
+                      <div class="file-input-subtext" id="fileSubtext">or drag and drop (JPG, PNG, GIF)</div>
+                    </div>
+                  </div>
+                </div>
+      
+                <!-- Title -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-heading"></i>
+                    Plan Title
+                    <span class="required">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    name="plan_title" 
+                    class="form-control" 
+                    placeholder="e.g., 3 Bedroom Bungalow"
+                    required
+                  >
+                </div>
+      
+                <div class="btn-submit-container">
+                  <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-upload"></i>
+                    Upload Floor Plan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('floorPlanForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const fileInput = document.getElementById('floorPlanImage');
+      const fileDisplay = document.getElementById('fileDisplay');
+      const fileSubtext = document.getElementById('fileSubtext');
+
+      // File input change handler
+      fileInput.addEventListener('change', function(e) {
+        handleFile(e.target.files[0]);
+      });
+
+      // Drag and drop handlers
+      fileDisplay.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileDisplay.style.borderColor = '#667eea';
+        fileDisplay.style.transform = 'scale(1.02)';
+      });
+
+      fileDisplay.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        if (!fileInput.files.length) {
+          fileDisplay.style.borderColor = '#dfe6e9';
+          fileDisplay.style.transform = 'scale(1)';
+        }
+      });
+
+      fileDisplay.addEventListener('drop', function(e) {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          const dt = new DataTransfer();
+          dt.items.add(files[0]);
+          fileInput.files = dt.files;
+          handleFile(files[0]);
+        }
+      });
+
+      // Handle file processing
+      function handleFile(file) {
+        if (file) {
+          if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file (JPG, PNG, GIF)');
+            return;
+          }
+
+          fileDisplay.classList.add('has-file');
+          fileSubtext.textContent = file.name;
+        }
+      }
+
+      // Form submission handler
+      if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+          submitBtn.classList.add('loading');
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+          submitBtn.disabled = true;
+        });
+      }
+
+      // Ripple effect
+      submitBtn.addEventListener('click', function(e) {
+        if (this.disabled) return;
+        
+        const ripple = document.createElement('span');
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.6);
+          width: ${size}px;
+          height: ${size}px;
+          left: ${x}px;
+          top: ${y}px;
+          animation: ripple 0.6s ease-out;
+          pointer-events: none;
+        `;
+        
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+
+    // Ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes ripple {
+        from {
+          opacity: 1;
+          transform: scale(0);
+        }
+        to {
+          opacity: 0;
+          transform: scale(2);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+
+{% endblock %}

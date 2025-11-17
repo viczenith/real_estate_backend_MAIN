@@ -1,0 +1,220 @@
+{% extends 'client_base.html' %}
+{% load humanize %}
+{% block content %}
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Client Dashboard</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'client-dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item active">Promos</li>
+      </ol>
+    </nav>
+  </div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Promotions</h2>
+    <div>
+      <a href="{% url 'promotions-list' %}" class="btn btn-sm btn-outline-primary">All</a>
+      <a href="{% url 'promotions-list' %}?filter=active" class="btn btn-sm btn-primary ms-1">Active</a>
+      <a href="{% url 'promotions-list' %}?filter=past" class="btn btn-sm btn-outline-secondary ms-1">Past</a>
+    </div>
+  </div>
+
+  
+  {% if active_promotions and active_promotions|length > 0 %}
+    <div class="mb-4">
+      <h5 class="mb-2">Currently active</h5>
+      <div class="row g-3">
+        {% for promo in active_promotions %}
+        <div class="col-md-6">
+          <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h5 class="mb-1"><a href="{% url 'promotion-detail' promo.id %}">{{ promo.name }}</a> <span class="badge bg-danger">-{{ promo.discount }}%</span></h5>
+                <p class="small text-muted mb-1">{{ promo.description|default:"No description" }}</p>
+                <p class="small text-muted mb-0">Valid: {{ promo.start|date:"M d, Y" }} → {{ promo.end|date:"M d, Y" }}</p>
+              </div>
+              <div class="text-end">
+                <p class="small text-muted mb-1">Applies to</p>
+                <p class="mb-0">
+                  {% with estates=promo.estates.all %}
+                    {% if estates %}
+                      {{ estates|slice:":2"|join:", " }}{% if estates|length > 2 %} +{{ estates|length|add:"-2" }} more{% endif %}
+                    {% else %}
+                      All estates
+                    {% endif %}
+                  {% endwith %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+    <div id="promotionsContainer">
+        <h5 class="mb-2">All promotions</h5>
+        {% now "Y-m-d" as today %}
+        {% if promotions %}
+        <div class="list-group">
+            {% for promo in promotions %}
+            {# normalize date strings for reliable comparison in template #}
+            {% with start=promo.start|date:"Y-m-d" end=promo.end|date:"Y-m-d" %}
+                {% if start <= today and end >= today %}
+                {# Active promo: clickable, green badge #}
+                <a href="{% url 'promotion-detail' promo.id %}"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    title="Active — ends {{ promo.end|date:'M d, Y' }}">
+                    <div>
+                    <strong>{{ promo.name }}</strong>
+                    <div class="small text-muted">{{ promo.description|truncatechars:120 }}</div>
+                    </div>
+                    <span class="badge bg-success rounded-pill">-{{ promo.discount }}%</span>
+                </a>
+
+                {% elif end < today %}
+                {# Expired promo: greyed, non-clickable #}
+                <div class="list-group-item d-flex justify-content-between align-items-center promo-expired" aria-disabled="true" role="button">
+                    <div>
+                    <strong class="text-muted">{{ promo.name }}</strong>
+                    <div class="small text-muted">{{ promo.description|truncatechars:120 }}</div>
+                    </div>
+                    <span class="badge bg-light text-muted rounded-pill">-{{ promo.discount }}%</span>
+                </div>
+
+                {% else %}
+                {# Future / not yet active promo: clickable but neutral/gray badge #}
+                <a href="{% url 'promotion-detail' promo.id %}"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    title="Not yet active — starts {{ promo.start|date:'M d, Y' }}">
+                    <div>
+                    <strong>{{ promo.name }}</strong>
+                    <div class="small text-muted">{{ promo.description|truncatechars:120 }}</div>
+                    </div>
+                    <span class="badge bg-secondary rounded-pill">-{{ promo.discount }}%</span>
+                </a>
+                {% endif %}
+            {% endwith %}
+            {% endfor %}
+        </div>
+
+        <nav class="mt-3" aria-label="Promotions pagination">
+            <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
+            </ul>
+        </nav>
+        {% else %}
+        <div class="card p-4 text-center">
+            <h5>No promotions found</h5>
+            <p class="text-muted">There are currently no promotions configured.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<style>
+    .promo-expired {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.75;
+    pointer-events: none;
+    }
+
+    .badge.bg-success {
+    background-color: #198754 !important;
+    }
+    .badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff !important;
+    }
+
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('promotionsContainer');
+    if (!container) return;
+
+    // Utility: fetch full page HTML, parse it, extract #promotionsContainer innerHTML and replace ours
+    async function fetchAndReplace(url, pushState = true) {
+        try {
+        const resp = await fetch(url, { credentials: 'same-origin' });
+        if (!resp.ok) throw new Error('Network response was not ok: ' + resp.status);
+        const text = await resp.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const newBlock = doc.getElementById('promotionsContainer');
+        if (newBlock) {
+            container.innerHTML = newBlock.innerHTML;
+
+            // optionally update document title if server changed it
+            const newTitle = doc.querySelector('title');
+            if (newTitle) document.title = newTitle.textContent;
+
+            if (pushState) {
+            // push the url (makes back/forward and bookmarking work)
+            history.pushState({ promotionsUrl: url }, '', url);
+            }
+
+            // scroll to the promotions area (nice UX after filter)
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            console.warn('Could not find #promotionsContainer in fetched page.');
+        }
+        } catch (err) {
+        console.error('Error loading promotions:', err);
+        }
+    }
+
+    // Intercept clicks on links that contain either a "filter" param or a "page" param
+    document.addEventListener('click', function (ev) {
+        const a = ev.target.closest('a');
+        if (!a) return;
+
+        // Only handle same-origin internal navigation
+        const href = a.getAttribute('href');
+        if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+        // Build absolute URL
+        let url;
+        try {
+        url = new URL(href, window.location.origin);
+        } catch (e) {
+        return; // invalid URL
+        }
+
+        const hasFilter = url.searchParams.has('filter');
+        const hasPage = url.searchParams.has('page');
+
+        // If the link is a filter or pagination link, intercept and load via AJAX
+        if (hasFilter || (hasPage && a.closest('#promotionsContainer'))) {
+        ev.preventDefault();
+        fetchAndReplace(url.toString(), true);
+        }
+    });
+
+    // Handle back/forward
+    window.addEventListener('popstate', function (ev) {
+        // When user navigates history, reload the current URL into the promotions container.
+        // Avoid pushing another history entry (pushState = false).
+        fetchAndReplace(location.href, false);
+    });
+    });
+</script>
+
+{% endblock %}
