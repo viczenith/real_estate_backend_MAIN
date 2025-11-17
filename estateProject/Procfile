@@ -1,1 +1,1 @@
-web: gunicorn estateProject.wsgi:application --log-file -
+web: gunicorn estateProject.wsgi:application --chdir=estateProject --log-file -

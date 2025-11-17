@@ -15,6 +15,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+# Add the parent directory to the Python path
+PARENT_DIR = BASE_DIR.parent
+if str(PARENT_DIR) not in sys.path:
+    sys.path.insert(0, str(PARENT_DIR))
+
 # Set the Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'estateProject.settings')
 
