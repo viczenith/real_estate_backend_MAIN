@@ -1,1 +1,1 @@
-web: gunicorn estateProject.wsgi:application --chdir=estateProject --log-file -
+web: cd /opt/render/project/src/real_estate_backend_MAIN/estateProject && gunicorn estateProject.wsgi:application --pythonpath=/opt/render/project/src/real_estate_backend_MAIN/estateProject --log-file -

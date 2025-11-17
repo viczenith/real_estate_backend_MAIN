@@ -6,7 +6,7 @@ services:
       pip install --upgrade pip
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: gunicorn estateProject.wsgi:application --chdir=estateProject --log-file -
+    startCommand: gunicorn estateProject.wsgi:application --pythonpath=/opt/render/project/src/real_estate_backend_MAIN/estateProject --log-file -
     plan: free
     envVars:
       - key: PYTHON_VERSION
