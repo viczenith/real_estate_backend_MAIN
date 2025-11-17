@@ -3,9 +3,7 @@ services:
     name: real-estate-backend
     env: python
     buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      python manage.py collectstatic --noinput
+      pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: gunicorn estateProject.wsgi:application --chdir estateProject --workers 3 --bind 0.0.0.0:$PORT
     plan: free
     envVars:
