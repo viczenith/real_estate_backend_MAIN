@@ -8,14 +8,13 @@ import os
 import sys
 from pathlib import Path
 
-# Add the project directory to the Python path
+# Calculate paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BASE_DIR / 'estateProject'
 
-# Add both the project root and the project directory to the path
-for path in [str(BASE_DIR), str(PROJECT_ROOT)]:
-    if path not in sys.path:
-        sys.path.insert(0, path)
+# Add the project directory to the Python path
+sys.path.append(str(BASE_DIR))
+sys.path.append(str(PROJECT_ROOT))
 
 # Set the Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'estateProject.settings')
