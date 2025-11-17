@@ -247,13 +247,37 @@ FIREBASE_DEFAULT_COLOR = os.environ.get('FIREBASE_DEFAULT_COLOR', '#075E54')
 FIREBASE_DEFAULT_CHANNEL_ID = os.environ.get('FIREBASE_DEFAULT_CHANNEL_ID', 'chat_messages')
 FIREBASE_DEFAULT_SOUND = os.environ.get('FIREBASE_DEFAULT_SOUND', 'default')
 
-# Celery auto-discovers tasks
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
+# Redis Configuration
+# In production, set REDIS_URL in your environment variables
+# Example: rediss://default:password@host:port
+REDIS_URL = os.environ['REDIS_URL']  # Required in production
+
+# Celery settings
+CELERY_BROKER_URL = f"{REDIS_URL}/0"
+CELERY_RESULT_BACKEND = f"{REDIS_URL}/1"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+
+# Redis specific settings
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'ssl_cert_reqs': 'CERT_NONE',  # For self-signed certs
+    'retry_on_timeout': True,
+    'socket_keepalive': True,
+    'socket_timeout': 30,
+    'socket_connect_timeout': 30,
+}
+
 CELERY_TASK_ROUTES = {
     "estateApp.tasks.dispatch_notification_batch": {"queue": "notifications"},
     "estateApp.tasks.dispatch_notification_stream": {"queue": "notifications"},
 }
+
+# Worker settings
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TASK_SOFT_TIME_LIMIT = 30
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 100
+CELERY_WORKER_DISABLE_RATE_LIMITS = True
