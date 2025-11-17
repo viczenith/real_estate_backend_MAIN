@@ -2,32 +2,37 @@ services:
   - type: web
     name: real-estate-backend
     env: python
-    buildCommand: ./render-build.sh
-    startCommand: cd estateProject && gunicorn estateProject.wsgi:application
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn estateProject.wsgi:application --log-file -
     plan: free
     envVars:
       - key: DJANGO_SETTINGS_MODULE
-        value: estateProject.settings
+        value: estateProject.settings.production
       - key: PYTHON_VERSION
         value: 3.12.3
+      - key: PYTHONUNBUFFERED
+        value: "True"
       - key: SECRET_KEY
         sync: false
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: "*"
-      - key: POSTGRES_DB
+        value: "real-estate-backend.onrender.com,localhost,127.0.0.1"
+      - key: DATABASE_URL
         sync: false
-      - key: POSTGRES_USER
-        sync: false
-      - key: POSTGRES_PASSWORD
-        sync: false
-      - key: POSTGRES_HOST
-        sync: false
-      - key: POSTGRES_PORT
-        value: "5432"
       - key: REDIS_URL
         sync: false
+      - key: CELERY_BROKER_URL
+        fromParam: REDIS_URL
+      - key: CELERY_RESULT_BACKEND
+        fromParam: REDIS_URL
     autoDeploy: true
-
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    healthCheckPath: /admin/
+    healthCheckTimeout: 120
     staticPublishPath: staticfiles
