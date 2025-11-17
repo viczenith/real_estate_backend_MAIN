@@ -6,7 +6,7 @@ services:
       pip install --upgrade pip
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: cd estateProject && gunicorn estateProject.wsgi:application --log-file -
+    startCommand: gunicorn estateProject.wsgi:application --log-file -
     plan: free
     envVars:
       - key: PYTHON_VERSION
@@ -14,7 +14,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: "True"
       - key: DJANGO_SETTINGS_MODULE
-        value: estateProject.settings.production
+        value: estateProject.settings
       - key: SECRET_KEY
         sync: false
       - key: DEBUG
