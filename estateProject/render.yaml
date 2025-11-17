@@ -3,17 +3,18 @@ services:
     name: real-estate-backend
     env: python
     buildCommand: |
+      pip install --upgrade pip
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: gunicorn estateProject.wsgi:application --log-file -
+    startCommand: cd estateProject && gunicorn estateProject.wsgi:application --log-file -
     plan: free
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: estateProject.settings.production
       - key: PYTHON_VERSION
         value: 3.12.3
       - key: PYTHONUNBUFFERED
         value: "True"
+      - key: DJANGO_SETTINGS_MODULE
+        value: estateProject.settings.production
       - key: SECRET_KEY
         sync: false
       - key: DEBUG
@@ -29,10 +30,6 @@ services:
       - key: CELERY_RESULT_BACKEND
         fromParam: REDIS_URL
     autoDeploy: true
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-      python manage.py collectstatic --noinput
     healthCheckPath: /admin/
     healthCheckTimeout: 120
     staticPublishPath: staticfiles
