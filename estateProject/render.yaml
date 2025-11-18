@@ -4,7 +4,7 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: gunicorn estateProject.wsgi:application --chdir estateProject --workers 3 --bind 0.0.0.0:$PORT
+    startCommand: cd /opt/render/project/src/real_estate_backend_MAIN/estateProject && gunicorn estateProject.wsgi:application --workers 3 --bind 0.0.0.0:$PORT
     plan: free
     envVars:
       - key: PYTHON_VERSION

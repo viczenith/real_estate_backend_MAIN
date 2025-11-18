@@ -1,1 +1,1 @@
-web: gunicorn estateProject.wsgi:application --chdir estateProject --workers 3 --bind 0.0.0.0:$PORT
+web: cd /opt/render/project/src/real_estate_backend_MAIN/estateProject && gunicorn estateProject.wsgi:application --workers 3 --bind 0.0.0.0:$PORT
