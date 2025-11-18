@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" style="color-scheme: light;">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -193,38 +193,20 @@
 
   <!-- Theme Switching Script -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize theme from localStorage or system preference
-      const savedTheme = localStorage.getItem('theme') || 'system';
-      setTheme(savedTheme);
+    document.addEventListener('DOMContentLoaded', function() {
+      // Force light theme and remove theme toggle functionality
+      const theme = 'light';
+      const html = document.documentElement;
       
-      // Listen for theme changes from the sidebar toggler
-      document.addEventListener('themeChanged', (e) => {
-        setTheme(e.detail.theme);
-      });
-
-      // System theme change detection
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'system') {
-          setTheme('system');
-        }
-      });
-
-      function setTheme(theme) {
-        localStorage.setItem('theme', theme);
-        
-        if (theme === 'system') {
-          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', systemTheme);
-        } else {
-          document.documentElement.setAttribute('data-theme', theme);
-        }
-        
-        // Dispatch event to update any UI components
-        document.dispatchEvent(new CustomEvent('themeUpdated', { 
-          detail: { theme: theme }
-        }));
+      // Always set light theme
+      html.setAttribute('data-theme', 'light');
+      document.body.style.backgroundColor = '#f5f5f7';
+      document.body.style.color = '#1a1a1a';
+      
+      // Remove theme toggle button if it exists
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.style.display = 'none';
       }
     });
   </script>
