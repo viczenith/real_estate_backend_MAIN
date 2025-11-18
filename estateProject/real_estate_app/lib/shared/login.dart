@@ -1,281 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/animation.dart';
-// import 'package:real_estate_app/core/api_service.dart';
-// import 'package:real_estate_app/admin/admin_dashboard.dart';
-// import 'package:real_estate_app/client/client_dashboard.dart';
-// import 'package:real_estate_app/marketer/marketer_dashboard.dart';
-
-// class LoginScreen extends StatefulWidget {
-//   const LoginScreen({super.key});
-
-//   @override
-//   State<LoginScreen> createState() => _LoginScreenState();
-// }
-
-// class _LoginScreenState extends State<LoginScreen>
-//     with SingleTickerProviderStateMixin {
-//   late AnimationController _controller;
-//   late Animation<double> _opacityAnimation;
-//   late Animation<Offset> _slideAnimation;
-//   late Animation<double> _scaleAnimation;
-//   final _formKey = GlobalKey<FormState>();
-//   final _emailController = TextEditingController();
-//   final _passwordController = TextEditingController();
-//   bool _loading = false;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _controller = AnimationController(
-//       vsync: this,
-//       duration: const Duration(milliseconds: 1000),
-//     );
-
-//     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-//       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-//     );
-
-//     _slideAnimation = Tween<Offset>(
-//       begin: const Offset(-1, 0),
-//       end: Offset.zero,
-//     ).animate(
-//       CurvedAnimation(
-//         parent: _controller,
-//         curve: const Interval(0.2, 1.0, curve: Curves.fastOutSlowIn),
-//       ),
-//     );
-
-//     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-//       CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-//     );
-
-//     _controller.forward();
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     _emailController.dispose();
-//     _passwordController.dispose();
-//     super.dispose();
-//   }
-
-//   void _handleLogin() async {
-//     if (_formKey.currentState!.validate()) {
-//       setState(() {
-//         _loading = true;
-//       });
-//       try {
-//         // Use the email field as username.
-//         String token = await ApiService()
-//             .login(_emailController.text.trim(), _passwordController.text);
-//         // Retrieve the user's profile to check their role.
-//         Map<String, dynamic> profile = await ApiService().getUserProfile(token);
-//         String role = profile['role'] ?? '';
-//         // Navigate to the corresponding dashboard based on role.
-//         if (role == 'admin') {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//                 builder: (context) => AdminDashboard(token: token)),
-//           );
-//         } else if (role == 'client') {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//                 builder: (context) => ClientDashboard(token: token)),
-//           );
-//         } else if (role == 'marketer') {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//                 builder: (context) => MarketerDashboard(token: token)),
-//           );
-//         } else {
-//           ScaffoldMessenger.of(context).showSnackBar(
-//             const SnackBar(content: Text('User role is not defined.')),
-//           );
-//         }
-//       } catch (e) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Login failed: $e')),
-//         );
-//       } finally {
-//         setState(() {
-//           _loading = false;
-//         });
-//       }
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: AnimatedBuilder(
-//         animation: _controller,
-//         builder: (context, child) {
-//           return Container(
-//             decoration: BoxDecoration(
-//               gradient: LinearGradient(
-//                 begin: Alignment.topLeft,
-//                 end: Alignment.bottomRight,
-//                 colors: [
-//                   Colors.blue.shade800,
-//                   Colors.purple.shade600,
-//                 ],
-//               ),
-//             ),
-//             child: SafeArea(
-//               child: Center(
-//                 child: FadeTransition(
-//                   opacity: _opacityAnimation,
-//                   child: SlideTransition(
-//                     position: _slideAnimation,
-//                     child: ScaleTransition(
-//                       scale: _scaleAnimation,
-//                       child: Container(
-//                         margin: const EdgeInsets.all(24),
-//                         padding: const EdgeInsets.all(32),
-//                         decoration: BoxDecoration(
-//                           color: Colors.white.withOpacity(0.95),
-//                           borderRadius: BorderRadius.circular(20),
-//                           boxShadow: [
-//                             BoxShadow(
-//                               color: Colors.black.withOpacity(0.2),
-//                               blurRadius: 20,
-//                               spreadRadius: 5,
-//                             ),
-//                           ],
-//                         ),
-//                         child: Form(
-//                           key: _formKey,
-//                           child: Column(
-//                             mainAxisSize: MainAxisSize.min,
-//                             children: [
-//                               Hero(
-//                                 tag: 'app-logo',
-//                                 child: Image.asset(
-//                                   'assets/logo.png',
-//                                   height: 80,
-//                                   width: 80,
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 30),
-//                               TextFormField(
-//                                 controller: _emailController,
-//                                 decoration: InputDecoration(
-//                                   prefixIcon: const Icon(Icons.email),
-//                                   labelText: 'Email',
-//                                   border: OutlineInputBorder(
-//                                     borderRadius: BorderRadius.circular(10),
-//                                   ),
-//                                 ),
-//                                 validator: (value) {
-//                                   if (value == null || value.isEmpty) {
-//                                     return 'Please enter your email';
-//                                   }
-//                                   return null;
-//                                 },
-//                               ),
-//                               const SizedBox(height: 20),
-//                               TextFormField(
-//                                 controller: _passwordController,
-//                                 obscureText: true,
-//                                 decoration: InputDecoration(
-//                                   prefixIcon: const Icon(Icons.lock),
-//                                   labelText: 'Password',
-//                                   border: OutlineInputBorder(
-//                                     borderRadius: BorderRadius.circular(10),
-//                                   ),
-//                                 ),
-//                                 validator: (value) {
-//                                   if (value == null || value.isEmpty) {
-//                                     return 'Please enter your password';
-//                                   }
-//                                   return null;
-//                                 },
-//                               ),
-//                               const SizedBox(height: 25),
-//                               _loading
-//                                   ? const CircularProgressIndicator()
-//                                   : AnimatedButton(
-//                                       onPressed: _handleLogin,
-//                                       animation: _controller,
-//                                     ),
-//                               const SizedBox(height: 20),
-//                               TextButton(
-//                                 onPressed: () =>
-//                                     Navigator.pushNamed(context, '/forgot-password'),
-//                                 child: Text(
-//                                   'Forgot Password?',
-//                                   style: TextStyle(
-//                                     color: Colors.blue.shade800,
-//                                     fontWeight: FontWeight.w600,
-//                                   ),
-//                                 ),
-//                               ),
-//                             ],
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
-// class AnimatedButton extends StatelessWidget {
-//   final VoidCallback onPressed;
-//   final Animation<double> animation;
-
-//   const AnimatedButton({
-//     super.key,
-//     required this.onPressed,
-//     required this.animation,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AnimatedBuilder(
-//       animation: animation,
-//       builder: (context, child) {
-//         return Transform.scale(
-//           scale: animation.value,
-//           child: ElevatedButton(
-//             onPressed: onPressed,
-//             style: ElevatedButton.styleFrom(
-//               backgroundColor: Colors.blue.shade800,
-//               padding:
-//                   const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-//               shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               elevation: 5,
-//               shadowColor: Colors.blue.shade200,
-//             ),
-//             child: const Text(
-//               'Sign In',
-//               style: TextStyle(
-//                 fontSize: 18,
-//                 fontWeight: FontWeight.w600,
-//                 color: Colors.white,
-//               ),
-//             ),
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }
-
-
-
 import 'dart:async';
 import 'dart:ui';
 import 'dart:math' as math;
@@ -410,8 +132,10 @@ class _LoginScreenState extends State<LoginScreen>
           if (data.containsKey('detail')) return data['detail'].toString();
           final parts = <String>[];
           data.forEach((k, v) {
-            if (v is List) parts.addAll(v.map((e) => e.toString()));
-            else parts.add(v.toString());
+            if (v is List)
+              parts.addAll(v.map((e) => e.toString()));
+            else
+              parts.add(v.toString());
           });
           if (parts.isNotEmpty) return parts.join(' ');
         }
@@ -437,8 +161,10 @@ class _LoginScreenState extends State<LoginScreen>
     await _saveRemembered();
 
     try {
-      final token = await ApiService()
+      final loginResponse = await ApiService()
           .login(_emailController.text.trim(), _passwordController.text);
+      final token = loginResponse['token'] as String;
+
       final profile = await ApiService().getUserProfile(token);
 
       await NavigationService.storeUserToken(token);
@@ -447,7 +173,8 @@ class _LoginScreenState extends State<LoginScreen>
       final role = (profile['role'] ?? '').toString().toLowerCase();
 
       if (role == 'admin_support' || role == 'support') {
-        Navigator.pushReplacementNamed(context, '/admin-support-dashboard', arguments: token);
+        Navigator.pushReplacementNamed(context, '/admin-support-dashboard',
+            arguments: token);
       } else if (role == 'admin') {
         Navigator.pushReplacement(
           context,
@@ -901,16 +628,16 @@ class _LoginScreenState extends State<LoginScreen>
                                             width: double.infinity,
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 10, horizontal: 12),
-                                            margin:
-                                                const EdgeInsets.only(bottom: 12),
+                                            margin: const EdgeInsets.only(
+                                                bottom: 12),
                                             decoration: BoxDecoration(
                                               color: Colors.redAccent
                                                   .withOpacity(0.12),
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               border: Border.all(
-                                                color:
-                                                    Colors.redAccent.withOpacity(0.2),
+                                                color: Colors.redAccent
+                                                    .withOpacity(0.2),
                                               ),
                                             ),
                                             child: Text(
@@ -1020,8 +747,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   _rememberMe = val ?? false;
                                                 });
                                               },
-                                              activeColor:
-                                                  Color(0xFF5E35B1),
+                                              activeColor: Color(0xFF5E35B1),
                                             ),
                                             const SizedBox(width: 6),
                                             GestureDetector(

@@ -1,31 +1,26 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:real_estate_app/admin/models/add_estate_plot_model.dart';
-import 'package:real_estate_app/admin/models/admin_dashboard_data.dart';
-import 'package:real_estate_app/shared/models/support_chat_model.dart';
+import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
-import 'package:http_parser/http_parser.dart';
-import 'dart:io';
-import 'package:path/path.dart' as p;
+import 'package:real_estate_app/admin/models/add_estate_plot_model.dart';
+import 'package:real_estate_app/admin/models/admin_dashboard_data.dart';
 import 'package:real_estate_app/admin/models/add_plot_size.dart';
-// ignore: unused_import
-import 'package:real_estate_app/admin/models/add_amenities_model.dart';
 import 'package:real_estate_app/admin/models/estate_details_model.dart';
-// ignore: unused_import
-import 'package:real_estate_app/admin/models/admin_user_registration.dart';
 import 'package:real_estate_app/admin/models/plot_allocation_model.dart';
 import 'package:real_estate_app/admin/models/plot_size_number_model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
+import 'package:real_estate_app/shared/models/support_chat_model.dart';
 import 'package:real_estate_app/core/config.dart';
 
 class ApiService {
-
   // final String baseUrl = 'http://10.54.177.72:8000/api';
 
   // /// Login using username and password.
@@ -48,10 +43,10 @@ class ApiService {
 
   // Base URL is now managed by the Config class
   String get baseUrl => Config.baseUrl;
-  
+
   // Timeout duration for API calls (30 seconds)
   static const Duration apiTimeout = Duration(seconds: 30);
-  
+
   // Helper method to handle all HTTP requests with consistent error handling
   Future<http.Response> _makeRequest(
     Future<http.Response> Function() request, {
@@ -59,38 +54,45 @@ class ApiService {
   }) async {
     try {
       final response = await request().timeout(apiTimeout);
-      
+
       // Log the response for debugging
-      debugPrint('API Response [${response.statusCode}]: ${response.request?.url}');
-      
+      debugPrint(
+          'API Response [${response.statusCode}]: ${response.request?.url}');
+
       if (response.statusCode >= 400) {
         throw ApiException(
           statusCode: response.statusCode,
-          message: customErrorMessage ?? 'Request failed with status ${response.statusCode}',
-          response: response,
+          message: customErrorMessage ??
+              'Request failed with status ${response.statusCode}',
+          details: response.body,
         );
       }
-      
+
       return response;
     } on TimeoutException {
       throw ApiException(
         statusCode: 408,
-        message: 'Request timed out. Please check your internet connection and try again.',
+        message:
+            'Request timed out. Please check your internet connection and try again.',
+        details: 'The request took too long to complete',
       );
     } on http.ClientException catch (e) {
       throw ApiException(
         statusCode: 0,
         message: 'Network error: ${e.message}',
+        details: e.toString(),
       );
     } on FormatException catch (e) {
       throw ApiException(
         statusCode: 0,
         message: 'Invalid server response: ${e.message}',
+        details: e.toString(),
       );
     } catch (e) {
       throw ApiException(
         statusCode: 0,
         message: 'An unexpected error occurred: $e',
+        details: e.toString(),
       );
     }
   }
@@ -98,9 +100,9 @@ class ApiService {
   /// Login using username and password.
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = '${Config.baseUrl}${Config.loginEndpoint}';
-    
+
     debugPrint('Attempting login to: $url');
-    
+
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -110,9 +112,9 @@ class ApiService {
           'password': password,
         }),
       );
-      
+
       debugPrint('Login response: ${response.statusCode} - ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['token'] != null) {
@@ -137,38 +139,6 @@ class ApiService {
       debugPrint('Login error: $e');
       rethrow;
     }
-    
-    final response = await _makeRequest(
-      () => http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      ),
-      customErrorMessage: 'Login failed. Please check your credentials and try again.',
-    );
-    
-    try {
-      final data = jsonDecode(response.body);
-      if (data['token'] == null) {
-        throw ApiException(
-          statusCode: response.statusCode,
-          message: 'Invalid server response: No token received',
-          response: response,
-        );
-      }
-      return data['token'];
-    } catch (e) {
-      throw ApiException(
-        statusCode: response.statusCode,
-        message: 'Failed to parse server response',
-        response: response,
-      );
-    }
   }
 
   Future<Map<String, dynamic>> fetchSupportBirthdaySummary(String token) async {
@@ -191,15 +161,13 @@ class ApiService {
       throw ApiException(
         statusCode: response.statusCode,
         message: 'Failed to parse birthday summary data',
-        response: response,
+        details: response.body,
       );
     }
-    }
-
-    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> fetchSupportSpecialDayCounts(String token) async {
+  Future<Map<String, dynamic>> fetchSupportSpecialDayCounts(
+      String token) async {
     final uri = Uri.parse('$baseUrl${Config.supportSpecialDayCounts}');
 
     final response = await http.get(
@@ -211,7 +179,8 @@ class ApiService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to load special day counts: ${response.statusCode}');
+      throw Exception(
+          'Failed to load special day counts: ${response.statusCode}');
     }
 
     final decoded = jsonDecode(response.body);
@@ -243,7 +212,8 @@ class ApiService {
     throw Exception('Unexpected response for birthday counts');
   }
 
-  Future<Map<String, dynamic>> fetchSupportSpecialDaySummary(String token) async {
+  Future<Map<String, dynamic>> fetchSupportSpecialDaySummary(
+      String token) async {
     final uri = Uri.parse('$baseUrl/admin-support/special-days/summary/');
 
     final response = await http.get(
@@ -261,7 +231,8 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> fetchCustomSpecialDays(String token) async {
+  Future<List<Map<String, dynamic>>> fetchCustomSpecialDays(
+      String token) async {
     final uri = Uri.parse('$baseUrl/admin-support/custom-special-days/');
 
     final response = await http.get(
@@ -278,8 +249,9 @@ class ApiService {
         final raw = decoded['customDays'];
         if (raw is List) {
           return raw
-              .map<Map<String, dynamic>>((item) =>
-                  item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{})
+              .map<Map<String, dynamic>>((item) => item is Map
+                  ? Map<String, dynamic>.from(item)
+                  : <String, dynamic>{})
               .where((item) => item.isNotEmpty)
               .toList();
         }
@@ -323,7 +295,8 @@ class ApiService {
 
     if (response.statusCode == 201) {
       final decoded = jsonDecode(response.body);
-      if (decoded is Map<String, dynamic> && decoded['customDay'] is Map<String, dynamic>) {
+      if (decoded is Map<String, dynamic> &&
+          decoded['customDay'] is Map<String, dynamic>) {
         return decoded['customDay'] as Map<String, dynamic>;
       }
       return const {};
@@ -383,8 +356,7 @@ class ApiService {
     required String token,
     required int messageId,
   }) async {
-    final uri =
-        Uri.parse('$baseUrl/marketers/chat/$messageId/delete/');
+    final uri = Uri.parse('$baseUrl/marketers/chat/$messageId/delete/');
 
     final response = await http.delete(
       uri,
@@ -401,7 +373,9 @@ class ApiService {
       final message = payload['message'];
       if (message is Map<String, dynamic>) {
         final fileUrl = message['file_url']?.toString();
-        if (fileUrl != null && fileUrl.isNotEmpty && !fileUrl.startsWith('http')) {
+        if (fileUrl != null &&
+            fileUrl.isNotEmpty &&
+            !fileUrl.startsWith('http')) {
           message['file_url'] = _absUrl(fileUrl);
         }
       }
@@ -422,7 +396,8 @@ class ApiService {
       throw Exception('Message not found.');
     }
 
-    throw Exception('Failed to delete marketer message: ${response.statusCode}');
+    throw Exception(
+        'Failed to delete marketer message: ${response.statusCode}');
   }
 
   Future<Map<String, dynamic>> deleteMarketerChatMessageForEveryone({
@@ -448,7 +423,9 @@ class ApiService {
       final message = payload['message'];
       if (message is Map<String, dynamic>) {
         final fileUrl = message['file_url']?.toString();
-        if (fileUrl != null && fileUrl.isNotEmpty && !fileUrl.startsWith('http')) {
+        if (fileUrl != null &&
+            fileUrl.isNotEmpty &&
+            !fileUrl.startsWith('http')) {
           message['file_url'] = _absUrl(fileUrl);
         }
       }
@@ -490,7 +467,9 @@ class ApiService {
     for (final entry in messages) {
       if (entry is Map<String, dynamic>) {
         final fileUrl = entry['file_url']?.toString();
-        if (fileUrl != null && fileUrl.isNotEmpty && !fileUrl.startsWith('http')) {
+        if (fileUrl != null &&
+            fileUrl.isNotEmpty &&
+            !fileUrl.startsWith('http')) {
           entry['file_url'] = _absUrl(fileUrl);
         }
         final avatar = entry['sender_avatar']?.toString();
@@ -512,8 +491,8 @@ class ApiService {
     required String participantId,
     int? lastMessageId,
   }) async {
-    final uri = _supportChatUri(role, participantId, '')
-        .replace(queryParameters: {
+    final uri =
+        _supportChatUri(role, participantId, '').replace(queryParameters: {
       if (lastMessageId != null) 'last_msg_id': '$lastMessageId',
     });
 
@@ -676,15 +655,16 @@ class ApiService {
       throw Exception('Authentication failed. Please login again.');
     }
 
-    throw Exception('Failed to mark support messages read: ${response.statusCode}');
+    throw Exception(
+        'Failed to mark support messages read: ${response.statusCode}');
   }
 
   Future<Map<String, dynamic>> deleteSupportMessage({
     required String token,
     required int messageId,
   }) async {
-    final uri = Uri.parse(
-        '$baseUrl/admin-support/chat/messages/$messageId/delete/');
+    final uri =
+        Uri.parse('$baseUrl/admin-support/chat/messages/$messageId/delete/');
 
     final response = await http.delete(
       uri,
@@ -735,7 +715,9 @@ class ApiService {
       if (response.statusCode == 200) {
         final dynamic payload = jsonDecode(response.body);
         if (payload is List) {
-          return payload.map((item) => Chat.fromJson(item as Map<String, dynamic>)).toList();
+          return payload
+              .map((item) => Chat.fromJson(item as Map<String, dynamic>))
+              .toList();
         }
         throw Exception('Unexpected marketer chat payload format.');
       }
@@ -796,7 +778,8 @@ class ApiService {
       throw Exception(
           'Failed to search ${isClient ? 'clients' : 'marketers'}: ${response.statusCode}');
     } catch (e) {
-      throw Exception('Error searching ${isClient ? 'clients' : 'marketers'}: $e');
+      throw Exception(
+          'Error searching ${isClient ? 'clients' : 'marketers'}: $e');
     }
   }
 
@@ -1617,7 +1600,6 @@ class ApiService {
     }
   }
 
- 
   Future<dynamic> _handleResponse(http.Response response) async {
     try {
       // Explicitly decode with UTF-8 to handle emojis and special characters correctly
@@ -1975,24 +1957,18 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         if (data.isEmpty) {
-          if (kDebugMode) {
-
-          }
+          if (kDebugMode) {}
           return [];
         }
         return data.map((chatJson) => Chat.fromJson(chatJson)).toList();
       } else {
         final errorMsg =
             'Failed to load client chats: ${response.statusCode} - ${response.body}';
-        if (kDebugMode) {
-
-        }
+        if (kDebugMode) {}
         throw Exception(errorMsg);
       }
     } catch (e) {
-      if (kDebugMode) {
-
-      }
+      if (kDebugMode) {}
       rethrow;
     }
   }
@@ -2314,7 +2290,7 @@ class ApiService {
           'Failed to list estates: ${resp.statusCode} ${resp.body}');
     }
     final dynamic decoded = jsonDecode(resp.body);
-    
+
     // DEBUG: Log raw response
     debugPrint('📥 API listEstates response status: ${resp.statusCode}');
     debugPrint('📥 Response body length: ${resp.body.length} chars');
@@ -2345,21 +2321,23 @@ class ApiService {
             // DEBUG: Check if promotional_offers exists
             if (estateMap.containsKey('promotional_offers')) {
               final promos = estateMap['promotional_offers'];
-              debugPrint('✅ Estate "${estateMap['name']}": has promotional_offers (${promos is List ? promos.length : 0})');
+              debugPrint(
+                  '✅ Estate "${estateMap['name']}": has promotional_offers (${promos is List ? promos.length : 0})');
               if (promos is List && promos.isNotEmpty) {
                 debugPrint('   First promo: ${promos[0]}');
               }
             } else {
-              debugPrint('❌ Estate "${estateMap['name']}": NO promotional_offers field!');
+              debugPrint(
+                  '❌ Estate "${estateMap['name']}": NO promotional_offers field!');
               debugPrint('   Available keys: ${estateMap.keys.toList()}');
             }
             return estateMap;
           }
           return {'id': null, 'name': e?.toString()};
         }).toList();
-        
+
         debugPrint('📦 Returning ${results.length} estates from API');
-        
+
         final out = Map<String, dynamic>.from(decoded);
         out['results'] = results;
         return out;
@@ -2811,19 +2789,6 @@ class ApiService {
       'Content-Type': 'application/json',
       'Authorization': 'Token $token',
     });
-  }
-
-  void _normalizeMediaUrls(Map<String, dynamic> data) {
-    // shallow normalization for common keys
-    final keys = ['profile_image', 'image', 'avatar', 'photo'];
-    for (final k in keys) {
-      if (data.containsKey(k)) {
-        final v = data[k];
-        if (v != null && v is String && v.isNotEmpty && !v.startsWith('http')) {
-          data[k] = baseUrl + v;
-        }
-      }
-    }
   }
 
   /// Estate plot details Views
@@ -3530,16 +3495,12 @@ class ApiService {
       'Accept': 'application/json',
     };
 
-    if (kDebugMode) {
-    }
+    if (kDebugMode) {}
 
     final resp = await http.get(uri, headers: headers);
 
     if (kDebugMode) {
-
-      if (resp.statusCode != 200) {
-
-      }
+      if (resp.statusCode != 200) {}
     }
 
     final parsed = await _handleResponse(resp);
@@ -3557,10 +3518,7 @@ class ApiService {
 
     final url = '$baseUrl/client/notifications/$userNotificationId/';
 
-    if (kDebugMode) {
-
-
-    }
+    if (kDebugMode) {}
 
     final resp = await http.get(
       Uri.parse(url),
@@ -3572,9 +3530,7 @@ class ApiService {
       },
     );
 
-    if (kDebugMode) {
-
-    }
+    if (kDebugMode) {}
 
     final parsed = await _handleResponse(resp);
     return Map<String, dynamic>.from(parsed as Map);
@@ -3588,8 +3544,7 @@ class ApiService {
 
     final url = '$baseUrl/client/notifications/unread-count/';
 
-    if (kDebugMode) {
-    }
+    if (kDebugMode) {}
 
     final resp = await http.get(
       Uri.parse(url),
@@ -3600,12 +3555,8 @@ class ApiService {
     );
 
     if (kDebugMode) {
-
       if (resp.statusCode == 200) {
-
-      } else {
-
-      }
+      } else {}
     }
 
     final parsed = await _handleResponse(resp);
@@ -3633,10 +3584,7 @@ class ApiService {
 
     final url = '$baseUrl/client/notifications/$userNotificationId/mark-read/';
 
-    if (kDebugMode) {
-
-
-    }
+    if (kDebugMode) {}
 
     final resp = await http.post(
       Uri.parse(url),
@@ -3646,9 +3594,7 @@ class ApiService {
       },
     );
 
-    if (kDebugMode) {
-
-    }
+    if (kDebugMode) {}
 
     final parsed = await _handleResponse(resp);
     return Map<String, dynamic>.from(parsed as Map);
@@ -3666,10 +3612,7 @@ class ApiService {
     final url =
         '$baseUrl/client/notifications/$userNotificationId/mark-unread/';
 
-    if (kDebugMode) {
-
-
-    }
+    if (kDebugMode) {}
 
     final resp = await http.post(
       Uri.parse(url),
@@ -3679,9 +3622,7 @@ class ApiService {
       },
     );
 
-    if (kDebugMode) {
-
-    }
+    if (kDebugMode) {}
 
     final parsed = await _handleResponse(resp);
     return Map<String, dynamic>.from(parsed as Map);
@@ -3697,10 +3638,7 @@ class ApiService {
 
     final url = '$baseUrl/client/notifications/mark-all-read/';
 
-    if (kDebugMode) {
-
-
-    }
+    if (kDebugMode) {}
 
     final resp = await http.post(
       Uri.parse(url),
@@ -3710,9 +3648,7 @@ class ApiService {
       },
     );
 
-    if (kDebugMode) {
-
-    }
+    if (kDebugMode) {}
 
     final parsed = await _handleResponse(resp);
     final map = Map<String, dynamic>.from(parsed as Map);
@@ -3833,7 +3769,8 @@ class ApiService {
       throw Exception('Authentication token is required');
     }
 
-    final url = '$baseUrl/marketers/notifications/$userNotificationId/mark-read/';
+    final url =
+        '$baseUrl/marketers/notifications/$userNotificationId/mark-read/';
     final resp = await http.post(
       Uri.parse(url),
       headers: {
@@ -3889,8 +3826,6 @@ class ApiService {
           : int.tryParse(map['marked']?.toString() ?? '0') ?? 0,
     };
   }
-
- 
 
   // MARKETER SIDE
 
@@ -4151,8 +4086,8 @@ class ApiService {
     );
   }
 
-  String buildWhatsAppLink(String rawPhone) {
-    if (rawPhone == null) return '';
+  String buildWhatsAppLink(String? rawPhone) {
+    if (rawPhone == null || rawPhone.isEmpty) return '';
     String s = rawPhone.replaceAll(RegExp(r'[^\d+]'), '');
     s = s.replaceFirst(RegExp(r'^\+'), '');
     return 'https://wa.me/$s';
@@ -4279,9 +4214,7 @@ class ApiService {
         // Check if response is HTML error page (server error)
         if (resp.body.trim().startsWith('<!DOCTYPE') ||
             resp.body.trim().startsWith('<html')) {
-          if (kDebugMode) {
-
-          }
+          if (kDebugMode) {}
           // Return empty data to prevent infinite loop
           return {
             'total_unread': 0,
@@ -4348,8 +4281,7 @@ class ApiService {
       } else if (resp.statusCode == 401) {
         throw Exception('Authentication failed (401): ${resp.body}');
       } else if (resp.statusCode == 500) {
-        if (kDebugMode) {
-        }
+        if (kDebugMode) {}
         // Return empty data instead of throwing to prevent retry loop
         return {
           'total_unread': 0,
@@ -4361,10 +4293,7 @@ class ApiService {
         throw Exception(
             'Failed to fetch header data: ${resp.statusCode} ${resp.body}');
       }
-    } on FormatException catch (e) {
-      if (kDebugMode) {
-
-      }
+    } on FormatException {
       // Return empty data on JSON parse failure
       return {
         'total_unread': 0,
@@ -4373,9 +4302,7 @@ class ApiService {
         'unread_admin_count': 0,
       };
     } catch (e) {
-      if (kDebugMode) {
-
-      }
+      if (kDebugMode) {}
       rethrow;
     }
   }
@@ -4429,9 +4356,7 @@ class ApiService {
         // Check if response is HTML error page (server error)
         if (resp.body.trim().startsWith('<!DOCTYPE') ||
             resp.body.trim().startsWith('<html')) {
-          if (kDebugMode) {
-
-          }
+          if (kDebugMode) {}
           // Return empty list to prevent infinite loop
           return <Map<String, dynamic>>[];
         }
@@ -4444,24 +4369,18 @@ class ApiService {
       } else if (resp.statusCode == 401) {
         throw Exception('Authentication failed (401): ${resp.body}');
       } else if (resp.statusCode == 500) {
-        if (kDebugMode) {
-        }
+        if (kDebugMode) {}
         // Return empty list instead of throwing to prevent retry loop
         return <Map<String, dynamic>>[];
       } else {
         throw Exception(
             'Failed to load notifications: ${resp.statusCode} ${resp.body}');
       }
-    } on FormatException catch (e) {
-      if (kDebugMode) {
-
-      }
+    } on FormatException {
       // Return empty list on JSON parse failure
       return <Map<String, dynamic>>[];
     } catch (e) {
-      if (kDebugMode) {
-
-      }
+      if (kDebugMode) {}
       rethrow;
     }
   }
@@ -4968,8 +4887,8 @@ class ApiService {
       params['last_msg_id'] = lastMsgId.toString();
     }
 
-    final uri = Uri.parse('$baseUrl/marketers/chat/')
-        .replace(queryParameters: params);
+    final uri =
+        Uri.parse('$baseUrl/marketers/chat/').replace(queryParameters: params);
 
     try {
       final response = await http.get(
@@ -5036,16 +4955,19 @@ class ApiService {
       if (file != null) {
         File uploadedFile;
         if (file.bytes != null) {
-          uploadedFile = await persistFileBytes(bytes: file.bytes!, fileName: file.name);
+          uploadedFile =
+              await persistFileBytes(bytes: file.bytes!, fileName: file.name);
         } else if (file.readStream != null) {
-          uploadedFile = await persistFileStream(stream: file.readStream!, fileName: file.name);
+          uploadedFile = await persistFileStream(
+              stream: file.readStream!, fileName: file.name);
         } else if (file.path != null) {
           uploadedFile = File(file.path!);
         } else {
           throw Exception('Unable to read attachment.');
         }
 
-        final mimeType = lookupMimeType(uploadedFile.path) ?? 'application/octet-stream';
+        final mimeType =
+            lookupMimeType(uploadedFile.path) ?? 'application/octet-stream';
         final parts = mimeType.split('/');
         final bytes = await uploadedFile.readAsBytes();
         request.files.add(
@@ -5252,4 +5174,3 @@ class ApiService {
     return file;
   }
 }
-
