@@ -7,6 +7,7 @@ services:
       pip install --no-cache-dir -r requirements.txt
       python -c "import sys; print('Python Path:', sys.path)"
       python -c "import pkg_resources; print('Installed Packages:', [d.project_name for d in pkg_resources.working_set])"
+      python -c "import dj_database_url; print('dj-database-url location:', dj_database_url.__file__)"
       python manage.py collectstatic --noinput
     releaseCommand: python manage.py migrate
     startCommand: gunicorn estateProject.wsgi:application --chdir estateProject --workers 3 --bind 0.0.0.0:$PORT
