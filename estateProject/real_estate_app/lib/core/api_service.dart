@@ -48,38 +48,152 @@ class ApiService {
 
   // Base URL is now managed by the Config class
   String get baseUrl => Config.baseUrl;
+  
+  // Timeout duration for API calls (30 seconds)
+  static const Duration apiTimeout = Duration(seconds: 30);
+  
+  // Helper method to handle all HTTP requests with consistent error handling
+  Future<http.Response> _makeRequest(
+    Future<http.Response> Function() request, {
+    String? customErrorMessage,
+  }) async {
+    try {
+      final response = await request().timeout(apiTimeout);
+      
+      // Log the response for debugging
+      debugPrint('API Response [${response.statusCode}]: ${response.request?.url}');
+      
+      if (response.statusCode >= 400) {
+        throw ApiException(
+          statusCode: response.statusCode,
+          message: customErrorMessage ?? 'Request failed with status ${response.statusCode}',
+          response: response,
+        );
+      }
+      
+      return response;
+    } on TimeoutException {
+      throw ApiException(
+        statusCode: 408,
+        message: 'Request timed out. Please check your internet connection and try again.',
+      );
+    } on http.ClientException catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'Network error: ${e.message}',
+      );
+    } on FormatException catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'Invalid server response: ${e.message}',
+      );
+    } catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'An unexpected error occurred: $e',
+      );
+    }
+  }
 
   /// Login using username and password.
-  Future<String> login(String email, String password) async {
-    final url = '$baseUrl${Config.loginEndpoint}';
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      // Send "email" field, as the backend requires it.
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['token'];
-    } else {
-      throw Exception('Login failed: ${response.body}');
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = '${Config.baseUrl}${Config.loginEndpoint}';
+    
+    debugPrint('Attempting login to: $url');
+    
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: Config.defaultHeaders,
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+      
+      debugPrint('Login response: ${response.statusCode} - ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['token'] != null) {
+          return {
+            'success': true,
+            'token': data['token'],
+            'user': data['user'] ?? {},
+          };
+        }
+        throw Exception('No token received in response');
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Login failed');
+      }
+    } on SocketException catch (e) {
+      debugPrint('SocketException: $e');
+      throw Exception('No internet connection');
+    } on FormatException catch (e) {
+      debugPrint('FormatException: $e');
+      throw Exception('Invalid server response');
+    } catch (e) {
+      debugPrint('Login error: $e');
+      rethrow;
     }
-
+    
+    final response = await _makeRequest(
+      () => http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      ),
+      customErrorMessage: 'Login failed. Please check your credentials and try again.',
+    );
+    
+    try {
+      final data = jsonDecode(response.body);
+      if (data['token'] == null) {
+        throw ApiException(
+          statusCode: response.statusCode,
+          message: 'Invalid server response: No token received',
+          response: response,
+        );
+      }
+      return data['token'];
+    } catch (e) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: 'Failed to parse server response',
+        response: response,
+      );
+    }
   }
 
   Future<Map<String, dynamic>> fetchSupportBirthdaySummary(String token) async {
     final uri = Uri.parse('$baseUrl${Config.supportBirthdaySummary}');
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'Authorization': 'Token $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await _makeRequest(
+      () => http.get(
+        uri,
+        headers: {
+          'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
+        },
+      ),
+      customErrorMessage: 'Failed to load birthday summary',
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load birthday summary: ${response.statusCode}');
+    try {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: 'Failed to parse birthday summary data',
+        response: response,
+      );
+    }
     }
 
     return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1568,7 +1682,7 @@ class ApiService {
     }
   }
 
-// PLOT ALLOCATION
+  // PLOT ALLOCATION
   Future<List<ClientForPlotAllocation>> fetchClientsForPlotAllocation(
       String token) async {
     final url = Uri.parse('$baseUrl/clients/');
@@ -4442,9 +4556,9 @@ class ApiService {
 
   // Add these methods to your existing ApiService class
 
-// ============================================================================
-// CLIENT CHAT API METHODS
-// ============================================================================
+  // ============================================================================
+  // CLIENT CHAT API METHODS
+  // ============================================================================
 
   /// Fetch all chat messages between client and admin
   ///
