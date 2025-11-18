@@ -2,6 +2,8 @@
 from pathlib import Path
 import os
 import secrets
+import dj_database_url
+from dotenv import load_dotenv
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -134,6 +136,19 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Load environment variables
+load_dotenv()
+
+# Database configuration
+DATABASES = {
+    'default': dj_database_url.config(
+        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
+
+# For local development, you can uncomment this to use SQLite
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -141,16 +156,18 @@ CHANNEL_LAYERS = {
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', ''),
-        'USER': os.environ.get('POSTGRES_USER', ''),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-        'HOST': os.environ.get('POSTGRES_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-    }
-}
+# If you need to use the old style PostgreSQL configuration, uncomment and modify this:
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('POSTGRES_DB', ''),
+#         'USER': os.environ.get('POSTGRES_USER', ''),
+#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+#         'HOST': os.environ.get('POSTGRES_HOST', '127.0.0.1'),
+#         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
